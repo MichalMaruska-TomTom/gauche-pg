@@ -1,0 +1,29 @@
+-*-emacs-wiki-*-
+
+
+* I try to remove   *pg:query-extract-keyed-tuples*
+
+** moved to  pg.recordset ?
+  and provided through  *get-linked-rs*
+
+*** How was it used?
+we have a result and want to skip to another. We have to locate data on the row,
+and select a direction (of the skip).
+
+Direction is a relation, foreign key, location is a tuple address (via relname),
+or fsource number?
+
+- plugin *universal* [[~/gauche/gg/kahua-mmc/var/plugins/universal.scm]]
+
+Extract info on 1 particular (the first!) tuple, and its keys!
+It uses <row-tuple> from   kahua.tuples
+or <virtual-row>  !!
+
+
+
+
+;; -> obsoletes (use pg.result)                       ; pg:query-extract-keyed-tuples
+
+
+
+* I want to stop using deduce.scm

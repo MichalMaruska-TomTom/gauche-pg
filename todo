@@ -1,0 +1,56 @@
+
+* cursor:
+make it Read ONLY!  and without HOLD!    
+                                                                                                    
+ DECLARE name [ BINARY ] [ INSENSITIVE ] [ [ NO ] SCROLL ]                                          
+     CURSOR [ { WITH | WITHOUT } HOLD ] FOR query                                                   
+     [ FOR { READ ONLY | UPDATE [ OF column [, ...] ] } ]                                           
+                                                                                                    
+
+*  pqfsource   conditional
+
+* pg_ctl  restart->
+   PGRES_FATAL_ERROR
+   ... i should reconnect!!
+
+
+
+* PGRES_FATAL_ERROR  should terminate (by default)!
+
+query: SELECT * FROM person ORDER BY numero
+WARNING: pg-exec failed PGRES_FATAL_ERROR
+
+WARNING: pg-exec: the query was: FETCH 100 FROM scan_person;
+
+ABORT-ing! #<pg-result server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+/>
+WARNING: pg-exec failed PGRES_FATAL_ERROR
+
+WARNING: pg-exec: the query was: ABORT;
+
+ABORT-ing! #<pg-result null>
+WARNING: pg-exec failed PGRES_FATAL_ERROR
+
+WARNING: pg-exec: the query was: ABORT;
+
+ABORT-ing! #<pg-result null>
+WARNING: pg-exec failed PGRES_FATAL_ERROR
+
+WARNING: pg-exec: the query was: ABORT;
+
+
+
+
+
+* I think  pg:connect-to-data  does not respect the HOST !
+
+
+throw pg-exception, not result!
+
+* new functions in libpg:      *PQexecParams
+
+
+*  parsing Timezoned timestamp is not perfect.
+maybe PG is not perfect!

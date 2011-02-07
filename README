@@ -1,0 +1,27 @@
+http://maruska.dyndns.org/comp/activity/scheme/gauche/pg/
+
+binding for Gauche for libpq  (to communicate w/  postgresql).
+
+this directory is meant to be  Gauche/ext/pg
+
+The code is based on  what i could understand in the gauche-gtk sources.
+
+
+
+** installation:
+$ install-cvs
+$ ./configure
+$ make
+
+
+
+** other files:
+other files are for a MultiThreaded  application ... work-in-process
+pg/mt-copy.scm     the COPY TO/FROM protocol
+		   needs some of my other libs (found in the parent dir)
+
+app/migrate.scm    migrate data betwen 2 DBs (w/ a GUI feedback).
+		   uses  gauche-gtk
+
+
+

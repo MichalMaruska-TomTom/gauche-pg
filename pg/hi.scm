@@ -1,0 +1,114 @@
+(define-module pg.hi
+  (export
+   pg:update-or-insert
+   ;; sequences
+   pg:get-from-sequence
+   pg:curval
+   ;; normalizing  Attribute
+   pg:normalize-relation                ; fixme: should go into pg.database !
+   pg:normalize-attribute
+   pg:lookup-attribute
+
+   )
+  (use pg-hi)
+  (use pg.types)
+  (use pg.database)
+  (use macros.assert)
+  (use adt.string)
+
+  (use pg.sql)
+  )
+(select-module pg.hi)
+
+(define (pg:update-or-insert pg relation where-values values)
+  (pg:with-private-handle* pg handle
+    (with-db-transaction* handle
+      (let1 result
+          (pg-exec handle
+            (sql:select
+             '("1")
+             relation
+             (sql:alist->where where-values)))
+
+        (cond
+         ;; fixme: I need it to fail if unique contstraing, rather than waiting!
+         ((zero? (pg-ntuples result))
+          ;; insert
+          (let1 all (append where-values values)
+            (pg-exec handle
+              (sql:insert-alist relation all))))
+
+         ((= 1 (pg-ntuples result))
+          ;; update
+          (pg-exec handle
+            (sql:update relation
+                        values
+                        (sql:alist->where
+                         where-values))))
+         (else
+          (error)
+          ))))))
+
+
+
+;; This should be automatic!
+(define (pg:get-from-sequence handle name)
+  ;; fixme!  some code depends on old api?
+  ;; collect
+  (pg-get-value 
+   (pg-exec
+       handle
+     (s+ "SELECT nextval("
+         (pg:text-printer name)
+         "::text);"))
+   0 0))
+
+;; Get the last (already) assigned seq value:
+(define (pg:curval pg sequence)
+  (let1 res (pg-exec pg
+              (s+ "SELECT currval(" (pg:text-printer sequence) ");")) ;'public.kahua_session_id_seq'::text
+    (pg-get-value res 0 0)))
+
+
+
+;;;  normalizing  Attribute
+(define (pg:normalize-relation db id)
+  ;; todo:  `pg:->relation'
+  (cond
+   ((is-a? id <pg-relation>)
+    id)
+   ((string? id)
+    (pg:find-relation db id))
+   ((number? id)
+    (pg:get-relation-by-oid db id))
+   (else
+    (error "cannot deduce a pg-relation out of " id))
+   ))
+
+
+;; todo: `pg:->attribute'
+(define (pg:normalize-attribute relation att)
+  (assert (is-a? relation <pg-relation>))
+
+  (cond
+   ((is-a? att <pg-attribute>)
+    att)
+   ((string? att)
+    (or (pg:attname->attribute relation att)
+                                        ;(unless (hash-table-exists? (slot-ref relation 'attributes-hash) att)
+        (errorf "relation ~a does not have attribute named ~a" relation att)))
+   ((number? att)
+    (pg:nth-attribute relation att))
+   (else
+    (error "cannot pg:normalize-attribute" att))))
+
+
+;; return <pg-attribute>
+(define (pg:lookup-attribute db relation attribute)
+  (let1 relation (pg:normalize-relation db relation)
+    (pg:normalize-attribute relation attribute)))
+
+
+
+(provide "pg/hi")
+  

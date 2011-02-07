@@ -1,0 +1,835 @@
+;;
+;; pg.stub - postgresql interface (from gauche)
+;;
+;;  Copyright(C) 2003 by M. Maruska (michal@ruska.it)
+;;
+;;  Licence: either that of gauche, or that of Postresql
+
+
+;; todo: pg-fformat http://developer.postgresql.org/docs/postgres/libpq-copy.html
+
+
+;# /* class tag, is the pointer at itself !!! */
+; now define some macros:
+
+
+"#include \"pg-lib.h\""
+"#include <alloca.h>"
+"#define UNUSED(obj) (void)obj"
+
+
+(include "types.genstub")
+
+
+;;; `Types' / structs
+
+(define-type <pg-handle> "PGconn*" #f; "box for the postgresql handle"
+  "SCM_PG_HANDLE_P" "SCM_PG_HANDLE" "new_pg_handle")
+
+
+;; [07 gen 05] uvector finalizer is unknown?
+;(define-type <pg-copy-buffer> "pg_copy_buffer" #f)
+
+
+
+;;; `Classes'
+
+;;   define-cclass scheme-name [qualifier] c-typename c-class-name cpa
+;;      (slot-spec ...)
+;;      property-clause ...
+
+
+;"static ScmPg* new_pg_handle();"
+;;; fixme:  this could have the slot   notice_monitor !!
+(define-cclass <pg-handle> "ScmPg*"
+  "ScmPg_class"
+  ()					;cpa
+  (
+
+;;  no more needed   
+;    (converters :type <pair>
+;     :getter "return (((ScmPg*) OBJARG)->converters);"
+;     :setter "(((ScmPg*) OBJARG)->converters) = value;"
+;     )
+   )					;(conn :type <pg-handle>)
+;  ()					;fields  conninfo ...
+;  (allocator (c "new_pg_handle"))
+  (printer (c "pg_print"))
+  ;()
+  )
+
+
+
+
+;;;   `Result'
+
+(define-type <pg-result> "PGresult*"  #f ;"box for the postgresql result"
+  "SCM_PG_RESULT_P" "SCM_PG_RESULT" "new_pg_result")
+
+;; "static void pg_result_print(ScmObj, ScmPort*, ScmWriteContext*);"
+(define-cclass <pg-result>
+  ;; c-typename c-typename
+  ;"ScmPgR*"  "ScmPgR_class"
+  "PGresult*" "ScmPgR_class"
+  ()					;cpa
+  (
+   (handle :type <pg-handle>
+    :getter "
+UNUSED(obj);
+return (ScmObj) ((((ScmPgR*) OBJARG)->handle));"
+    ;; i have to check it !!!  but it's read-only
+    :setter "UNUSED(obj);
+Scm_Error(\"handle read-only\");"  ;(((ScmPgR*) OBJARG)->handle) = value;"
+    )
+   )					;fields   query, ...
+  ;(allocator (c "new_pg_result"))
+  (printer   (c "pg_result_print"))
+  )
+
+
+; (initcode "Scm_GtkRegisterClass(GDK_TYPE_GL_CONFIG, SCM_CLASS_GDK_GL_CONFIG);")
+
+
+;; #define CHECK_PG(g)    if (!g->conn) Scm_Error(\"gdbm file already closed: %S\", g)
+
+;;; finalization
+
+;"ScmObj pg_notice_processor;"
+
+
+
+;; obsolete `hopefully'
+; (define-variable pg-notice-processor
+;   (c "SCM_MAKE_INT(10)") :c-name "pg_notice_processor")
+
+
+; (define-cproc pg-set-notice-processor (function)
+;   "pg_notice_processor=function;")
+
+
+(define-cproc pg-set-local-notice-processor (function  pg_conn::<pg-handle>)
+  ;; fixme: i use more info than provided !!!
+  ;; i rely on the scheme object being named XX_scm !!
+  ;; This protects it from GC!
+  "((ScmPg*)pg_conn_scm)->notice_monitor=function;
+return SCM_UNDEFINED;")
+
+
+(define-symbol pg-notice-processor-exception "pg_notice_processor_exception")
+
+
+(define-enum CONNECTION_OK)
+(define-enum CONNECTION_BAD)
+
+(define-cproc pg-connect (&optional (conninfo::<const-char*> ""))
+			  ;&optional (size::<fixnum> 0)
+			  ;(rwmode::<fixnum> (c "SCM_MAKE_INT(PG_READER)"))
+			  ;(fmode::<fixnum> (c "SCM_MAKE_INT(0666)"))
+  ;(return <pg-handle> "PQconnectdb")
+  "PGconn* conn = PQconnectdb(conninfo);
+ConnStatusType status = PQstatus(conn);
+if  (status != CONNECTION_OK) {
+ Scm_Error(\"pg-connect failed: %s (conninfo was: %s)\", PQerrorMessage(conn), conninfo);
+ return SCM_UNDEFINED;
+} else
+   return  new_pg_handle (conn);")
+
+
+;PQsetNoticeProcessor(PGconn *conn,PQnoticeProcessor proc,void *arg);
+
+(define-type <pg-notify> "PGnotify*"  #f ;"box for the postgresql result"
+  "SCM_PG_NOTIFY_P" "SCM_PG_NOTIFY" "Scm_Make_PGnotify")
+
+(define-cclass <pg-notify>
+  ;; c-typename c-typename
+  ;; ScmPGnotify
+                                        ;"ScmPgR*"  "ScmPgR_class"
+  "PGnotify*" "Scm_PGnotify_Class"
+  ()					;cpa
+  (
+   (relname :type <const-char*>
+	    :setter #f)
+   (be_pid :type <int>)
+                                        ;(extra :type <const-*char>)
+   )					;fields   query, ...
+                                        ;(allocator (c "new_pg_result"))
+  ;; (printer   (c "pg_result_print"))
+  )
+
+
+(define-cproc pg-notifies (pg_conn::<pg-handle>)
+  "PGnotify* n = PQnotifies(pg_conn);
+if (!n)
+   SCM_RETURN(SCM_FALSE);
+SCM_RETURN(Scm_Make_PGnotify(n));
+")
+ 
+;  bad_connection-> error  
+
+
+(define-cproc pg-db (pg_conn::<pg-handle>)
+  (return <const-char*> "PQdb"))
+(define-cproc pg-user (pg_conn::<pg-handle>)
+  (return <const-char*> "PQuser"))
+(define-cproc pg-host (pg_conn::<pg-handle>)
+  (return <const-char*> "PQhost"))
+(define-cproc pg-port (pg_conn::<pg-handle>)
+  (return <const-char*> "PQport"))
+(define-cproc pg-options (pg_conn::<pg-handle>)
+  (return <const-char*> "PQoptions"))
+(define-cproc pg-pass (pg_conn::<pg-handle>)
+  (return <const-char*> "PQpass"))
+
+(define-cproc pg-reset (pg_conn::<pg-handle>)
+  (return <void> "PQreset"))
+
+
+;; const char *PQparameterStatus(const PGconn *conn, const char *paramName);                          
+                                                                            
+(define-cproc pg-parameter-status (pg_conn::<pg-handle> name::<const-char*>)
+  (return <const-char*> "PQparameterStatus"))
+
+
+(define-cproc pg-protocol-version (pg_conn::<pg-handle>)
+  (return <int> "PQprotocolVersion"))
+
+
+
+(define-cproc pg-error-message (pg_conn::<pg-handle>)
+  (return <const-char*> "PQerrorMessage"))
+
+
+(define-cgeneric pg-status "pg_status_generic")
+(define-cmethod pg-status (pg_conn::<pg-handle>)
+  ;; fixme: not full int ConnStatusType
+  "SCM_RETURN (Scm_MakeInteger(PQstatus(pg_conn)));")
+
+
+
+(define-cproc pg->port (pg_conn::<pg-handle>)
+  "return (Scm_MakePortWithFd(SCM_MAKE_STR(\"pg connection fd\"), SCM_PORT_INPUT,
+                                       PQsocket(pg_conn), SCM_PORT_BUFFER_FULL, 0));")
+;;  not owner:  buffering is irrelevant, right?
+
+
+
+(define-cproc pg-transaction-status (pg_conn::<pg-handle>)
+  (return <int> "PQtransactionStatus"))
+
+
+(define-enum PQTRANS_IDLE)
+(define-enum PQTRANS_ACTIVE)
+(define-enum PQTRANS_INTRANS)
+(define-enum PQTRANS_INERROR)
+(define-enum PQTRANS_UNKNOWN)
+
+
+;;; Polling 
+(define-cproc pg-connect-start (conninfo::<const-char*>)
+  (return <pg-handle> "PQconnectdb"))
+
+
+(define-cproc pg-connect-poll (pg_conn::<pg-handle>)
+  (return <int> "PQconnectPoll"))
+
+;; not necessary !
+(define-enum PGRES_POLLING_FAILED)
+(define-enum PGRES_POLLING_READING)
+(define-enum PGRES_POLLING_WRITING)
+(define-enum PGRES_POLLING_ACTIVE)
+(define-enum PGRES_POLLING_OK)
+
+
+;;; 
+(define-cproc pg-finish (pg_conn::<pg-handle>)
+  ;; control !!!
+  ;;(return <void> "PQfinish"))           ;bug !
+  "PQfinish(pg_conn);
+SCM_PG_HANDLE(pg_conn_scm) = NULL;
+SCM_RETURN(SCM_UNDEFINED);
+")
+  
+
+(define-cproc pg-backend-pid (pg_conn::<pg-handle>)
+  (return <int> "PQbackendPID"))
+
+
+
+
+
+;;; Async:
+
+(define-cproc pg-send-query (pg-conn::<pg-handle> query::<const-char*>)
+  (return <int> "PQsendQuery"))
+
+(define-cproc pg-get-result (pg-conn::<pg-handle>)
+  "PGresult *result = PQgetResult(pg_conn);
+if (result)
+   return  new_pg_result(result, (ScmPg*) pg_conn_scm);
+else
+    return SCM_EOF;")
+
+(define-cproc pg-is-busy (pg_conn::<pg-handle>)
+  (return <boolean> "PQisBusy"))
+;"return pg_is_busy(SCM_PG_HANDLE(pg_conn))?SCM_TRUE:SCM_FALSE;" )
+
+
+(define-cproc pg-consume-input (pg_conn::<pg-handle>)
+  (return <boolean> "PQconsumeInput"))
+; "int res=PQconsumeInput(SCM_PG_HANDLE(pg_conn));
+;   if (res==0) {
+; // pg_exception  !!!
+;     Scm_Error(\"consume_failed\");
+;   } else {
+;     return(SCM_TRUE);				/*S48_UNSPECIFIC*/
+;   }")
+
+
+;;;
+(define-cproc pg-request-cancel (pg-conn::<pg-handle>)
+  (return <int> "PQrequestCancel"))
+
+
+;; Todo:
+;; (define-type <pg-exception> "pg_exception*" #f
+;;   "SCM_PG_EXCEPTION_P" "SCM_PG_EXCEPTION" "Scm_MakePGException") ;too generic name! `Scm_MakeException'
+
+
+;; (define-cclass <pg-exception>
+;;   "pg_exception*"
+;;   "Scm_Pg_ExceptionClass"
+;;   ()
+;;   (
+;;    (result :type <int>)
+;;    )
+;;   )
+
+
+
+;;; Sync:
+
+(define-cgeneric pg-exec "pg_exec_generic")
+
+
+(define-cmethod pg-exec (pg-conn::<pg-handle> query::<const-char*>)
+  "
+#if 0 
+Scm_Warn(\"pg-exec: running query: %s\\n\", query);
+#endif
+PGresult* res = PQexec(pg_conn, query);
+#if 0
+Scm_Warn(\"pg-exec: success from query: %s\\n\", query);
+#endif
+ExecStatusType status = PQresultStatus(res);
+if  ((status == PGRES_FATAL_ERROR) || (status == PGRES_NONFATAL_ERROR) || (status == PGRES_BAD_RESPONSE))
+{
+// Scm_Error(\"pg-exec failed %s\\n\", PQresStatus(status));  , new_pg_result (res, (ScmPg*) pg_conn_scm)
+   Scm_Warn(\"pg-exec failed %s\\n\", PQresStatus(status));
+  Scm_Warn(\"pg-exec: the query was: %s\\n\", query);
+
+   // PQclear(res);
+   // return SCM_FALSE;
+#if 0   
+   Scm_SError(SCM_MAKE_STR_COPYING(PQresStatus(status)),
+                                  new_pg_result(res, (ScmPg*) pg_conn_scm)
+            );
+#endif 
+   /* Scm_MakeThreadException */
+
+#if (GAUCHE_MINOR_VERSION == 8) && (GAUCHE_MICRO_VERSION > 5)
+  /* Fixme:  You should throw a valid <exception> object. new_pg_result is NOT!, it does not have 'message slot!  */
+  Scm_VMThrowException(Scm_VM(), new_pg_result(res, (ScmPg*) pg_conn_scm));
+#else
+  Scm_VMThrowException(new_pg_result(res, (ScmPg*) pg_conn_scm));
+#endif
+  // Scm_ReportError();
+  return SCM_UNDEFINED;
+}
+else
+   return  new_pg_result (res, (ScmPg*) pg_conn_scm);")
+
+
+
+
+(define-cproc pg-result-error-field (pg-result::<pg-result> field::<int>)
+  (return <const-char*>  "PQresultErrorField"))
+;;  char *PQresultErrorField(const PGresult *res, int fieldcode);
+
+
+
+
+;; version > 7.4
+(define-enum PG_DIAG_SEVERITY)
+(define-enum  PG_DIAG_SQLSTATE)
+(define-enum  PG_DIAG_MESSAGE_PRIMARY)
+
+(define-enum  PG_DIAG_MESSAGE_DETAIL)
+(define-enum  PG_DIAG_MESSAGE_HINT)
+
+;(define-enum  PG_DIAG_DETAIL)
+;(define-enum  PG_DIAG_HINT)
+
+
+(define-enum  PG_DIAG_STATEMENT_POSITION)
+;(define-enum  PG_DIAG_INTERNAL_POSITION)
+;(define-enum  PG_DIAG_INTERNAL_QUERY)
+(define-enum  PG_DIAG_CONTEXT)
+(define-enum  PG_DIAG_SOURCE_FILE)
+(define-enum  PG_DIAG_SOURCE_LINE)
+(define-enum  PG_DIAG_SOURCE_FUNCTION)
+
+
+
+
+
+
+
+;;; `queries':
+(define-cproc pg-exec-internal (pg-conn::<pg-handle> query::<const-char*>)
+  "PGresult* res = PQexec(pg_conn, query);
+return  new_pg_result (res, (ScmPg*) pg_conn_scm);"
+;  (return <pg-result> "PQexec"))
+)
+
+#|
+PGresult *PQexecParams(PGconn *conn,
+                        const char *command,
+                        int nParams,
+                        const Oid *paramTypes,
+                        const char * const *paramValues,
+                        const int *paramLengths,
+                        const int *paramFormats,
+                        int resultFormat);
+
+
+
+PGresult *PQexecPrepared(PGconn *conn,
+                          const char *stmtName,
+                          int nParams,
+                          const char * const *paramValues,
+                          const int *paramLengths,
+                          const int *paramFormats,
+                          int resultFormat);
+|#
+
+
+
+;; status:   not a method !
+(define-cproc pg-result-status (result::<pg-result>)
+  (return <int> "PQresultStatus"))
+
+
+
+
+
+
+;;  ExecStatusType
+(define-enum PGRES_BAD_RESPONSE)
+(define-enum PGRES_NONFATAL_ERROR)
+(define-enum PGRES_FATAL_ERROR)
+(define-enum PGRES_COPY_IN)
+(define-enum PGRES_COPY_OUT)
+(define-enum PGRES_TUPLES_OK)
+(define-enum PGRES_COMMAND_OK)
+(define-enum PGRES_EMPTY_QUERY)
+
+
+
+
+
+(define-cproc pg-status-status (code::<int>)
+  (return <const-char*> "PQresStatus"))
+
+(define-cproc pg-result-error-message (result::<pg-result>)
+  (return <const-char*> "PQresultErrorMessage"))
+
+;; could be the finalizer !!
+(define-cproc pg-clear (result::<pg-result>)
+  (return <void> "PQclear"))
+
+
+(define-cproc pg-copy (result::<pg-result>)
+   "
+#if 0
+PGresult* res = PQcopy(result);
+return new_pg_result (res, ((ScmPgR*) result_scm)->handle); 
+#else
+Scm_Error(\"pg-copy is not implemented!\");
+return SCM_UNDEFINED;
+#endif
+")
+
+
+;; Anything referencing the values is bug!
+(define-cproc pg-shrink (result::<pg-result>)
+  "
+#if 0
+
+PGresult* res = PQcopy(result);
+#if 0
+Scm_Panic(\"pg-shring -> aborting!\\n\");
+#endif
+PQclear(result);
+((ScmPgR*) result_scm)->result = res;
+#else
+Scm_Error(\"pg-shrink is not implemented!\");
+return SCM_UNDEFINED;
+#endif
+")
+
+
+
+
+;; PGresult* PQmakeEmptyPGresult(PGconn *conn, ExecStatusType status);
+
+
+(define-cproc pg-escape-string (from::<const-char*>)
+  ;(return <const-char*> "PQresultErrorMessage"))
+  ;(return <void> "PQclear")
+  "size_t length = strlen(from);
+/*fixme: i could have a static buffer ....*/
+size_t len;
+char* to=alloca(2 * length +1);
+len = PQescapeString (to, from, length);
+ScmObj s = SCM_MAKE_STR_COPYING(to);
+/* free(to); */
+return s;"
+  )
+
+;; size_t PQescapeString (char *to, const char *from, size_t length);
+
+;; unsigned char *PQescapeBytea(unsigned char *from,size_t from_length,size_t *to_length);
+
+;; `const-result'
+(define-cgeneric pg-ntuples "pg_ntuples_generic")
+(define-cmethod pg-ntuples (result::<pg-result>)
+;(define-cproc pg-ntuples (result::<pg-result>)
+  ;(return <int> "PQntuples"))
+  "SCM_RETURN (Scm_MakeInteger(PQntuples(result)));"
+  )
+  
+
+(define-cgeneric pg-nfields "pg_nfields_generic")
+(define-cmethod pg-nfields (result::<pg-result>)
+;(define-cproc pg-nfields (result::<pg-result>)
+;  (return <int> "PQnfields"))
+  "SCM_RETURN (Scm_MakeInteger(PQnfields(result)));"
+  )
+
+
+;;; 1 per result
+(define-cgeneric pg-fname "pg_fname_generic")
+
+
+
+(define-cmethod pg-fname (result::<pg-result> index::<int>)
+  ;(return <const-char*> "PQfname")
+  "CHECK_COLUMN(result, index, \"pg-fname\");
+  SCM_RETURN (Scm_charPtr_Box(PQfname(result, index)));"
+  )
+
+
+
+(define-cgeneric pg-fnumber "pg_fnumber_generic")
+(define-cmethod pg-fnumber (result::<pg-result> name::<const-char*>)
+;(define-cproc pg-fnumber (result::<pg-result> name::<const-char*>)
+  ;(return <int> "PQfnumber")
+
+  "SCM_RETURN (Scm_MakeInteger(PQfnumber(result, name)));"
+  )
+
+
+
+(define-cgeneric pg-ftablecol "pg_ftablecol_generic")
+(define-cmethod pg-ftablecol (result::<pg-result> index::<int>)
+  ;(return <int> "PQftablecol")
+  "SCM_RETURN (Scm_MakeInteger(PQftablecol(result, index)));"
+  )
+
+(define-cgeneric pg-ftable "pg_ftable_generic")
+(define-cmethod pg-ftable (result::<pg-result> index::<int>)
+  ;(return <const-char*> "PQftable")
+  "SCM_RETURN (Scm_MakeInteger(PQftable(result, index)));"
+  )
+
+;; 
+"#ifndef  mmc_pg_hack
+int PQfsource(PGresult* a, int b)
+{
+ return -1;
+}
+#endif"
+
+(define-cgeneric pg-fsource "pg_fsource_generic") ;varno
+(define-cmethod pg-fsource (result::<pg-result> index::<int>)
+                                        ;(return <const-char*> "PQftable")
+  "SCM_RETURN (Scm_MakeInteger(PQfsource(result, index)));"
+  )
+
+
+
+
+
+(define-cgeneric pg-ftype "pg_ftype_generic")
+(define-cmethod pg-ftype (result::<pg-result> index::<int>) ;<uint>
+  ;(return <int> "PQftype")
+  "
+  CHECK_COLUMN(result, index, \"pg-ftype\");
+  SCM_RETURN (Scm_MakeInteger(PQftype(result, index)));"
+  )		;oid
+
+
+
+(define-cproc pg-fmod (result::<pg-result> index::<int>)
+  "
+CHECK_COLUMN(result, index, \"pg-fmod\");
+  SCM_RETURN (Scm_MakeInteger(PQfmod(result, index)));")
+
+
+(define-cproc pg-fsize (result::<pg-result> index::<int>)
+  "CHECK_COLUMN(result, index, \"pg-fsize\");
+  SCM_RETURN (Scm_MakeInteger(PQfsize(result, index)));")
+
+
+
+;;; 1 per tuple
+(define-cproc pg-binary-tuples (result::<pg-result>)
+  (return <boolean> "PQbinaryTuples"))
+
+
+(define-cgeneric pg-get-value "pg_get_value_generic")
+(define-cmethod pg-get-value (result::<pg-result> tuple::<int> index::<int>)
+  ;(return <const-char*> "PQgetvalue")
+  "
+if ((tuple >= PQntuples(result)) || tuple < 0)
+Scm_Error(\"pg-get-value: tuple %d out of range (0-%d)\", tuple, PQntuples(result) - 1);
+if ((index>= PQnfields(result))  || index < 0)
+Scm_Error(\"pg-get-value: index %d out of range (0-%d)\", index, PQnfields(result) - 1);
+
+return Scm_charPtr_Box(PQgetvalue(result, tuple, index));")
+
+
+
+;; fixme! generics
+(define-cgeneric pg-get-isnull "pg_get_isnull_generic")
+(define-cmethod pg-get-isnull (result::<pg-result> tuple::<int> index::<int>)
+  "if ((tuple >= PQntuples(result)) || tuple < 0)
+Scm_Error(\"pg-get-isnull: tuple %d out of range (0-%d)\", tuple, PQntuples(result) - 1);
+if ((index>= PQnfields(result))  || index < 0)
+Scm_Error(\"pg-get-isnull: index %d out of range (0-%d)\", index, PQnfields(result) - 1);
+
+return SCM_MAKE_BOOL(PQgetisnull(result, tuple, index));")
+;  (return <boolean> "PQgetisnull"))
+
+(define-cproc pg-get-length (result::<pg-result> tuple::<int> index::<int>)
+  (return <int> "PQgetlength"))
+
+
+;;; special
+;(define-cproc pg-print (result::<pg-result> tuple::<int> index::<int>)
+;  (return <boolean> "PQgetisnull"))
+
+(define-cproc pg-cmd-status (result::<pg-result>)
+  (return <const-char*> "PQcmdStatus"))
+
+(define-cproc pg-cmd-tuples (result::<pg-result>)
+  (return <const-char*> "PQcmdTuples"))
+
+(define-cproc pg-oid-value (result::<pg-result>)
+  (return <int> "PQoidValue"))		;oid !
+
+
+(define-cproc pg-oid-status (result::<pg-result>)
+  (return <const-char*> "PQoidStatus"))
+
+;;; Async
+
+
+
+
+;;;  `COPY'
+(define-cproc pg-get-line (pg::<pg-handle> v::<uvector>
+					   &optional
+					   (start::<fixnum> 0)
+					   (end::<fixnum> -1))
+"int len = SCM_UVECTOR_SIZE(v);
+int eltsize, r;
+  SCM_CHECK_START_END(start, end, len);      /* > 1  ?*/
+  SCM_UVECTOR_CHECK_MUTABLE(v);
+  eltsize = Scm_UVectorElementSize(Scm_ClassOf(SCM_OBJ(v)));
+  SCM_ASSERT(eltsize >= 1);
+  SCM_ASSERT(end-start >= 2);
+
+/* from */
+  ScmObj pg_conn_scm;
+  PGconn* pg_conn;
+
+  SCM_ENTER_SUBR(\"pg-get-line\");
+  pg_conn_scm = SCM_ARGREF(0);
+  if (!SCM_PG_HANDLE_P(pg_conn_scm)) Scm_Error(\"<pg-handle> required, but got %S\", pg_conn_scm);
+  pg_conn = SCM_PG_HANDLE(pg_conn_scm);
+char*  start_array=(char*)v->elements + start*eltsize;
+int  array_len=(end-start)*eltsize;
+  r = PQgetline(pg_conn, start_array, array_len);
+
+  if (r == EOF) SCM_RETURN(SCM_EOF);
+else {
+#if 0
+int return_value=((r==1)?(1-array_len):(binary_search(start_array,0, array_len, 0)));
+printf (\"returning %d\\n\", return_value);
+  SCM_RETURN(Scm_MakeInteger(return_value));
+#else
+SCM_RETURN(Scm_MakeInteger((r==1)?(1-array_len):(binary_search(start_array,0, array_len, 0))));
+#endif
+};")
+
+
+;; fixme:
+;; obsolete!
+(define-cproc pg-put-line (pg::<pg-handle> line::<const-char*>)
+  ;;(return <int> "PQputline")
+"ScmObj line_scm;
+const char * line;
+
+SCM_ENTER_SUBR(\"pg-put-line\");
+
+line_scm = SCM_ARGREF(1);
+if (!SCM_STRINGP(line_scm)) Scm_Error(\"<const-char*> required, but got %S\", line_scm);
+line = CONST_CHAR_PTR(line_scm);
+
+  ScmObj pg_conn_scm;
+  PGconn* pg_conn;
+
+int r;
+  pg_conn_scm = SCM_ARGREF(0);
+  if (!SCM_PG_HANDLE_P(pg_conn_scm)) Scm_Error(\"<pg-handle> required, but got %S\", pg_conn_scm);
+  pg_conn = SCM_PG_HANDLE(pg_conn_scm);
+
+  r = PQputline(pg_conn, line);
+  if (r == EOF) SCM_RETURN(SCM_EOF);
+  else SCM_RETURN(Scm_MakeInteger(r));")
+
+
+;; seems obsolete!
+;; fixme:  _bytes_        ... v  should be first declared ! then int len = SCM_UVECTOR_SIZE(v);  !!! fixme:
+(define-cproc pg-put-nbytes (pg::<pg-handle> v::<uvector> &optional (start::<fixnum> 0) (end::<fixnum> -1))
+"int len = SCM_UVECTOR_SIZE(v); 
+  int eltsize, r;
+  SCM_CHECK_START_END(start, end, len);
+  eltsize = Scm_UVectorElementSize(Scm_ClassOf(SCM_OBJ(v)));
+  SCM_ASSERT(eltsize >= 1);
+
+/* from */
+  ScmObj pg_conn_scm;
+  PGconn* pg_conn;
+
+  SCM_ENTER_SUBR(\"pg-put-nbytes\");
+  pg_conn_scm = SCM_ARGREF(0);
+  if (!SCM_PG_HANDLE_P(pg_conn_scm)) Scm_Error(\"<pg-handle> required, but got %S\", pg_conn_scm);
+  pg_conn = SCM_PG_HANDLE(pg_conn_scm);
+
+  r = PQputnbytes(pg_conn, (char*)v->elements + start*eltsize, (end-start)*eltsize);
+  if (r == EOF) SCM_RETURN(SCM_EOF);
+  else SCM_RETURN(Scm_MakeInteger(r));")
+
+
+
+;;; New in protocol 3:
+;; fixme:
+;; i want to accept string & u-vector
+(define-cproc pg-put-copy-data (pg::<pg-handle> v::<uvector> &optional (start::<fixnum> 0) (end::<fixnum> -1))
+  ;;(return <int> "PQputline")
+" int len = SCM_UVECTOR_SIZE(v); 
+  int eltsize, r;
+  SCM_CHECK_START_END(start, end, len);
+  eltsize = Scm_UVectorElementSize(Scm_ClassOf(SCM_OBJ(v)));
+  SCM_ASSERT(eltsize >= 1);
+
+/* fixme:  EOF  == -1 ??*/
+  r = PQputCopyData(pg, (char*)v->elements + start*eltsize, (end-start)*eltsize);
+  if (r == -1) SCM_RETURN(SCM_EOF);
+
+  else SCM_RETURN(Scm_MakeInteger(r));")
+
+
+"static int pg_owner = 1;"
+;; for now async = 0!!
+(define-cproc pg-get-copy-data-uvector (pg::<pg-handle> async::<boolean>)
+  ;;v::<uvector> &optional (start::<fixnum> 0) (end::<fixnum> -1)
+  ;; todo: i want a pg-chunk object
+  ;; for now a uvector.
+  " SCM_ASSERT(! async);
+/* assert the handle in COPY_OUT state ? */
+
+  char* pg_buffer;
+  int r = PQgetCopyData(pg, &pg_buffer, async);
+
+/* if (!r)  -> async */
+
+/*EOF*/
+  if (r == -1) SCM_RETURN(SCM_EOF);
+else {
+/* */
+ScmObj uv = Scm_MakeUVectorFull(SCM_CLASS_U8VECTOR, r, pg_buffer, TRUE, &pg_owner); /* immutable owner*/
+#if 0
+   ScmObj uv = Scm_MakeU8VectorFromArrayShared(r, pg_buffer);
+#endif
+/* fixme:  PQfreemem !! */
+return uv;
+     };")
+
+(define-cproc pg-copy-data-discard (buffer::<u8vector>)
+  "
+if ((buffer->elements)
+     && (buffer->owner == &pg_owner))
+{
+  PQfreemem(buffer->elements);
+  buffer->elements = NULL;
+  buffer->size = 0;
+};
+SCM_RETURN(SCM_UNDEFINED);")
+
+
+(define-constant PGRES_PUT_OK 0)		;0
+(define-constant PGRES_PUT_CONTINUE 1)	; 1
+;(define-constant PGRES_PUT_EOF eof)	; EOF ???
+
+;;; Ending Copy:
+
+;; obsolete! see pg-put-copy-end
+(define-cproc pg-copy-last-line (v::<uvector> &optional (start::<fixnum> 0))
+  "
+int eltsize = 1; /* Scm_UVectorElementSize(Scm_ClassOf(SCM_OBJ(v)));*/ /*1*/
+char* copybuf=v->elements + start*eltsize;
+
+/*  printf (\"pg-copy-last-line: %s\", copybuf); */
+if (copybuf[0] == '\\\\' &&
+    copybuf[1] == '.' &&
+    copybuf[2] == '\\0')
+return SCM_TRUE;
+else 
+return SCM_FALSE;")
+
+
+;; obsolete:
+(define-cproc pg-end-copy (pg::<pg-handle>)
+  (return <int> "PQendcopy"))
+
+;; `new:'
+(define-cproc pg-put-copy-end (pg::<pg-handle> error-message::<const-char*-or-false>)
+  (return <int> "PQputCopyEnd"))
+
+
+;; fixme:  to  gauche-strings !
+; '(define-cproc emacs-mule->cyrillic (string::<const-char*>)
+;   "ScmObj result;
+; char* utf = mule_to_utf(string);
+;    result = SCM_MAKE_STR_COPYING(utf);
+; free (utf);
+; SCM_RETURN(result);")
+  ;(return <int> "PQstatus"))
+
+
+
+
+"#define Scm_Init_pg  internal_init_pg"

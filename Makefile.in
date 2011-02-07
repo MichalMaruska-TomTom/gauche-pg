@@ -1,0 +1,113 @@
+CC = @CC@
+
+# libpq package in Gentoo does not install pg_config!
+PG_CONFIG = pg_config
+# So I hard-wire some default paths:
+PG_LIB_DIR = $(shell if which $(PG_CONFIG) > /dev/null 2>&1; then $(PG_CONFIG)  --libdir; else echo "/usr/lib/";fi)
+PG_HEADER_DIR = $(shell if which $(PG_CONFIG) > /dev/null 2>&1; then $(PG_CONFIG)  --includedir; else echo "/usr/include/";fi)
+
+
+# These may be overridden by make invocators
+DESTDIR  = 
+OPTFLAGS = @OPTFLAGS@
+
+
+# These are set by configure
+# fixme: mmc: -fpic is necessary on amd64.
+CFLAGS = @CFLAGS@ $(OPTFLAGS)  -I$(PG_HEADER_DIR) -fpic
+LDFLAGS = @LDFLAGS@
+PG_LIBS= -lpq
+LIBS = @LIBS@ $(PG_LIBS)
+GOSH = @GOSH@
+GAUCHE_CONFIG = @GAUCHE_CONFIG@
+GAUCHE_TOP = @GAUCHE_TOP@
+INSTALL = @INSTALL@
+
+ARCHFILES = pg.so
+SCMFILES = $(wildcard scm/*scm)
+SCM_HI_FILES = $(wildcard pg/*scm)
+HEADERS = pg-lib.h
+# pg.h
+
+TARGET = pg.so
+OBJS = pg_head.o pg.o pg_tail.o pg-lib.o
+# pgib.o
+CONFIG_GENERATED = Makefile config.cache config.log config.status\
+		   autom4te*.cache pg_head.c pg_tail.c
+# pgib.c
+
+INSTALL_TYPE = @INSTALL_TYPE@
+HEADER_INSTALL_DIR  = $(DESTDIR)`$(GAUCHE_CONFIG) --$(INSTALL_TYPE)incdir`/
+SCM_INSTALL_DIR     = $(DESTDIR)`$(GAUCHE_CONFIG) --$(INSTALL_TYPE)libdir`/
+ARCH_INSTALL_DIR    = $(DESTDIR)`$(GAUCHE_CONFIG) --$(INSTALL_TYPE)archdir`/
+
+SCM_HI_INSTALL_DIR = $$(gauche-config --sitelibdir)
+
+all : $(TARGET)
+
+pg.so : $(OBJS)
+	$(CC) -L$(PG_LIB_DIR) $(LDFLAGS) pg.so $(OBJS) $(LIBS)
+
+pg-lib.o:  pg-lib.c  pg-lib.h
+
+pg.c : pg.stub pg-lib.h
+	$(GOSH) genstub pg.stub
+
+test : all
+	@rm -f test.log
+	$(GOSH) -I. test.scm > test.log
+
+install : all
+	$(INSTALL) -d $(HEADER_INSTALL_DIR)
+	$(INSTALL) -d $(SCM_INSTALL_DIR)
+	$(INSTALL) -d $(ARCH_INSTALL_DIR)
+	@for f in $(HEADERS) _end; do \
+	  if test $$f != _end; then \
+	    $(INSTALL) -m 444 $$f $(HEADER_INSTALL_DIR); \
+	  fi; \
+	done
+	@for f in $(SCMFILES) _end; do \
+	  if test $$f != _end; then \
+	    $(INSTALL) --verbose -m 444 $$f $(SCM_INSTALL_DIR)/; \
+	  fi; \
+	done
+
+	@for f in $(SCM_HI_FILES) _end; do \
+	  if test $$f != _end; then \
+	    $(INSTALL) --verbose -D -m 444 $$f $(DESTDIR)$(SCM_HI_INSTALL_DIR)/$$f; \
+	  fi; \
+	done
+
+	@for f in $(ARCHFILES) _end; do \
+	  if test $$f != _end; then \
+	    $(INSTALL) -m 555 $$f $(ARCH_INSTALL_DIR); \
+	  fi; \
+	done
+
+clean :
+	rm -rf core $(TARGET) $(OBJS) *~ test.log so_locations  pg.c
+
+distclean : clean
+	rm -rf $(CONFIG_GENERATED)
+
+realclean : clean
+	rm -rf $(CONFIG_GENERATED) configure
+
+# 'link' creates symlinks from source tree to extension modules, so that
+# it can be tested within the source tree.  'unlink' removes them.
+# these are only for developer's.
+
+link : $(TARGET) $(SCMFILES)
+	$(GOSH) ../xlink -d gauche -l $(TARGET) $(SCMFILES)
+
+unlink :
+	-$(GOSH) ../xlink -d gauche -u $(TARGET) $(SCMFILES)
+
+
+version=$(shell cat VERSION)
+package:=$(shell basename $$(pwd))
+
+##  for the maintainer/distributor:
+tar:
+	make -f ../makefile.packages  version=$(version) package=$(package)
+
