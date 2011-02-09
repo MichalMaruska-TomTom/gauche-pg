@@ -1,0 +1,11 @@
+Source: gauche-pg
+Section: interpreters
+Priority: extra
+Maintainer: Michal Maruska <mmaruska@gmail.com>
+Build-Depends: cdbs, debhelper (>= 5), autotools-dev, libpq-dev, gauche-dev
+Standards-Version: 3.7.2
+
+Package: gauche-pg
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, gauche, libpq5
+Description: libpq binding for Gauche scheme interpreter

@@ -1,0 +1,12 @@
+gauche-pg (1.12) lucid; urgency=low
+
+  * PPA release
+
+ -- Michal Maruska <mmaruska@gmail.com>  Thu, 24 Jun 2010 01:50:20 +0300
+
+gauche-pg (1.11-1) unstable; urgency=low
+
+  * Initial release 
+
+ -- Michal Maruska <michal@ruska.it>  Tue, 11 Dec 2007 15:09:23 +0100
+
