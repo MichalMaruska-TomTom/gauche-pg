@@ -14,7 +14,7 @@ pg_print(ScmObj obj, ScmPort *out, ScmWriteContext *ctx)
 {
    PGconn* P=SCM_PG_HANDLE(obj);
    if (P)
-      { 
+      {
          Scm_Printf(out, "#<pg-handle %s@%s as %s>",
                     PQdb(P),
                     PQhost(P),
@@ -37,7 +37,7 @@ void pg_finalize(ScmObj obj, void* data)
            PQfinish(g);
            /* fixme:*/
            g = NULL;
-   } else Scm_Panic("%s unexpected\n", __FUNCTION__); 
+   } else Scm_Panic("%s unexpected\n", __FUNCTION__);
 }
 
 
@@ -55,11 +55,13 @@ NoticeProcessor(void *arg, const char *message)
    g = arg;
    P = SCM_PG_HANDLE(g);
    if (g->notice_monitor!=SCM_FALSE)
-      Scm_Apply(g->notice_monitor,SCM_LIST2((ScmObj) g ,SCM_MAKE_STR_COPYING(message)));
+      Scm_ApplyRec(g->notice_monitor,
+                   SCM_LIST2((ScmObj) g ,SCM_MAKE_STR_COPYING(message)));
    else
       {
 #if GLOBAL_NOTICE_PROCESSOR
-         Scm_Apply(pg_notice_processor,SCM_LIST2((ScmObj*)g ,SCM_MAKE_STR_COPYING(message)));
+         Scm_ApplyRec(pg_notice_processor,
+                      SCM_LIST2((ScmObj*)g ,SCM_MAKE_STR_COPYING(message)));
 #endif
       }
 };
@@ -70,11 +72,11 @@ void pg_finalize_notify(ScmObj obj, void* data)
 {
 /*  no need to test. the finalizer has just been deduced from the structure itself */
    PGnotify *g = SCM_PG_NOTIFY(obj);
-   
+
    if (g) {
       PQfreemem(g);
       SCM_PG_NOTIFY(obj) = NULL;
-   } else Scm_Panic("%s unexpected\n", __FUNCTION__); 
+   } else Scm_Panic("%s unexpected\n", __FUNCTION__);
 }
 
 /* should be void*  ?? */
@@ -84,7 +86,7 @@ Scm_Make_PGnotify(PGnotify* notify) /* handle */
    ScmPGnotify* g = SCM_NEW(ScmPGnotify);
    SCM_SET_CLASS(g, SCM_CLASS_PGNOTIFY);
    g->data=notify;
-   
+
    /* PQfreemem */
    Scm_RegisterFinalizer(SCM_OBJ(g), pg_finalize_notify, NULL);
    return SCM_OBJ(g);
@@ -110,7 +112,7 @@ new_pg_handle(PGconn* handle)
 
    ScmModule *module = SCM_MODULE(SCM_FIND_MODULE("pg", TRUE)); /* SCM_OBJ(SCM_CURRENT_MODULE()) */
    ScmSymbol *symbol = SCM_SYMBOL(SCM_INTERN(hook_name)); /* Scm_Intern((ScmString*) SCM_MAKE_STR("pg-handle-hook")) */
-   
+
    ScmObj hook = Scm_SymbolValue(module, symbol);
 
    if ( hook && (SCM_LISTP(hook)) && !(SCM_NULLP(hook)))
@@ -127,11 +129,11 @@ new_pg_handle(PGconn* handle)
                   Scm_Error("%s: %s: not a procedure!! %S\n", __FUNCTION__, hook_name, f);
                };
             };
-         
+
       } else {
          /* Scm_Warn("%s: not found any hook\n", __FUNCTION__); */
       };
-#endif 
+#endif
    /* Scm_Eval(ScmObj form, ScmObj env); */
    Scm_RegisterFinalizer(SCM_OBJ(g), pg_finalize, NULL);
    return SCM_OBJ(g);
@@ -144,7 +146,7 @@ new_pg_handle(PGconn* handle)
 void pg_result_print(ScmObj obj, ScmPort *out, ScmWriteContext *ctx)
 {
    PGresult* R=SCM_PG_RESULT(obj);
-   if (R) { 
+   if (R) {
       Scm_Printf(out, "#<pg-result %s/%s>",
                  PQresultErrorMessage(R),
                  PQcmdStatus(R)
@@ -165,7 +167,7 @@ pg_result_finalize(ScmObj obj, void* data)
                 /* fixme:  if we already called pg-clear, this is segfault! */
                 PQclear(g);
                 g = NULL;
-        } else Scm_Panic("%s unexpected\n", __FUNCTION__); 
+        } else Scm_Panic("%s unexpected\n", __FUNCTION__);
 }
 
 
@@ -195,7 +197,7 @@ binary_search(char* vector, int start, int end, char element)
       middle = (start+end)/2;
       if (vector[middle]!= element)
          start=middle;
-      else   
+      else
          end=middle;
    };
 /*   printf ("found %d\\n", (vector[start]==element)?start:end); */

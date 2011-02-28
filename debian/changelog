@@ -1,3 +1,9 @@
+gauche-pg (1.13) maverick; urgency=low
+
+  * adapt to 0.9 API
+
+ -- Michal Maruska <mmaruska@gmail.com>  Mon, 28 Feb 2011 21:20:40 +0100
+
 gauche-pg (1.12) lucid; urgency=low
 
   * PPA release

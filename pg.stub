@@ -46,7 +46,7 @@
   ()					;cpa
   (
 
-;;  no more needed   
+;;  no more needed
 ;    (converters :type <pair>
 ;     :getter "return (((ScmPg*) OBJARG)->converters);"
 ;     :setter "(((ScmPg*) OBJARG)->converters) = value;"
@@ -163,8 +163,8 @@ if (!n)
    SCM_RETURN(SCM_FALSE);
 SCM_RETURN(Scm_Make_PGnotify(n));
 ")
- 
-;  bad_connection-> error  
+
+;  bad_connection-> error
 
 
 (define-cproc pg-db (pg_conn::<pg-handle>)
@@ -184,8 +184,8 @@ SCM_RETURN(Scm_Make_PGnotify(n));
   (return <void> "PQreset"))
 
 
-;; const char *PQparameterStatus(const PGconn *conn, const char *paramName);                          
-                                                                            
+;; const char *PQparameterStatus(const PGconn *conn, const char *paramName);
+
 (define-cproc pg-parameter-status (pg_conn::<pg-handle> name::<const-char*>)
   (return <const-char*> "PQparameterStatus"))
 
@@ -224,7 +224,7 @@ SCM_RETURN(Scm_Make_PGnotify(n));
 (define-enum PQTRANS_UNKNOWN)
 
 
-;;; Polling 
+;;; Polling
 (define-cproc pg-connect-start (conninfo::<const-char*>)
   (return <pg-handle> "PQconnectdb"))
 
@@ -240,7 +240,7 @@ SCM_RETURN(Scm_Make_PGnotify(n));
 (define-enum PGRES_POLLING_OK)
 
 
-;;; 
+;;;
 (define-cproc pg-finish (pg_conn::<pg-handle>)
   ;; control !!!
   ;;(return <void> "PQfinish"))           ;bug !
@@ -248,7 +248,7 @@ SCM_RETURN(Scm_Make_PGnotify(n));
 SCM_PG_HANDLE(pg_conn_scm) = NULL;
 SCM_RETURN(SCM_UNDEFINED);
 ")
-  
+
 
 (define-cproc pg-backend-pid (pg_conn::<pg-handle>)
   (return <int> "PQbackendPID"))
@@ -313,7 +313,7 @@ else
 
 (define-cmethod pg-exec (pg-conn::<pg-handle> query::<const-char*>)
   "
-#if 0 
+#if 0
 Scm_Warn(\"pg-exec: running query: %s\\n\", query);
 #endif
 PGresult* res = PQexec(pg_conn, query);
@@ -329,19 +329,15 @@ if  ((status == PGRES_FATAL_ERROR) || (status == PGRES_NONFATAL_ERROR) || (statu
 
    // PQclear(res);
    // return SCM_FALSE;
-#if 0   
+#if 0
    Scm_SError(SCM_MAKE_STR_COPYING(PQresStatus(status)),
                                   new_pg_result(res, (ScmPg*) pg_conn_scm)
             );
-#endif 
+#endif
    /* Scm_MakeThreadException */
 
-#if (GAUCHE_MINOR_VERSION == 8) && (GAUCHE_MICRO_VERSION > 5)
   /* Fixme:  You should throw a valid <exception> object. new_pg_result is NOT!, it does not have 'message slot!  */
   Scm_VMThrowException(Scm_VM(), new_pg_result(res, (ScmPg*) pg_conn_scm));
-#else
-  Scm_VMThrowException(new_pg_result(res, (ScmPg*) pg_conn_scm));
-#endif
   // Scm_ReportError();
   return SCM_UNDEFINED;
 }
@@ -452,7 +448,7 @@ PGresult *PQexecPrepared(PGconn *conn,
    "
 #if 0
 PGresult* res = PQcopy(result);
-return new_pg_result (res, ((ScmPgR*) result_scm)->handle); 
+return new_pg_result (res, ((ScmPgR*) result_scm)->handle);
 #else
 Scm_Error(\"pg-copy is not implemented!\");
 return SCM_UNDEFINED;
@@ -507,7 +503,7 @@ return s;"
   ;(return <int> "PQntuples"))
   "SCM_RETURN (Scm_MakeInteger(PQntuples(result)));"
   )
-  
+
 
 (define-cgeneric pg-nfields "pg_nfields_generic")
 (define-cmethod pg-nfields (result::<pg-result>)
@@ -552,7 +548,7 @@ return s;"
   "SCM_RETURN (Scm_MakeInteger(PQftable(result, index)));"
   )
 
-;; 
+;;
 "#ifndef  mmc_pg_hack
 int PQfsource(PGresult* a, int b)
 {
@@ -713,7 +709,7 @@ int r;
 ;; seems obsolete!
 ;; fixme:  _bytes_        ... v  should be first declared ! then int len = SCM_UVECTOR_SIZE(v);  !!! fixme:
 (define-cproc pg-put-nbytes (pg::<pg-handle> v::<uvector> &optional (start::<fixnum> 0) (end::<fixnum> -1))
-"int len = SCM_UVECTOR_SIZE(v); 
+"int len = SCM_UVECTOR_SIZE(v);
   int eltsize, r;
   SCM_CHECK_START_END(start, end, len);
   eltsize = Scm_UVectorElementSize(Scm_ClassOf(SCM_OBJ(v)));
@@ -739,7 +735,7 @@ int r;
 ;; i want to accept string & u-vector
 (define-cproc pg-put-copy-data (pg::<pg-handle> v::<uvector> &optional (start::<fixnum> 0) (end::<fixnum> -1))
   ;;(return <int> "PQputline")
-" int len = SCM_UVECTOR_SIZE(v); 
+" int len = SCM_UVECTOR_SIZE(v);
   int eltsize, r;
   SCM_CHECK_START_END(start, end, len);
   eltsize = Scm_UVectorElementSize(Scm_ClassOf(SCM_OBJ(v)));
@@ -807,7 +803,7 @@ if (copybuf[0] == '\\\\' &&
     copybuf[1] == '.' &&
     copybuf[2] == '\\0')
 return SCM_TRUE;
-else 
+else
 return SCM_FALSE;")
 
 
