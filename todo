@@ -1,11 +1,11 @@
 
 * cursor:
-make it Read ONLY!  and without HOLD!    
-                                                                                                    
- DECLARE name [ BINARY ] [ INSENSITIVE ] [ [ NO ] SCROLL ]                                          
-     CURSOR [ { WITH | WITHOUT } HOLD ] FOR query                                                   
-     [ FOR { READ ONLY | UPDATE [ OF column [, ...] ] } ]                                           
-                                                                                                    
+make it Read ONLY!  and without HOLD!
+
+ DECLARE name [ BINARY ] [ INSENSITIVE ] [ [ NO ] SCROLL ]
+     CURSOR [ { WITH | WITHOUT } HOLD ] FOR query
+     [ FOR { READ ONLY | UPDATE [ OF column [, ...] ] } ]
+
 
 *  pqfsource   conditional
 
