@@ -37,11 +37,11 @@ CONFIG_GENERATED = Makefile config.cache config.log config.status\
 # pgib.c
 
 INSTALL_TYPE = @INSTALL_TYPE@
-HEADER_INSTALL_DIR  = $(DESTDIR)`$(GAUCHE_CONFIG) --$(INSTALL_TYPE)incdir`/
-SCM_INSTALL_DIR     = $(DESTDIR)`$(GAUCHE_CONFIG) --$(INSTALL_TYPE)libdir`/
-ARCH_INSTALL_DIR    = $(DESTDIR)`$(GAUCHE_CONFIG) --$(INSTALL_TYPE)archdir`/
+HEADER_INSTALL_DIR  := $(DESTDIR)`$(GAUCHE_CONFIG) --$(INSTALL_TYPE)incdir`/
+SCM_INSTALL_DIR     := $(DESTDIR)`$(GAUCHE_CONFIG) --$(INSTALL_TYPE)libdir`/
+ARCH_INSTALL_DIR    := $(DESTDIR)`$(GAUCHE_CONFIG) --$(INSTALL_TYPE)archdir`/
 
-SCM_HI_INSTALL_DIR = $$(gauche-config --sitelibdir)
+SCM_HI_INSTALL_DIR  := $(DESTDIR)$$(gauche-config --sitelibdir)
 
 all : $(TARGET)
 
@@ -74,7 +74,7 @@ install : all
 
 	@for f in $(SCM_HI_FILES) _end; do \
 	  if test $$f != _end; then \
-	    $(INSTALL) --verbose -D -m 444 $$f $(DESTDIR)$(SCM_HI_INSTALL_DIR)/$$f; \
+	    $(INSTALL) --verbose -D -m 444 $$f $(SCM_HI_INSTALL_DIR)/$$f; \
 	  fi; \
 	done
 
