@@ -107,7 +107,7 @@ Scm_Error(\"handle read-only\");"  ;(((ScmPgR*) OBJARG)->handle) = value;"
 ;   "pg_notice_processor=function;")
 
 
-(define-cproc pg-set-local-notice-processor (function  pg_conn::<pg-handle>)
+(define-cproc pg-set-local-notice-processor (function pg_conn::<pg-handle>)
   ;; fixme: i use more info than provided !!!
   ;; i rely on the scheme object being named XX_scm !!
   ;; This protects it from GC!
