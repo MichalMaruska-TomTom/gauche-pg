@@ -121,7 +121,7 @@ return SCM_UNDEFINED;")
 (define-enum CONNECTION_OK)
 (define-enum CONNECTION_BAD)
 
-(define-cproc pg-connect (&optional (conninfo::<const-char*> ""))
+(define-cproc pg-connect (&optional (conninfo::<const-cstring> ""))
 			  ;&optional (size::<fixnum> 0)
 			  ;(rwmode::<fixnum> (c "SCM_MAKE_INT(PG_READER)"))
 			  ;(fmode::<fixnum> (c "SCM_MAKE_INT(0666)"))
@@ -147,7 +147,7 @@ if  (status != CONNECTION_OK) {
   "PGnotify*" "Scm_PGnotify_Class"
   ()					;cpa
   (
-   (relname :type <const-char*>
+   (relname :type <const-cstring>
 	    :setter #f)
    (be_pid :type <int>)
                                         ;(extra :type <const-*char>)
@@ -161,23 +161,22 @@ if  (status != CONNECTION_OK) {
   "PGnotify* n = PQnotifies(pg_conn);
 if (!n)
    SCM_RETURN(SCM_FALSE);
-SCM_RETURN(Scm_Make_PGnotify(n));
-")
+SCM_RETURN(Scm_Make_PGnotify(n));")
 
 ;  bad_connection-> error
 
 
-(define-cproc pg-db (pg_conn::<pg-handle>) ::<const-char*>
+(define-cproc pg-db (pg_conn::<pg-handle>) ::<const-cstring>
    "PQdb")
-(define-cproc pg-user (pg_conn::<pg-handle>) ::<const-char*>
+(define-cproc pg-user (pg_conn::<pg-handle>) ::<const-cstring>
   "PQuser")
-(define-cproc pg-host (pg_conn::<pg-handle>) ::<const-char*>
+(define-cproc pg-host (pg_conn::<pg-handle>) ::<const-cstring>
   "PQhost")
-(define-cproc pg-port (pg_conn::<pg-handle>) ::<const-char*>
+(define-cproc pg-port (pg_conn::<pg-handle>) ::<const-cstring>
   "PQport")
-(define-cproc pg-options (pg_conn::<pg-handle>) ::<const-char*>
+(define-cproc pg-options (pg_conn::<pg-handle>) ::<const-cstring>
   "PQoptions")
-(define-cproc pg-pass (pg_conn::<pg-handle>) ::<const-char*>
+(define-cproc pg-pass (pg_conn::<pg-handle>) ::<const-cstring>
   "PQpass")
 
 (define-cproc pg-reset (pg_conn::<pg-handle>) ::<void>
@@ -186,8 +185,8 @@ SCM_RETURN(Scm_Make_PGnotify(n));
 
 ;; const char *PQparameterStatus(const PGconn *conn, const char *paramName);
 
-(define-cproc pg-parameter-status (pg_conn::<pg-handle> name::<const-char*>)
-  ::<const-char*>
+(define-cproc pg-parameter-status (pg_conn::<pg-handle> name::<const-cstring>)
+  ::<const-cstring>
   "PQparameterStatus")
 
 
@@ -196,7 +195,7 @@ SCM_RETURN(Scm_Make_PGnotify(n));
 
 
 
-(define-cproc pg-error-message (pg_conn::<pg-handle>) ::<const-char*>
+(define-cproc pg-error-message (pg_conn::<pg-handle>) ::<const-cstring>
   "PQerrorMessage")
 
 
@@ -226,7 +225,7 @@ SCM_RETURN(Scm_Make_PGnotify(n));
 
 
 ;;; Polling
-(define-cproc pg-connect-start (conninfo::<const-char*>) ::<pg-handle>
+(define-cproc pg-connect-start (conninfo::<const-cstring>) ::<pg-handle>
    "PQconnectdb")
 
 
@@ -260,7 +259,7 @@ SCM_RETURN(SCM_UNDEFINED);
 
 ;;; Async:
 
-(define-cproc pg-send-query (pg-conn::<pg-handle> query::<const-char*>) ::<int>
+(define-cproc pg-send-query (pg-conn::<pg-handle> query::<const-cstring>) ::<int>
    "PQsendQuery")
 
 (define-cproc pg-get-result (pg-conn::<pg-handle>)
@@ -312,7 +311,7 @@ else
 (define-cgeneric pg-exec "pg_exec_generic")
 
 
-(define-cmethod pg-exec (pg-conn::<pg-handle> query::<const-char*>)
+(define-cmethod pg-exec (pg-conn::<pg-handle> query::<const-cstring>)
   "
 #if 0
 Scm_Warn(\"pg-exec: running query: %s\\n\", query);
@@ -349,7 +348,7 @@ else
 
 
 (define-cproc pg-result-error-field (pg-result::<pg-result> field::<int>)
-  ::<const-char*>
+  ::<const-cstring>
   "PQresultErrorField")
 ;;  char *PQresultErrorField(const PGresult *res, int fieldcode);
 
@@ -383,7 +382,7 @@ else
 
 
 ;;; `queries':
-(define-cproc pg-exec-internal (pg-conn::<pg-handle> query::<const-char*>)
+(define-cproc pg-exec-internal (pg-conn::<pg-handle> query::<const-cstring>)
   "PGresult* res = PQexec(pg_conn, query);
 return  new_pg_result (res, (ScmPg*) pg_conn_scm);"
 ;  (return <pg-result> "PQexec"))
@@ -435,10 +434,10 @@ PGresult *PQexecPrepared(PGconn *conn,
 
 
 
-(define-cproc pg-status-status (code::<int>) ::<const-char*>
+(define-cproc pg-status-status (code::<int>) ::<const-cstring>
   "PQresStatus")
 
-(define-cproc pg-result-error-message (result::<pg-result>) ::<const-char*>
+(define-cproc pg-result-error-message (result::<pg-result>) ::<const-cstring>
   "PQresultErrorMessage")
 
 ;; could be the finalizer !!
@@ -481,7 +480,7 @@ return SCM_UNDEFINED;
 ;; PGresult* PQmakeEmptyPGresult(PGconn *conn, ExecStatusType status);
 
 
-(define-cproc pg-escape-string (from::<const-char*>)
+(define-cproc pg-escape-string (from::<const-cstring>)
   ;"PQresultErrorMessage"))
   ;(return <void> "PQclear")
   "size_t length = strlen(from);
@@ -521,7 +520,7 @@ return s;"
 
 
 (define-cmethod pg-fname (result::<pg-result> index::<int>)
-  ;(return <const-char*> "PQfname")
+  ;(return <const-cstring> "PQfname")
   "CHECK_COLUMN(result, index, \"pg-fname\");
   SCM_RETURN (Scm_charPtr_Box(PQfname(result, index)));"
   )
@@ -529,8 +528,8 @@ return s;"
 
 
 (define-cgeneric pg-fnumber "pg_fnumber_generic")
-(define-cmethod pg-fnumber (result::<pg-result> name::<const-char*>)
-;(define-cproc pg-fnumber (result::<pg-result> name::<const-char*>)
+(define-cmethod pg-fnumber (result::<pg-result> name::<const-cstring>)
+;(define-cproc pg-fnumber (result::<pg-result> name::<const-cstring>)
   ;(return <int> "PQfnumber")
 
   "SCM_RETURN (Scm_MakeInteger(PQfnumber(result, name)));"
@@ -546,7 +545,7 @@ return s;"
 
 (define-cgeneric pg-ftable "pg_ftable_generic")
 (define-cmethod pg-ftable (result::<pg-result> index::<int>)
-  ;(return <const-char*> "PQftable")
+  ;(return <const-cstring> "PQftable")
   "SCM_RETURN (Scm_MakeInteger(PQftable(result, index)));"
   )
 
@@ -560,7 +559,7 @@ int PQfsource(PGresult* a, int b)
 
 (define-cgeneric pg-fsource "pg_fsource_generic") ;varno
 (define-cmethod pg-fsource (result::<pg-result> index::<int>)
-                                        ;(return <const-char*> "PQftable")
+                                        ;(return <const-cstring> "PQftable")
   "SCM_RETURN (Scm_MakeInteger(PQfsource(result, index)));"
   )
 
@@ -597,7 +596,7 @@ CHECK_COLUMN(result, index, \"pg-fmod\");
 
 (define-cgeneric pg-get-value "pg_get_value_generic")
 (define-cmethod pg-get-value (result::<pg-result> tuple::<int> index::<int>)
-  ;(return <const-char*> "PQgetvalue")
+  ;(return <const-cstring> "PQgetvalue")
   "
 if ((tuple >= PQntuples(result)) || tuple < 0)
 Scm_Error(\"pg-get-value: tuple %d out of range (0-%d)\", tuple, PQntuples(result) - 1);
@@ -627,10 +626,10 @@ return SCM_MAKE_BOOL(PQgetisnull(result, tuple, index));")
 ;(define-cproc pg-print (result::<pg-result> tuple::<int> index::<int>)
 ;  (return <boolean> "PQgetisnull"))
 
-(define-cproc pg-cmd-status (result::<pg-result>) ::<const-char*>
+(define-cproc pg-cmd-status (result::<pg-result>) ::<const-cstring>
   "PQcmdStatus")
 
-(define-cproc pg-cmd-tuples (result::<pg-result>) ::<const-char*>
+(define-cproc pg-cmd-tuples (result::<pg-result>) ::<const-cstring>
   "PQcmdTuples")
 
 
@@ -639,7 +638,7 @@ return SCM_MAKE_BOOL(PQgetisnull(result, tuple, index));")
   "PQoidValue")
 
 
-(define-cproc pg-oid-status (result::<pg-result>) ::<const-char*>
+(define-cproc pg-oid-status (result::<pg-result>) ::<const-cstring>
   "PQoidStatus")
 
 ;;; Async
@@ -686,7 +685,7 @@ SCM_RETURN(Scm_MakeInteger((r==1)?(1-array_len):(binary_search(start_array,0, ar
 
 ;; fixme:
 ;; obsolete!
-(define-cproc pg-put-line (pg::<pg-handle> line::<const-char*>)
+(define-cproc pg-put-line (pg::<pg-handle> line::<const-cstring>)
   ;;(return <int> "PQputline")
 "ScmObj line_scm;
 const char * line;
@@ -694,7 +693,7 @@ const char * line;
 SCM_ENTER_SUBR(\"pg-put-line\");
 
 line_scm = SCM_ARGREF(1);
-if (!SCM_STRINGP(line_scm)) Scm_Error(\"<const-char*> required, but got %S\", line_scm);
+if (!SCM_STRINGP(line_scm)) Scm_Error(\"<const-cstring> required, but got %S\", line_scm);
 line = CONST_CHAR_PTR(line_scm);
 
   ScmObj pg_conn_scm;
@@ -822,7 +821,7 @@ return SCM_FALSE;")
 
 
 ;; fixme:  to  gauche-strings !
-; '(define-cproc emacs-mule->cyrillic (string::<const-char*>)
+; '(define-cproc emacs-mule->cyrillic (string::<const-cstring>)
 ;   "ScmObj result;
 ; char* utf = mule_to_utf(string);
 ;    result = SCM_MAKE_STR_COPYING(utf);
