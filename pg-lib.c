@@ -7,20 +7,20 @@
 #define use_hook 1
 
 
-/* print about the <pg-handle>. Could be done in scheme, if i had PQ-XX funcstions?
+
+/* Print about the <pg-handle>. Could be done in scheme,
+ * if i had PQ-XX * functions?
  * mmc: Maybe not. I want info on NULL connection too. But working w/ such complicates all? */
 void
 pg_print(ScmObj obj, ScmPort *out, ScmWriteContext *ctx)
 {
    PGconn* P=SCM_PG_HANDLE(obj);
-   if (P)
-      {
-         Scm_Printf(out, "#<pg-handle %s@%s as %s>",
-                    PQdb(P),
-                    PQhost(P),
-                    PQuser(P)
-            )			; /* fixme: no name */
-      } else Scm_Printf(out, "#<pg-handle null>") ;
+   if (P) {
+           Scm_Printf(out, "#<pg-handle %s@%s as %s>",
+                      PQdb(P),
+                      PQhost(P),
+                      PQuser(P)); /* fixme: no name */
+   } else Scm_Printf(out, "#<pg-handle null>") ;
 }
 
 
@@ -28,16 +28,17 @@ pg_print(ScmObj obj, ScmPort *out, ScmWriteContext *ctx)
 static
 void pg_finalize(ScmObj obj, void* data)
 {
-/*  no need to test. the finalizer has just been deduced from the structure itself ? */
-   PGconn *g = SCM_PG_HANDLE(obj);
+    /*  no need to test: the finalizer has just been deduced from the structure
+     *  itself. */
+    PGconn *g = SCM_PG_HANDLE(obj);
 #if 0
-   printf("pg_finalize\\n");
+    printf("pg_finalize\\n");
 #endif
-   if (g) {
-           PQfinish(g);
-           /* fixme:*/
-           g = NULL;
-   } else Scm_Panic("%s unexpected\n", __FUNCTION__);
+    if (g) {
+        PQfinish(g);
+        // SCM_PG_HANDLE(obj) = NULL;
+        g = NULL;
+    } else Scm_Panic("%s unexpected\n", __FUNCTION__);
 }
 
 
@@ -171,14 +172,17 @@ pg_result_finalize(ScmObj obj, void* data)
 }
 
 
+
+
 /* This is called in 2*/
 ScmObj
-new_pg_result (PGresult* r, ScmPg* handle)
+new_pg_result(PGresult *r, ScmPg *handle)
 {
-   ScmPgR* g = SCM_NEW(ScmPgR);
+   ScmPgR *g = SCM_NEW(ScmPgR);
    SCM_SET_CLASS(g, SCM_CLASS_PG_RESULT);
    g->result=r;
-   g->handle = handle;          /* fixme: i would have to reference ...   w/ boehm it's ok! */
+   g->handle = handle;
+   /* fixme: I would have to reference ...   w/ boehm it's ok! */
    Scm_RegisterFinalizer(SCM_OBJ(g), pg_result_finalize, NULL);
    return SCM_OBJ(g);
 }
