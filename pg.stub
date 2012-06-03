@@ -167,36 +167,36 @@ SCM_RETURN(Scm_Make_PGnotify(n));")
 
 
 (define-cproc pg-db (pg_conn::<pg-handle>) ::<const-cstring>
-   "PQdb")
+  PQdb)
 (define-cproc pg-user (pg_conn::<pg-handle>) ::<const-cstring>
-  "PQuser")
+  PQuser)
 (define-cproc pg-host (pg_conn::<pg-handle>) ::<const-cstring>
-  "PQhost")
+  PQhost)
 (define-cproc pg-port (pg_conn::<pg-handle>) ::<const-cstring>
-  "PQport")
+  PQport)
 (define-cproc pg-options (pg_conn::<pg-handle>) ::<const-cstring>
-  "PQoptions")
+  PQoptions)
 (define-cproc pg-pass (pg_conn::<pg-handle>) ::<const-cstring>
-  "PQpass")
+  PQpass)
 
 (define-cproc pg-reset (pg_conn::<pg-handle>) ::<void>
-  "PQreset")
+  PQreset)
 
 
 ;; const char *PQparameterStatus(const PGconn *conn, const char *paramName);
 
 (define-cproc pg-parameter-status (pg_conn::<pg-handle> name::<const-cstring>)
   ::<const-cstring>
-  "PQparameterStatus")
+  PQparameterStatus)
 
 
 (define-cproc pg-protocol-version (pg_conn::<pg-handle>) ::<int>
-  "PQprotocolVersion")
+  PQprotocolVersion)
 
 
 
 (define-cproc pg-error-message (pg_conn::<pg-handle>) ::<const-cstring>
-  "PQerrorMessage")
+  PQerrorMessage)
 
 
 (define-cgeneric pg-status "pg_status_generic")
@@ -214,7 +214,7 @@ SCM_RETURN(Scm_Make_PGnotify(n));")
 
 
 (define-cproc pg-transaction-status (pg_conn::<pg-handle>) ::<int>
-   "PQtransactionStatus")
+   PQtransactionStatus)
 
 
 (define-enum PQTRANS_IDLE)
@@ -226,11 +226,11 @@ SCM_RETURN(Scm_Make_PGnotify(n));")
 
 ;;; Polling
 (define-cproc pg-connect-start (conninfo::<const-cstring>) ::<pg-handle>
-   "PQconnectdb")
+   PQconnectdb)
 
 
 (define-cproc pg-connect-poll (pg_conn::<pg-handle>) ::<int>
-  "PQconnectPoll")
+  PQconnectPoll)
 
 ;; not necessary !
 (define-enum PGRES_POLLING_FAILED)
@@ -243,7 +243,7 @@ SCM_RETURN(Scm_Make_PGnotify(n));")
 ;;;
 (define-cproc pg-finish (pg_conn::<pg-handle>)
   ;; control !!!
-  ;;(return <void> "PQfinish"))           ;bug !
+  ;;(return <void> PQfinish))           ;bug !
   "PQfinish(pg_conn);
 SCM_PG_HANDLE(pg_conn_scm) = NULL;
 SCM_RETURN(SCM_UNDEFINED);
@@ -251,7 +251,7 @@ SCM_RETURN(SCM_UNDEFINED);
 
 
 (define-cproc pg-backend-pid (pg_conn::<pg-handle>) ::<int>
-  "PQbackendPID")
+  PQbackendPID)
 
 
 
@@ -260,7 +260,7 @@ SCM_RETURN(SCM_UNDEFINED);
 ;;; Async:
 
 (define-cproc pg-send-query (pg-conn::<pg-handle> query::<const-cstring>) ::<int>
-   "PQsendQuery")
+   PQsendQuery)
 
 (define-cproc pg-get-result (pg-conn::<pg-handle>)
   "PGresult *result = PQgetResult(pg_conn);
@@ -270,12 +270,12 @@ else
     return SCM_EOF;")
 
 (define-cproc pg-is-busy (pg_conn::<pg-handle>) ::<boolean>
-  "PQisBusy")
+  PQisBusy)
 ;"return pg_is_busy(SCM_PG_HANDLE(pg_conn))?SCM_TRUE:SCM_FALSE;" )
 
 
 (define-cproc pg-consume-input (pg_conn::<pg-handle>) ::<boolean>
-  "PQconsumeInput")
+  PQconsumeInput)
 ; "int res=PQconsumeInput(SCM_PG_HANDLE(pg_conn));
 ;   if (res==0) {
 ; // pg_exception  !!!
@@ -287,7 +287,7 @@ else
 
 ;;;
 (define-cproc pg-request-cancel (pg-conn::<pg-handle>) ::<int>
-   "PQrequestCancel")
+   PQrequestCancel)
 
 
 ;; Todo:
@@ -349,7 +349,7 @@ else
 
 (define-cproc pg-result-error-field (pg-result::<pg-result> field::<int>)
   ::<const-cstring>
-  "PQresultErrorField")
+  PQresultErrorField)
 ;;  char *PQresultErrorField(const PGresult *res, int fieldcode);
 
 
@@ -385,7 +385,7 @@ else
 (define-cproc pg-exec-internal (pg-conn::<pg-handle> query::<const-cstring>)
   "PGresult* res = PQexec(pg_conn, query);
 return  new_pg_result (res, (ScmPg*) pg_conn_scm);"
-;  (return <pg-result> "PQexec"))
+;  (return <pg-result> PQexec))
 )
 
 #|
@@ -413,7 +413,7 @@ PGresult *PQexecPrepared(PGconn *conn,
 
 ;; status:   not a method !
 (define-cproc pg-result-status (result::<pg-result>)  ::<int>
-  "PQresultStatus")
+  PQresultStatus)
 
 
 
@@ -435,14 +435,14 @@ PGresult *PQexecPrepared(PGconn *conn,
 
 
 (define-cproc pg-status-status (code::<int>) ::<const-cstring>
-  "PQresStatus")
+  PQresStatus)
 
 (define-cproc pg-result-error-message (result::<pg-result>) ::<const-cstring>
-  "PQresultErrorMessage")
+  PQresultErrorMessage)
 
 ;; could be the finalizer !!
 (define-cproc pg-clear (result::<pg-result>) ::<void>
-  "PQclear")
+  PQclear)
 
 
 (define-cproc pg-copy (result::<pg-result>)
@@ -591,7 +591,7 @@ CHECK_COLUMN(result, index, \"pg-fmod\");
 
 ;;; 1 per tuple
 (define-cproc pg-binary-tuples (result::<pg-result>) ::<boolean>
-   "PQbinaryTuples")
+   PQbinaryTuples)
 
 
 (define-cgeneric pg-get-value "pg_get_value_generic")
@@ -619,7 +619,7 @@ return SCM_MAKE_BOOL(PQgetisnull(result, tuple, index));")
 ;  (return <boolean> "PQgetisnull"))
 
 (define-cproc pg-get-length (result::<pg-result> tuple::<int> index::<int>) ::<int>
-  "PQgetlength")
+  PQgetlength)
 
 
 ;;; special
@@ -627,19 +627,19 @@ return SCM_MAKE_BOOL(PQgetisnull(result, tuple, index));")
 ;  (return <boolean> "PQgetisnull"))
 
 (define-cproc pg-cmd-status (result::<pg-result>) ::<const-cstring>
-  "PQcmdStatus")
+  PQcmdStatus)
 
 (define-cproc pg-cmd-tuples (result::<pg-result>) ::<const-cstring>
-  "PQcmdTuples")
+  PQcmdTuples)
 
 
 ;; oid is not <int> is it?
 (define-cproc pg-oid-value (result::<pg-result>) ::<int>
-  "PQoidValue")
+  PQoidValue)
 
 
 (define-cproc pg-oid-status (result::<pg-result>) ::<const-cstring>
-  "PQoidStatus")
+  PQoidStatus)
 
 ;;; Async
 
@@ -812,12 +812,12 @@ return SCM_FALSE;")
 
 ;; obsolete:
 (define-cproc pg-end-copy (pg::<pg-handle>) ::<int>
-  "PQendcopy")
+  PQendcopy)
 
 ;; `new:'
 (define-cproc pg-put-copy-end (pg::<pg-handle>
 			       error-message::<const-char*-or-false>) ::<int>
-			       "PQputCopyEnd")
+			       PQputCopyEnd)
 
 
 ;; fixme:  to  gauche-strings !
