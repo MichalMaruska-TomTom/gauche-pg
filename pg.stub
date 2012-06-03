@@ -1,7 +1,7 @@
 ;;
 ;; pg.stub - postgresql interface (from gauche)
 ;;
-;;  Copyright(C) 2003 by M. Maruska (michal@ruska.it)
+;;  Copyright(C) 2003-2012 by M. Maruska (mmaruska@gmail.com)
 ;;
 ;;  Licence: either that of gauche, or that of Postresql
 
