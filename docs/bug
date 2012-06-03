@@ -1,0 +1,23 @@
+i686-pc-linux-gnu-gcc -mtune=pentium4 -march=pentium4 -O3 -pipe -I'/usr/lib/gauche/0.8.7/include' -fomit-frame-pointer -march=i686 -DUSE_I686_PREFETCH  -I/usr/include   -c -o pg.o pg.c
+pg.c: In function 'Scm_PGnotify_Class_relname_SET':
+pg.c:107: warning: assignment discards qualifiers from pointer target type
+pg.c: In function 'pg_pg_copy':
+pg.c:840: warning: initialization makes pointer from integer without a cast
+pg.c: In function 'pg_pg_shrink':
+pg.c:858: warning: initialization makes pointer from integer without a cast
+
+
+
+
+gosh> ->db returns a non-safe handle! <db-relation pg_toast_53256507>
+assertion failed: #<module pg.database>: (char=? (pg-get-value-by-name rel-result 0 "relkind") #\r)*** ERROR: unhandled exeption: 1
+Stack Trace:
+_______________________________________
+  0  (report-error 1)
+        [unknown location]
+  1  (make <db-relation> :name relname :database db :namespace namespac ...
+        At line 936 of "/usr/share/gauche/site/lib/pg/database.scm"
+  2  (pg:get-relation-by-oid pg oid)
+        At line 868 of "(stdin)"
+
+Process scheme exited abnormally with code 128
