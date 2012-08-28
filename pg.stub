@@ -550,12 +550,16 @@ return s;"
   )
 
 ;;
-"#ifndef  mmc_pg_hack
+"
+#if 0
+#ifndef  mmc_pg_hack
 int PQfsource(PGresult* a, int b)
 {
  return -1;
 }
+#endif
 #endif"
+
 
 (define-cgeneric pg-fsource "pg_fsource_generic") ;varno
 (define-cmethod pg-fsource (result::<pg-result> index::<int>)
