@@ -1,6 +1,6 @@
 
 ;; `database' concept.
-;; 
+;;
 
 (define-module pg.db
   (export
@@ -18,7 +18,7 @@
    pg:database-set! pg:database-ref
    pg:add-database-hook
 
-   
+
 
    ;; todo: How to use these?
    pg:add-listener pg:check-for-notifies
@@ -67,7 +67,7 @@
 
    ;;todo:  (search-path) ?? handle-local!
 
-   ;; 
+   ;;
    (admin-handle :init-keyword :admin-handle)
    (admin-handle-mutex :init-form (make-mutex))
 
@@ -76,9 +76,9 @@
    ;; and a simple array ??
    ;; i need oid -> <pg-namespace>
    ;; and name -> <pg-namespace>
-   (namespaces)          ;; schemas   list of <pg-namespace> 
+   (namespaces)          ;; schemas   list of <pg-namespace>
    (namespaces-mutex :init-form (make-mutex))
-   
+
    ;; oid -> relation ?
    ;; fixme: This should be accessible via  PUBLIC namespace !?
    (relations :init-keyword :relations)
@@ -116,7 +116,7 @@
     ;; What if it is already in?
     (assert (not (member connection (slot-ref database 'conn-pool))))
     ;; Note: This starts a new backend!
-    ;(pg-reset (ref connection 'conn))   ;error! 
+    ;(pg-reset (ref connection 'conn))   ;error!
     (slot-push! database 'conn-pool connection)))
 
 
@@ -146,7 +146,7 @@
                    (not (sys-getenv "PGUSER")))
           (set! user "mmc"))
 
-        
+
 
         (let1 connection (if (or (null? (ref database 'conn-pool))
                                  ;; fixme!!
@@ -157,7 +157,7 @@
                                         ;(slot-bound? database 'name)
                                                 )
                                             (pg-open :host (ref database 'host)
-                                                     ;; Fixme:  port 
+                                                     ;; Fixme:  port
                                                      :dbname (ref database 'name)
                                                      :user (or user
                                         ;(ref database 'user)
@@ -170,14 +170,14 @@
                                (if debug-handles
                                    (logformat-color 'red "Another connection opened: ~d\n"
                                      (pg-backend-pid (ref conn 'conn))))
-                                     
+
                                (slot-set! conn 'database database)
                                ;; fixme:  slot-push! ?
                                (slot-push! database 'conn-pool conn)
                                ;;(slot-set! database 'conn-pool (list conn))
                                (if debug-handles
                                    (logformat-color 'yellow "pg:new-handle: backend ~d\n"
-                                     (pg-backend-pid 
+                                     (pg-backend-pid
                                       (ref conn 'conn))))
                                conn)
                            (car (ref database 'conn-pool)))
@@ -297,7 +297,7 @@
 
 ;; Todo: Every code using 'admin-handle should collect the `notifies', right?
 ;; And maybe have a timer?
-;;  PQconsumeInput, then check PQnotifies. 
+;;  PQconsumeInput, then check PQnotifies.
 (define (pg:check-for-notifies db)
   (with-locking-mutex* (ref db 'listener-mutex)
     ;; fixme: so, under that mutex `admin-handle' must be available!   It's not designed!
@@ -308,7 +308,7 @@
         (let1 listeners (assoc (ref notify 'relname)
                                (ref db 'listeners))
           (if listeners
-              (for-each 
+              (for-each
                   (lambda (listener)
                     (listener notify))
                 (cdr listeners))))))))
@@ -352,7 +352,7 @@
   (if debug-handles (logformat-color 'green "keep-unique: ~a ~a ~a\n" host port database))
   ;; connect
   (let* ((pg (apply pg-open ;;connect
-                    (apply 
+                    (apply
                      append
                      (cond-list
                       (host `(:host ,host))
@@ -385,7 +385,7 @@
 
 ;; port?
 (define (pg:connect-to-database . rest)
-  (with-locking-mutex* *databases-mutex* 
+  (with-locking-mutex* *databases-mutex*
     (let-optionals* rest
         ;; fixme: IS this default used by  libpq ???
         ((host (sys-getenv "PGHOST"))
@@ -411,7 +411,7 @@
                          :conn-pool ()  ;(list p)
                          :admin-handle p)))
               (push! *databases* db)
-              
+
               ;; -fixme: lazily!
               ;;(if debug (logformat "New DB, `pg:load-namespaces' should be lazy!\n"))
 
