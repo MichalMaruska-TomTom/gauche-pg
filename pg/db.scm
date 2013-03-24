@@ -5,7 +5,7 @@
 (define-module pg.db
   (export
    <pg-database>
-   pg:connect-to-database               ; (pg:connect-to-database "linux10" "maruska")
+   pg:connect-to-database ; (pg:connect-to-database "linux10" "maruska")
 
    pg:new-handle pg:dispose-handle
 
@@ -91,15 +91,16 @@
    (dependency-hypergraph)
 
    (dictionary :init-keyword :dictionary) ; key -> value
-   (dictionary-mutex :init-value (make-mutex))
-   ))
+   (dictionary-mutex :init-value (make-mutex))))
 
 
 (define-method write-object ((o <pg-database>) port)
   (format port
     "<~a ~a@~a>"
     ;; "<"
-    (string-drop-right (string-drop (symbol->string (class-name (class-of o))) 1) 1)
+    (string-drop-right
+     (string-drop (symbol->string (class-name (class-of o))) 1)
+     1)
     ;"pg-database"
     (ref o 'name)
     (ref o 'host)))
@@ -109,20 +110,22 @@
 (define (pg:dispose-handle database connection)
   (with-locking-mutex* (ref database 'conn-pool-mutex)
     ;; fixme: Check that it is connected to the correct DB!
-    ;; I could have a weak vector of handed-out connections, and ask for membership ?
+    ;; I could have a weak vector of handed-out connections,
+    ;; and ask for membership ?
 
     (if debug-handles
         (logformat-color 'yellow "disposing connection: ~d\n" (pg-backend-pid (ref connection 'conn))))
     ;; What if it is already in?
     (assert (not (member connection (slot-ref database 'conn-pool))))
     ;; Note: This starts a new backend!
-    ;(pg-reset (ref connection 'conn))   ;error!
+    ;;(pg-reset (ref connection 'conn))   ;error!
     (slot-push! database 'conn-pool connection)))
 
 
 ;; returns a pg-handle.
-;; The handle is either taken from a pool of already connected handles, or freshly opened.
-;; the handle can be private ....   not private is useful for 1 (independent) query only.
+;; The handle is either taken from a pool of
+;; already connected handles, or freshly opened.  the handle can be
+;; private ....  not private is useful for 1 (independent) query only.
 (define (pg:new-handle database . rest)
   ;; Check args:
   (unless (is-a? database <pg-database>)
@@ -148,39 +151,41 @@
 
 
 
-        (let1 connection (if (or (null? (ref database 'conn-pool))
-                                 ;; fixme!!
-                                 really-new?
-                                 user)
-                             ;; The high level! `<pg>'
-                             (let1 conn (if (or user
+        (let1 connection
+	    (if (or (null? (ref database 'conn-pool))
+		    ;; fixme!!
+		    really-new?
+		    user)
+		;; The high level! `<pg>'
+		(let1 conn (if (or user
                                         ;(slot-bound? database 'name)
-                                                )
-                                            (pg-open :host (ref database 'host)
-                                                     ;; Fixme:  port
-                                                     :dbname (ref database 'name)
-                                                     :user (or user
+				   )
+			       (pg-open :host (ref database 'host)
+					;; Fixme:  port
+					:dbname (ref database 'name)
+					:user (or user
                                         ;(ref database 'user)
-                                                               ))
-                                          (pg-open :host (ref database 'host)
-                                                   :dbname (ref database 'name)))
-                               (if (or user debug)
-                                   (logformat "pg-open as ~a\n" user))
+						  ))
+			     (pg-open :host (ref database 'host)
+				      :dbname (ref database 'name)))
+		  (if (or user debug)
+		      (logformat "pg-open as ~a\n" user))
 
-                               (if debug-handles
-                                   (logformat-color 'red "Another connection opened: ~d\n"
-                                     (pg-backend-pid (ref conn 'conn))))
+		  (if debug-handles
+		      (logformat-color 'red "Another connection opened: ~d\n"
+			(pg-backend-pid (ref conn 'conn))))
 
-                               (slot-set! conn 'database database)
-                               ;; fixme:  slot-push! ?
-                               (slot-push! database 'conn-pool conn)
-                               ;;(slot-set! database 'conn-pool (list conn))
-                               (if debug-handles
-                                   (logformat-color 'yellow "pg:new-handle: backend ~d\n"
-                                     (pg-backend-pid
-                                      (ref conn 'conn))))
-                               conn)
-                           (car (ref database 'conn-pool)))
+		  (slot-set! conn 'database database)
+		  ;; fixme:  slot-push! ?
+		  (slot-push! database 'conn-pool conn)
+		  ;;(slot-set! database 'conn-pool (list conn))
+		  (if debug-handles
+		      (logformat-color 'yellow "pg:new-handle: backend ~d\n"
+			(pg-backend-pid
+			 (ref conn 'conn))))
+		  conn)
+	      (car (ref database 'conn-pool)))
+
           (if private
               ;; fixme: it's at the head, isn't it?
               (slot-set! database 'conn-pool
@@ -300,7 +305,8 @@
 ;;  PQconsumeInput, then check PQnotifies.
 (define (pg:check-for-notifies db)
   (with-locking-mutex* (ref db 'listener-mutex)
-    ;; fixme: so, under that mutex `admin-handle' must be available!   It's not designed!
+    ;; fixme: so, under that mutex `admin-handle' must be available!
+    ;; It's not designed!
     (let1 pg (ref (ref db 'admin-handle) 'conn)
       (pg-consume-input pg)
       (do ((notify (pg-notifies pg) (pg-notifies pg)))
@@ -349,7 +355,8 @@
 ;; todo: user?
 (define (keep-unique host port database)
   ;; (if (and host port database)
-  (if debug-handles (logformat-color 'green "keep-unique: ~a ~a ~a\n" host port database))
+  (if debug-handles (logformat-color 'green "keep-unique: ~a ~a ~a\n"
+		      host port database))
   ;; connect
   (let* ((pg (apply pg-open ;;connect
                     (apply
@@ -368,12 +375,15 @@
                  (lambda (db)
                    (and
                     ;; canonic hostname of HOST ?
-                    (string=? hostname (ref db 'host)) ; mmc: why ref and not (pg-hostname db)?
+                    (string=? hostname (ref db 'host))
+		    ;; mmc: why ref and not (pg-hostname db)?
+
                     (string=? port     (ref db 'port))
                     (string=? database (ref db 'name))))
                  *databases*)))
 
-    (if debug (logformat "keep-unique: ~a ~a ~a: ~a\n" hostname port database (if found "FOUND" "NEW")))
+    (if debug (logformat "keep-unique: ~a ~a ~a: ~a\n" hostname port database
+			 (if found "FOUND" "NEW")))
     (if found
         (begin
           ;; push pg into the pool of connections
@@ -413,7 +423,8 @@
               (push! *databases* db)
 
               ;; -fixme: lazily!
-              ;;(if debug (logformat "New DB, `pg:load-namespaces' should be lazy!\n"))
+              ;;(if debug (logformat
+	      ;;   "New DB, `pg:load-namespaces' should be lazy!\n"))
 
               ;; Run all hooks:
               (for-each
