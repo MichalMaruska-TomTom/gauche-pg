@@ -1,10 +1,10 @@
 /* #define GAUCHE_API_0_8_10 1 */
 #include "pg-lib.h"
 
-#define DEBUG_finalizer 0
+#define DEBUG_FINALIZER 0
 #define GLOBAL_NOTICE_PROCESSOR 0
 #define hook_name "pg-handle-hook"
-#define use_hook 1
+#define USE_HOOK 1
 
 
 
@@ -31,7 +31,7 @@ void pg_finalize(ScmObj obj, void* data)
     /*  no need to test: the finalizer has just been deduced from the structure
      *  itself. */
     PGconn *g = SCM_PG_HANDLE(obj);
-#if 0
+#if DEBUG_FINALIZER
     printf("pg_finalize\\n");
 #endif
     if (g) {
@@ -46,6 +46,7 @@ void pg_finalize(ScmObj obj, void* data)
 #if 0
 static
 #endif
+
 void
 NoticeProcessor(void *arg, const char *message)
 {
@@ -58,13 +59,12 @@ NoticeProcessor(void *arg, const char *message)
    if (g->notice_monitor!=SCM_FALSE)
       Scm_ApplyRec(g->notice_monitor,
                    SCM_LIST2((ScmObj) g ,SCM_MAKE_STR_COPYING(message)));
-   else
-      {
+   else {
 #if GLOBAL_NOTICE_PROCESSOR
-         Scm_ApplyRec(pg_notice_processor,
-                      SCM_LIST2((ScmObj*)g ,SCM_MAKE_STR_COPYING(message)));
+           Scm_ApplyRec(pg_notice_processor,
+                        SCM_LIST2((ScmObj*)g ,SCM_MAKE_STR_COPYING(message)));
 #endif
-      }
+   }
 };
 
 
@@ -107,7 +107,7 @@ new_pg_handle(PGconn* handle)
    PQsetNoticeProcessor(handle, NoticeProcessor ,(void*) g);	/* fixme: some data ?conninfo */
 
 
-#if use_hook
+#if USE_HOOK
    /* i don't need it anymore */
    /* i would like to run a hook */
 
@@ -134,7 +134,8 @@ new_pg_handle(PGconn* handle)
       } else {
          /* Scm_Warn("%s: not found any hook\n", __FUNCTION__); */
       };
-#endif
+#endif // USE_HOOK
+
    /* Scm_Eval(ScmObj form, ScmObj env); */
    Scm_RegisterFinalizer(SCM_OBJ(g), pg_finalize, NULL);
    return SCM_OBJ(g);
@@ -161,7 +162,7 @@ pg_result_finalize(ScmObj obj, void* data)
 {
 /*  no need to test. the finalizer has just been deduced from the structure itself ? */
         PGresult* g = SCM_PG_RESULT(obj);
-#if DEBUG_finalizer
+#if DEBUG_FINALIZER
         printf("pg_result finalize\n");
 #endif
         if (g) {
