@@ -1,3 +1,7 @@
+
+;; hard-wired  conversions between Scheme & Pg types.
+
+
 (define-module pg.types
   (use pg)
   (use pg-low)
@@ -29,7 +33,6 @@
    ; pg:parse
    ; scheme->pg
    scheme->pg
-
    )
   )
 (select-module pg.types)
@@ -83,8 +86,7 @@
     (if (hash-table-exists? h oid)
         (hash-table-get h oid)
       (errorf "pg-type-name: unknown type, its oid is: ~d" oid))))
-;; pg-find-type 
-  
+;; pg-find-type
 
 
 
@@ -106,7 +108,7 @@
                   :parser (aget pg:type-parsers typname))))
           (hash-table-put! hash oid type))))
     hash))
-  
+
 
 ;;;  `standard' parsers:
 (define (pg:bool-parser str)
@@ -136,7 +138,8 @@
         ;; has occured: 1901-12-13 20:45:52
         (tz      (string->number (substring str 19 22))))
     ;; gauche wants  nanosec
-    (make-date 0 seconds minutes hours day month year (* 3600 tz)))) ;mmc: (- year 1900) (- month 1)
+    (make-date 0 seconds minutes hours day month year (* 3600 tz))))
+					;; mmc: (- year 1900) (- month 1)
 
 
 (define (pg:timestamptz-parser str)
@@ -260,7 +263,6 @@
 (define pg:type-parsers
   `(("bool"      . ,pg:bool-parser)
 
-    
     ("char"      . ,pg:character-parser)     ;fixme!
 
     ("bpchar"      . ,pg:character-parser) ;fixme! pg:text-parser
@@ -271,7 +273,7 @@
     ("text"      . ,pg:text-parser)
     ("varchar"   . ,pg:text-parser)     ;??
     ("name"   . ,pg:text-parser)
-    
+
     ("int2"      . ,pg:number-parser)
     ;("int28"     . ,pg:number-parser)
     ("int4"      . ,pg:number-parser)
@@ -293,13 +295,12 @@
     ("tinterval" . ,pg:text-parser)
 
 
-    ;; 
     ;("_text"      . ,pg:text-parser)
     ("_text"      . ,pg-array->list)
     ;("_int2"      . ,pg:text-parser)
     ("_int2"      . ,pg-array->list-number)
     ("_int"      . ,pg-array->list-number)
-    
+
     ("varbit"      . ,pg:text-parser)
     ))
 
@@ -310,7 +311,7 @@
     "'false'"))
 
 
-(define (pg:text-printer obj)           ;; pg gives  "i'm" -> 
+(define (pg:text-printer obj)           ;; pg gives  "i'm" ->
   (string-append
    "'"
    ;; (string-join (string-split obj  #\') "''")
@@ -323,7 +324,7 @@
       (rxmatch #/^[a-zA-Z_][a-zA-Z_0-9]*$/ name)
       (all)
     name
-    
+
     (string-append "\"" (pg-escape-string name)
                    "\"")
     ))
@@ -395,7 +396,7 @@
 
     ("name"   . ,pg:text-printer)       ; only limited length ??
 
-    
+
     ("int2"      . ,pg:number-printer)
     ("int28"     . ,pg:number-printer)
     ("int4"      . ,pg:number-printer)
@@ -424,7 +425,7 @@
 ;; scheme object -> string
 (define (pg-converter pgconn oid)       ;fixme: Unused!
   ;(logformat "pg-printer: searching for ~d\n" oid)
-  ;; fixme: and-let 
+  ;; fixme: and-let
   (let* ((name (pg-type-name pgconn oid)) ;fixme: This is available for the High <pg> ! Which has an hash of <pg-type> !
          (info (assoc oid name pg:type-parsers)))
     ;; oid (slot-ref pgconn 'converters))
@@ -433,7 +434,7 @@
       (if name
           (error "pg-converter: cannot find for" name)
         (error "pg-converter: cannot find for" oid)))))
-  
+
 
 
 ;; scheme object -> string
@@ -445,7 +446,7 @@
     (if info
         (cdr info)
       (error "pg-printer: cannot find for " oid))))
-  
+
 
 ;;; What is the gauche-type (going to be)
 
@@ -473,15 +474,15 @@
   (or (member
        (ref pgtype 'name)
        '("date"
-         "abstime"   
-         "date"      
-         "timestamp" 
+         "abstime"
+         "date"
+         "timestamp"
          "timestamptz"
-         "datetime"  
-         "time"      
-         "reltime"   
-         "timespan"  
-         "tinterval" 
+         "datetime"
+         "time"
+         "reltime"
+         "timespan"
+         "tinterval"
          ))))
 
 

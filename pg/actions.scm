@@ -124,7 +124,7 @@
              ;; so far found (part of closure):
              (group ())) ;;  (list attribs)
 
-    
+
     (if (null? reached)
         group
       (begin
@@ -135,7 +135,6 @@
                (relevant-fkeys (filter
                                    (cute fkey-involves <> investigating)
                                  fkeys)))
-          ;; 
           (if (null? relevant-fkeys)
               ;; no way futher!
               (step

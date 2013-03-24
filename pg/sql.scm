@@ -9,7 +9,7 @@
    ;; insert:
    ; insert-or-retrieve insert-overwrite ; insert-and-return
    sql:where
-   
+
    sql:update   sql:update-old
    ;;
    sql:select sql:select-k
@@ -74,7 +74,7 @@
                 ;; mmc: So, this function does not take care of the value formatting.
                 ;; This must be solved elsewhere!
                 ;; fixme:  (sql:quote )
-                (s+ (car item) " = " (cdr item) "")) 
+                (s+ (car item) " = " (cdr item) ""))
             values-alist)
           ",\n")                        ;fixme?
       "\n WHERE " where))
@@ -94,7 +94,7 @@
       (apply s+
              (reverse total-list)))
      (else
-      
+
       (step
        (append!
         (if (null? (cdr rest))
@@ -122,7 +122,7 @@
              ;; mmc: So, this function does not take care of the value formatting.
              ;; This must be solved elsewhere!
              ;; fixme:  (sql:quote )
-             (s+ (car item) " = " (cadr item) "")) 
+             (s+ (car item) " = " (cadr item) ""))
          values-alist)
        ","
        (map
@@ -132,7 +132,7 @@
        )
 
 
- 
+
       "\n WHERE " where))
 
 
@@ -159,7 +159,7 @@
 
 
 
-;; fixme:  
+;; fixme:
 (define (sql:quote-name name)
   (cond
    ((string? name)
@@ -174,19 +174,19 @@
    (else
     (x->string name))))
 
-;(sql:quote-name 
+;(sql:quote-name
 
 (define (sql:string-or-list->string info)
   (cond
    ((string? info)
     info)
    ((list? info)
-    ;; fixme:  
+    ;; fixme:
     (string-join (map sql:quote-name  info) ", "))))
 
 
 
-(define-syntax null-unless 
+(define-syntax null-unless
   (syntax-rules ()
     ((_ expr body ...)
      (if (not expr)
@@ -224,7 +224,7 @@
 
            (null-unless where
              (s+
-              ;; fixme: 
+              ;; fixme:
               " WHERE " where))
 
            (null-unless group-by
@@ -236,7 +236,7 @@
              (s+
               ;; fixme:
               " ORDER BY " order-by))
-           
+
            (null-unless limit
              (s+
               ;; fixme:
@@ -254,7 +254,7 @@
 
 ;; WHAT can be a list of symbols/strings.     links ?
 ;; FROM is a list of relnames: symbols   todo:  <pg-relation> ?
-;; WHERE 
+;; WHERE
 (define (sql:select what from . rest)
   (let-optionals* rest
       ((where #f)
@@ -276,7 +276,7 @@
 
          (null-unless where
            (s+
-            ;; fixme: 
+            ;; fixme:
             " WHERE " where))
 
          (null-unless group-by
@@ -289,7 +289,7 @@
             ;; fixme:
             " ORDER BY " order-by))
 
-         
+
 
          (null-unless limit
            (s+
@@ -409,14 +409,14 @@
 
 (define (sql-or: . rest)
   (join-by rest " OR "))
-  
+
 
 
 (define (sql:between attname min max)
   (s+
    attname ;; (pg:name-printer attname)
    " BETWEEN "
-   ;; fixme: 
+   ;; fixme:
    (number->string min)
    " AND "
    (number->string max)))
@@ -467,8 +467,8 @@
       #f)
      ;; Optimization:  special set: only 1 string, better use = instead of `text_contains'
      ((singleton? set)
-      (s+ attname " = '" (car set) "'")) ; 
-     
+      (s+ attname " = '" (car set) "'")) ;
+
      ((or (and (pair? set)
                (null? set))
           (and (string? set)

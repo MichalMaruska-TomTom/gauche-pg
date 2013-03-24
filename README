@@ -1,10 +1,9 @@
-http://maruska.dyndns.org/comp/activity/scheme/gauche/pg/
 
 binding for Gauche for libpq  (to communicate w/  postgresql).
 
 this directory is meant to be  Gauche/ext/pg
 
-The code is based on  what i could understand in the gauche-gtk sources.
+The code is based on  what I could understand in the gauche-gtk sources.
 
 
 

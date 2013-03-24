@@ -41,6 +41,7 @@ HEADER_INSTALL_DIR  := $(DESTDIR)`$(GAUCHE_CONFIG) --$(INSTALL_TYPE)incdir`/
 SCM_INSTALL_DIR     := $(DESTDIR)`$(GAUCHE_CONFIG) --$(INSTALL_TYPE)libdir`/
 ARCH_INSTALL_DIR    := $(DESTDIR)`$(GAUCHE_CONFIG) --$(INSTALL_TYPE)archdir`/
 
+# why does this ignore the TYPE?
 SCM_HI_INSTALL_DIR  := $(DESTDIR)$$(gauche-config --sitelibdir)
 
 all : $(TARGET)
