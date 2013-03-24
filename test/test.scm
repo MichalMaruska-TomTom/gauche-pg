@@ -1,14 +1,13 @@
+#!/usr/bin/gosh
 
 
 
 (use pg)
-
-(define p (pg-open ""))
-
-(define r (pg-exec p "select * fro m person;"))
-
+(use pg-hi)
 (use mmc.log)
 
+(define p (pg-open ""))
+(define r (pg-exec p "select * from person;"))
 
 (define (pg-dump-error-slots result)
   (format
@@ -18,7 +17,7 @@
     (pg-result-error-field result PG_DIAG_STATEMENT_POSITION)
 
     (pg-result-error-field result PG_DIAG_SEVERITY)
-                   
+
     (pg-result-error-field result PG_DIAG_SQLSTATE)
     (pg-result-error-field result PG_DIAG_MESSAGE_HINT)
     (pg-result-error-field result PG_DIAG_CONTEXT)
@@ -33,7 +32,8 @@
         (pg-dump-error-slots result)
         result)
     (lambda ()
-      (pg-exec (pg-open "") "select * fro m person;"))))
+      (pg-exec (pg-open "")
+	"select * from person;"))))
 
 
 
@@ -42,8 +42,13 @@
 
 (use gauche.collection)
 (use pg-hi)
+(use mmc.log)
+(use macros.reverse)
 (define pg (pg-open "linux2"))
 (define res (pg-exec pg "select * from trad where tipo = 'caratter';"))
-(use mmc.log)
 
-(for-each (lambda (row) (logformat "~a\n" (row 0))) res)
+;; fixme:
+;; for-each-reverse complains about: not list, but pg-result.
+(for-each
+    (lambda (row) (logformat "~a\n" (row 0)))
+  res)
