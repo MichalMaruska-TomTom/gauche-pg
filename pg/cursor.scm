@@ -1,7 +1,7 @@
 
 ;;; Operating on pg cursor.
 ;;; This provides caching. ad-hoc creating
-;;; 
+;;;
 
 
 (define-module pg.cursor
@@ -12,14 +12,14 @@
    pg:with-cursor
    ;; I want `for-each'
    ;;
-   
+
    )
   (use pg-hi)
   (use pg-low)
   (use adt.string)
 
   (use mmc.log)
-  ;; 
+  ;;
   (use gauche.collection)
 
   )
@@ -45,7 +45,7 @@
 (define (pg:declare-cursor h name query)
   (if debug (logformat "pg:declare-cursor: ~d\n" (pg-backend-pid (ref h 'conn))))
   (pg-exec h
-    (s+ "DECLARE " name 
+    (s+ "DECLARE " name
         " CURSOR FOR " query))
   (make <pg-cursor>
     :handle h
@@ -83,7 +83,7 @@
                     (ref cursor 'name) ";"))
         ;(if debug (logformat "fetched!\n"))
 
-        ;; fixme! 
+        ;; fixme!
         (if (eq? PGRES_TUPLES_OK
                  (pg-result-status (ref r 'result)))
             (begin

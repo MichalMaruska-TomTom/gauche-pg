@@ -10,13 +10,13 @@
 
   ;;(use pg.base)
   ;; (use pg.db)
-  
+
   (use pg.database)
 
   (use pg.types)
   (use adt.string)
   (use pg.sql)
-  
+
   (use macros.assert);; ->
   (use mmc.log)
   (use mmc.simple)
@@ -49,7 +49,7 @@
                    ;; `constraints'
                    ;; "tgconstrname"
                    ;; tgconstrrelid ... RI
-                   ;; 
+                   ;;
                    "tgdeferrable" "tginitdeferred"
                    )
                  "pg_trigger t join pg_proc p on (p.oid = t.tgfoid)"

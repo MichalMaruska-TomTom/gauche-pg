@@ -16,7 +16,7 @@
   (use pg.namespace)
                                         ;(use pg.attribute)
   (use pg.relation)
-  
+
   ;; New:
   (use pg.result)
 

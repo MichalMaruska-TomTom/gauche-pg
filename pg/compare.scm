@@ -16,7 +16,7 @@
 
 
 
-       
+
 ;; -1 if d1 < d2
 (define (pg:compare-date d1 d2)
   (let ((t1 (date->time-utc d1))

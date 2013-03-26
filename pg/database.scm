@@ -1,10 +1,10 @@
 
 ;;;  A mirror of the objects in DB
-;;;  
+;;;
 
 ;; Todo:  pg:db-admin-handle
 ;;        given under a mutex.
-;;        
+;;
 
 (define-module pg.database
   (extend pg.base
@@ -16,7 +16,7 @@
           ;;(use pg.actions)
           pg.actions
           pg.keys)
-  
+
   (export
 
    ;;; Tree of data:
@@ -24,10 +24,10 @@
    ;;  p-key   list of indexes
    ;;  attributes hash   name -> index
    ;;  types   vector/index ->  name & type
-   ;;  
+   ;;
    ;; type-oid-of-attribute
    pg:find-attribute
-   
+
    ;; `<db-index>'
    pg:relation->indexes
    )
@@ -35,7 +35,7 @@
   ;; todo: I could make this conditional?
   (use gauche.threads)
 
-  
+
   (use macros.assert)
   (use macros.aif)
 
@@ -60,7 +60,7 @@
   )
 (select-module pg.database)
 
-;; fixme: 
+;; fixme:
 ;; (pg:add-database-hook 'namespaces pg:load-namespaces!)
 
 (define debug #f)

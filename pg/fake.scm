@@ -17,7 +17,7 @@
    (fsource :init-keyword :fsource)
    (ftable :init-keyword :ftable)
 
-   ;; Fixme: 
+   ;; Fixme:
    ;; types
    ;; fmods
 
@@ -25,7 +25,7 @@
    (tuples)                             ;list of <pg-tuple> objects
    ))
 
-;; 
+;;
 (define-method pg-ftablecol ((r <fake-result>) i)
   (vector-ref (ref r 'fcolumn) i))
 (define-method pg-fsource ((r <fake-result>) i)

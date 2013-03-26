@@ -55,7 +55,7 @@
 (define (pg:get-from-sequence handle name)
   ;; fixme!  some code depends on old api?
   ;; collect
-  (pg-get-value 
+  (pg-get-value
    (pg-exec
        handle
      (s+ "SELECT nextval("
@@ -111,4 +111,3 @@
 
 
 (provide "pg/hi")
-  
