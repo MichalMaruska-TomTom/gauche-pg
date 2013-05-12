@@ -58,7 +58,7 @@
                       '(conname "a.relname as slave" "b.relname as master" conkey confkey)
 
                       "pg_constraint join pg_class A on (conrelid = A.oid)   join pg_class B on (confrelid = B.oid)"
-                    
+
                       (s+ "contype = 'f' AND connamespace = " (pg:number-printer (ref namespace 'oid)))))
         ;; fold !
         (let1 f-keys '()

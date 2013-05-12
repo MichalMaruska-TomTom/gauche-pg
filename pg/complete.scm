@@ -1,15 +1,15 @@
 ;;; (c) 2001 Michal Maruska
 ;;; will be hopefully:
 ;;;      Licensed under GPL
-;;; ...... I have to contact the original authors of tab-complete.c from 
+;;; ...... I have to contact the original authors of tab-complete.c from
 ;;; the PostgreSQL source-tree.    it was BSD licensed!
-;;; 
+;;;
 
 ;;; TODO:  order _desc_
 ;; Start of the query?
 ;; ";"
 ;; beginning of line starting with keyword, not preceded by "("
-;; 
+;;
 
 ;; from elisp -> scheme:
 ;; mapcar ... map
@@ -26,7 +26,7 @@
   (use mmc.log)
   (use macros.elisp)
                                         ;(use macros.documentation)
-  
+
   (use srfi-13)
   ;; gauche needs  all-completions:
   (use pg.database)
@@ -55,14 +55,14 @@
     ("FUNCTION" "SELECT distinct proname FROM pg_proc WHERE substr(proname,1,%d)='%s'")
     ("GROUP" "SELECT groname FROM pg_group WHERE substr(groname,1,%d)='%s'")
     ("INDEX" "SELECT relname FROM pg_class WHERE relkind='i' and substr(relname,1,%d)='%s'")
-    ("OPERATOR")			; Querying for this is probably not such a good idea. 
+    ("OPERATOR")			; Querying for this is probably not such a good idea.
     ("RULE" "SELECT rulename FROM pg_rules WHERE substr(rulename,1,%d)='%s'")
     ("SEQUENCE" "SELECT relname FROM pg_class WHERE relkind='S' and substr(relname,1,%d)='%s'")
     ("TABLE" "SELECT relname FROM pg_class WHERE relkind~'[rv]' and substr(relname,1,%d)='%s'")
-    ("TEMP" )				; for CREATE TEMP TABLE ... 
+    ("TEMP" )				; for CREATE TEMP TABLE ...
     ("TRIGGER" "SELECT tgname FROM pg_trigger WHERE substr(tgname,1,%d)='%s'")
     ("TYPE" "SELECT typname FROM pg_type WHERE substr(typname,1,%d)='%s'")
-    ("UNIQUE")				; for CREATE UNIQUE INDEX ... 
+    ("UNIQUE")				; for CREATE UNIQUE INDEX ...
     ("USER" "SELECT usename FROM pg_user WHERE substr(usename,1,%d)='%s'")
     ("VIEW" "SELECT viewname FROM pg_views WHERE substr(viewname,1,%d)='%s'")
     )
@@ -144,7 +144,7 @@ expects the the lenght of the prefix and the prefix")
 
 (define (pgc-complete-with-const string text)
   (cons string string)
-					; (setq matches (completion-matches text complete-from-const)) 
+					; (setq matches (completion-matches text complete-from-const))
   )
 
 
@@ -175,10 +175,10 @@ expects the the lenght of the prefix and the prefix")
 
         ;; the tables are in:
         (setq tables (car from-info))
-        (alist-from-list 
-         (apply 
+        (alist-from-list
+         (apply
           'append
-          (mapcar 
+          (mapcar
            (lambda (table)
              (pgc-complete-with-attr-cache table text nil) ;don't refresh
              )
@@ -221,7 +221,7 @@ String if the class has no nickname/alias, cons otherwise."
 	      ;;class-s (mdb-class-get-create classname)  ;; register with the global store of tuples !!
 	      )
 	(if (eq (length nickname) 0)
-	    ;; plain 
+	    ;; plain
 	    (setq plain-names (cons classname plain-names)) ;  class-s
 	  (setq nicknames (cons (cons nickname classname) nicknames)))) ; class-s
       )
@@ -296,18 +296,18 @@ String if the class has no nickname/alias, cons otherwise."
 
 (defconst  pgc-pgsql-variables
   (list
-					; these SET arguments are known in gram.y 
+					; these SET arguments are known in gram.y
    "CONSTRAINTS"
    "NAMES"
    "SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL"
    "TRANSACTION ISOLATION LEVEL"
-					; these are treated in backend/commands/variable.c 
+					; these are treated in backend/commands/variable.c
    "DateStyle"
    "TimeZone"
    "client-encoding"
    "server-encoding"
    "random-seed"
-					; the rest should match USERSET entries in backend/utils/misc/guc.c 
+					; the rest should match USERSET entries in backend/utils/misc/guc.c
    "enable-seqscan"
    "enable-indexscan"
    "enable-tidscan"
@@ -393,7 +393,7 @@ String if the class has no nickname/alias, cons otherwise."
 (define (pgc-previous-word n)
   (list-ref (reverse (list #f #f "select" "*" "fro")) n))
 
-  
+
 ;;; The function
 ;; we have a mapping  WORD4 WORD3 WORD2 WORD1 WORD ---> completion of  WORD.
 (define (psql-complete text prev-wd prev2-wd prev3-wd prev4-wd)
@@ -412,22 +412,22 @@ String if the class has no nickname/alias, cons otherwise."
 
     ;; We could start with a more simple completion, eg.  X.ag --->
     ;; The is the mapping:
-    (cond 
+    (cond
 					;     (
 					;      (string-match "^\\.$" prev-wd)
 					;      ;; What is the table ?
 					;      (pgc-complete-attribute-with-prefix text)
 					;      )
 					;     (
-					;      ;; If a backslash command was started, continue 
+					;      ;; If a backslash command was started, continue
 					;      (string-match "^\\\\" prev-wd)
 					;      (pgc-complete-with-list pgc-backslash-commands text))
 
-     ;; If no previous word suggest one of the basic sql commands 
+     ;; If no previous word suggest one of the basic sql commands
      ((string= "" prev-wd)
       (pgc-complete-with-list pgc-commands text))
 
-     ;; CREATE or DROP				
+     ;; CREATE or DROP
      ;; complete with something you can create or drop
      ;; BUG:  create trigger on DELETE ...
      ((or (string= prev-wd-uc "CREATE")
@@ -435,17 +435,17 @@ String if the class has no nickname/alias, cons otherwise."
       (pgc-complete-with-list pgc-CREATE-objects text))
 
      ;; ALTER
-     ;; complete with what you can alter (TABLE GROUP USER) 
+     ;; complete with what you can alter (TABLE GROUP USER)
      ((string= prev-wd-uc "ALTER")
       (pgc-complete-with-list pgc-list-ALTER text))
 
-     ;; If we detect ALTER TABLE <name> suggest either ADD ALTER or RENAME 
+     ;; If we detect ALTER TABLE <name> suggest either ADD ALTER or RENAME
      ((and (string= prev3-wd-uc "ALTER")
 	   (string= prev2-wd-uc "TABLE"))
       (pgc-complete-with-list pgc-list-ALTER-cmd text))
 
      ;; If we have TABLE <sth> ALTER|RENAME provide list of columns
-     ((and (string= prev3-wd-uc "TABLE") 
+     ((and (string= prev3-wd-uc "TABLE")
 	   (or (string= prev-wd-uc "ALTER") (string= prev-wd-uc "RENAME")))
       (pgc-complete-with-attr prev2-wd text))
 
@@ -454,38 +454,38 @@ String if the class has no nickname/alias, cons otherwise."
 	   (string= prev2-wd-uc "GROUP"))
       (pgc-complete-with-list list-ALTERGROUP text))
 
-     ;; complete ALTER GROUP <foo> ADD|DROP with USER 
+     ;; complete ALTER GROUP <foo> ADD|DROP with USER
      ((and (string= prev4-wd-uc "ALTER")
 	   (string= prev3-wd-uc "GROUP")
 	   (or (string= prev-wd-uc "ADD")
 	       (string= prev-wd-uc "DROP")))
       (pgc-complete-with-const "USER" text))
 
-     ;; complete (ALTER) GROUP <foo> ADD|DROP USER with a user name 
+     ;; complete (ALTER) GROUP <foo> ADD|DROP USER with a user name
      ((and (string= prev4-wd-uc "GROUP")
-	   (or (string= prev2-wd-uc "ADD") 
+	   (or (string= prev2-wd-uc "ADD")
 	       (string= prev2-wd-uc "DROP"))
 	   (string= prev-wd-uc "USER"))
       (pgc-complete-with-query pgc-q-users text))
 
      ;;; CLUSTER
 
-     ;; If the previous word is CLUSTER produce list of indexes. 
+     ;; If the previous word is CLUSTER produce list of indexes.
      ((string= prev-wd-uc "CLUSTER")
       (pgc-complete-with-query pgc-q-indexes text))
 
-     ;; If we have CLUSTER <sth> then add "ON" 
+     ;; If we have CLUSTER <sth> then add "ON"
      ((string= prev2-wd-uc "CLUSTER")
       (pgc-complete-with-const "ON" text))
 
-     ;; If we have CLUSTER <sth> ON then add the correct tablename as well. 
+     ;; If we have CLUSTER <sth> ON then add the correct tablename as well.
      ((and (string= prev3-wd-uc "CLUSTER")
            (string= prev-wd-uc "ON"))
-      (pgc-complete-with-query 
+      (pgc-complete-with-query
        (format "SELECT c1.relname FROM pg-class c1 pg-class c2 pg-index i
 WHERE c1.(setq oidi.indrelid and i.(setq indexrelidc2.oid and c2.(setq relname'%s'" prev2-wd)))
-     
-     ;;; COMMENT 
+
+     ;;; COMMENT
      ((string= prev-wd-uc "COMMENT")
       (pgc-complete-with-const "ON") text)
 
@@ -514,18 +514,18 @@ WHERE c1.(setq oidi.indrelid and i.(setq indexrelidc2.oid and c2.(setq relname'%
 
 
      ;;; CREATE INDEX
-     ;; First off we complete CREATE UNIQUE with "INDEX" 
+     ;; First off we complete CREATE UNIQUE with "INDEX"
      ((and (string= prev2-wd-uc "CREATE")
            (string= prev-wd-uc "UNIQUE"))
       (pgc-complete-with-const "INDEX" text))
 
-     ;; If we have CREATE|UNIQUE INDEX <sth> then add "ON" 
+     ;; If we have CREATE|UNIQUE INDEX <sth> then add "ON"
      ((and (string= prev2-wd-uc "INDEX")
            (or (string= prev3-wd-uc "CREATE")
                (string= prev3-wd-uc "UNIQUE")))
       (pgc-complete-with-const "ON" text))
 
-     ;; Complete ... INDEX <name> ON with a list of tables  
+     ;; Complete ... INDEX <name> ON with a list of tables
 ;;;; ????
      ((and (string= prev3-wd-uc "INDEX")
            (string= prev-wd-uc "ON"))
@@ -537,35 +537,35 @@ WHERE c1.(setq oidi.indrelid and i.(setq indexrelidc2.oid and c2.(setq relname'%
            (string= prev2-wd-uc "ON"))
       (pgc-complete-with-attr prev-wd text))
 
-     ;; same if you put in USING 
+     ;; same if you put in USING
      ((and (string= prev4-wd-uc "ON")
            (string= prev2-wd-uc "USING"))
       (pgc-complete-with-attr prev3-wd text))
 
-     ;; Complete USING with an index method 
+     ;; Complete USING with an index method
      ((string= prev-wd-uc "USING")
       (pgc-complete-with-list pgc-index-mth text))
 
-     
+
      ;;; CREATE RULE
-     ;; Complete "CREATE RULE <sth>" with "AS" 
-     ((and (string= prev3-wd-uc "CREATE") 
+     ;; Complete "CREATE RULE <sth>" with "AS"
+     ((and (string= prev3-wd-uc "CREATE")
            (string= prev2-wd-uc "RULE"))
       (pgc-complete-with-const "AS" text))
 
-     ;; Complete "CREATE RULE <sth> AS with "ON" 
+     ;; Complete "CREATE RULE <sth> AS with "ON"
      ((and (string= prev4-wd-uc "CREATE")
            (string= prev3-wd-uc "RULE")
            (string= prev-wd-uc "AS"))
       (pgc-complete-with-const "ON" text))
 
-     ;; Complete "RULE * AS ON" with SELECT|UPDATE|DELETE|INSERT 
+     ;; Complete "RULE * AS ON" with SELECT|UPDATE|DELETE|INSERT
      ((and (string= prev4-wd-uc "RULE")
            (string= prev2-wd-uc "AS")
            (string= prev-wd-uc "ON"))
       (pgc-complete-with-list pgc-rule-events text))
 
-     ;; Complete "AS ON <sth with a 'T' :)>" with a "TO" 
+     ;; Complete "AS ON <sth with a 'T' :)>" with a "TO"
      ((and (string= prev3-wd-uc "AS")
            (string= prev2-wd-uc "ON")
 ;;; (mmc) FIXME
@@ -573,59 +573,59 @@ WHERE c1.(setq oidi.indrelid and i.(setq indexrelidc2.oid and c2.(setq relname'%
                (eq (position prev-wd-uc 5) ?T)))
       (pgc-complete-with-const "TO" text))
 
-     ;; Complete "AS ON <sth> TO" with a table name 
+     ;; Complete "AS ON <sth> TO" with a table name
      ((and (string= prev4-wd-uc "AS")
            (string= prev3-wd-uc "ON")
            (string= prev-wd-uc "TO"))
       (pgc-complete-with-table-name text))
 
 
-     ;;; CREATE TABLE 
-     ;; Complete CREATE TEMP with "TABLE" 
-     ((and (string= prev2-wd-uc "CREATE") 
+     ;;; CREATE TABLE
+     ;; Complete CREATE TEMP with "TABLE"
+     ((and (string= prev2-wd-uc "CREATE")
            (string= prev-wd-uc "TEMP"))
       (pgc-complete-with-const "TABLE" text))
 
 
-     ;;; CREATE TRIGGER 
-     ;; is on the agenda . . . 
+     ;;; CREATE TRIGGER
+     ;; is on the agenda . . .
 
 
      ;;; CREATE VIEW
-     ;; Complete "CREATE VIEW <name>" with "AS" 
-     ((and (string= prev3-wd-uc "CREATE") 
+     ;; Complete "CREATE VIEW <name>" with "AS"
+     ((and (string= prev3-wd-uc "CREATE")
            (string= prev2-wd-uc "VIEW"))
       (pgc-complete-with-const "AS" text))
 
-     ;; Complete "CREATE VIEW <sth> AS with "SELECT" 
+     ;; Complete "CREATE VIEW <sth> AS with "SELECT"
      ((and (string= prev4-wd-uc "CREATE")
            (string= prev3-wd-uc "VIEW")
            (string= prev-wd-uc "AS"))
       (pgc-complete-with-const "SELECT" text))
 
 
-     ;;; DELETE 
+     ;;; DELETE
      ;; Complete DELETE with FROM (only if the word before that is not "ON"
      ;; (cf. rules) or "BEFORE" or "AFTER" (cf. triggers) )
      ((and (string= prev-wd-uc "DELETE")
-           (or 
+           (or
             (not (string= prev2-wd-uc "ON"))
             (string= prev2-wd-uc "BEFORE"))
            (string= prev2-wd-uc "AFTER"))
       (pgc-complete-with-const "FROM" text))
 
-     ;; Complete DELETE FROM with a list of tables 
+     ;; Complete DELETE FROM with a list of tables
      ((and (string= prev2-wd-uc "DELETE")
            (string= prev-wd-uc "FROM"))
       (pgc-complete-with-table-name text))
 
-     ;; Complete DELETE FROM <table> with "WHERE" (perhaps a safe idea?) 
+     ;; Complete DELETE FROM <table> with "WHERE" (perhaps a safe idea?)
      ((and (string= prev3-wd-uc "DELETE")
            (string= prev2-wd-uc "FROM"))
       (pgc-complete-with-const "WHERE" text))
 
-     
-     ;;; EXPLAIN 
+
+     ;;; EXPLAIN
      ;; Complete EXPLAIN [VERBOSE] (which you'd have to type yourself) with
      ;; the list of SQL commands
      ((or (string= prev-wd-uc "EXPLAIN")
@@ -635,18 +635,18 @@ WHERE c1.(setq oidi.indrelid and i.(setq indexrelidc2.oid and c2.(setq relname'%
 
 
 
-     ;;; FETCH && MOVE 
-     ;; Complete FETCH with one of FORWARD BACKWARD RELATIVE 
-     ((or (string= prev-wd-uc "FETCH") 
+     ;;; FETCH && MOVE
+     ;; Complete FETCH with one of FORWARD BACKWARD RELATIVE
+     ((or (string= prev-wd-uc "FETCH")
           (string= prev-wd-uc "MOVE"))
       (pgc-complete-with-list pgc-list-FETCH1 text))
 
-     
-     ;; Complete FETCH <sth> with one of ALL NEXT PRIOR 
+
+     ;; Complete FETCH <sth> with one of ALL NEXT PRIOR
      ((or (string= prev2-wd-uc "FETCH")
           (string= prev2-wd-uc "MOVE"))
       (pgc-complete-with-list pgc-list-FETCH2 text))
-	
+
      ;; Complete FETCH <sth1> <sth2> with "FROM" or "TO". (Is there a
      ;; difference? If not remove one.)
      ((or (string= prev3-wd-uc "FETCH")
@@ -654,12 +654,12 @@ WHERE c1.(setq oidi.indrelid and i.(setq indexrelidc2.oid and c2.(setq relname'%
       (pgc-complete-with-list list-FROMTO text))
 
      ;;; GRANT && REVOKE
-     ;; Complete GRANT/REVOKE with a list of privileges 
+     ;; Complete GRANT/REVOKE with a list of privileges
      ((or (string= prev-wd-uc "GRANT")
           (string= prev-wd-uc "REVOKE"))
       (pgc-complete-with-list pgc-list-privileg text))
 
-     ;; Complete GRANT/REVOKE <sth> with "ON" 
+     ;; Complete GRANT/REVOKE <sth> with "ON"
      ((or (string= prev2-wd-uc "GRANT")
           (string= prev2-wd-uc "REVOKE"))
       (pgc-complete-with-const "ON" text))
@@ -672,54 +672,54 @@ WHERE c1.(setq oidi.indrelid and i.(setq indexrelidc2.oid and c2.(setq relname'%
       (pgc-complete-with-query
        "SELECT relname FROM pg-class WHERE relkind in ('r''i''S''v') and (substr relname,1,%d)='%s'"))
 
-     ;; Complete "GRANT * ON * " with "TO" 
+     ;; Complete "GRANT * ON * " with "TO"
      ((and (string= prev4-wd-uc "GRANT")
            (string= prev2-wd-uc "ON"))
       (pgc-complete-with-const "TO" text))
 
-     ;; Complete "REVOKE * ON * " with "FROM" 
+     ;; Complete "REVOKE * ON * " with "FROM"
      ((and (string= prev4-wd-uc "REVOKE")
            (string= prev2-wd-uc "ON"))
       (pgc-complete-with-const "FROM" text))
 
      ;; TODO: to complete with user name we need prev5-wd -- wait for a
      ;; more general solution there
-	 
 
-     ;;; INSERT 
-     ;; Complete INSERT with "INTO" 
+
+     ;;; INSERT
+     ;; Complete INSERT with "INTO"
      ((string= prev-wd-uc "INSERT")
       (pgc-complete-with-const "INTO" text))
 
-     ;; Complete INSERT INTO with table names 
+     ;; Complete INSERT INTO with table names
      ((and (string= prev2-wd-uc "INSERT")
            (string= prev-wd-uc "INTO"))
       (pgc-complete-with-table-name text))
 
 
-     ;; Complete INSERT INTO <table> with "VALUES" or "SELECT" 
+     ;; Complete INSERT INTO <table> with "VALUES" or "SELECT"
      ((and (string= prev3-wd-uc "INSERT")
            (string= prev2-wd-uc "INTO"))
       (pgc-complete-with-list pgc-list-INSERT text))
 
-     ;; Insert an open parenthesis after "VALUES" 
+     ;; Insert an open parenthesis after "VALUES"
      ((string= prev-wd-uc "VALUES")
       (pgc-complete-with-const "(" text))
 
-     ;;; LOCK 
-     ;; Complete with list of tables 
+     ;;; LOCK
+     ;; Complete with list of tables
      ((string= prev-wd-uc "LOCK")
       (pgc-complete-with-table-name text))
 
-     ;; (If you want more with LOCK you better think about it yourself.) 
+     ;; (If you want more with LOCK you better think about it yourself.)
 
-     ;;; NOTIFY 
+     ;;; NOTIFY
      ((string= prev-wd-uc "NOTIFY")
       (pgc-complete-with-query "SELECT relname FROM pg-listener WHERE (substr relname,1,%d)='%s'" text))
 
 
 
-     ;; REINDEX 
+     ;; REINDEX
      ((string= prev-wd-uc "REINDEX")
       (pgc-complete-with-list pgc-list-REINDEX text))
 
@@ -734,11 +734,11 @@ WHERE c1.(setq oidi.indrelid and i.(setq indexrelidc2.oid and c2.(setq relname'%
         )))
 
 
-     ;; SELECT 
-     ;; naah . . . 
+     ;; SELECT
+     ;; naah . . .
 
-     ;; SET RESET SHOW 
-     ;; Complete with a variable name 
+     ;; SET RESET SHOW
+     ;; Complete with a variable name
      ((or (and (string= prev-wd-uc "SET")
                (not (string= prev3-wd "UPDATE") ))
           (string= prev-wd-uc "RESET")
@@ -747,7 +747,7 @@ WHERE c1.(setq oidi.indrelid and i.(setq indexrelidc2.oid and c2.(setq relname'%
 
 
      ;; (mmc) FIXME   should be a skeleton/tempo ??
-     ;; Complete "SET TRANSACTION ISOLOLATION LEVEL" 
+     ;; Complete "SET TRANSACTION ISOLOLATION LEVEL"
      ((and (string= prev2-wd-uc "SET")
            (string= prev-wd-uc "TRANSACTION"))
       (pgc-complete-with-const "ISOLATION" text))
@@ -771,20 +771,20 @@ WHERE c1.(setq oidi.indrelid and i.(setq indexrelidc2.oid and c2.(setq relname'%
            (string= prev2-wd-uc "LEVEL")
            (string= prev-wd-uc "READ"))
       (pgc-complete-with-const "COMMITTED" text))
-	 
-     ;; Complete SET CONSTRAINTS <foo> with DEFERRED|IMMEDIATE 
+
+     ;; Complete SET CONSTRAINTS <foo> with DEFERRED|IMMEDIATE
      ((and (string= prev3-wd-uc "SET")
            (string= prev2-wd-uc "CONSTRAINTS"))
-      
+
       (pgc-complete-with-list pgc-constraint-list text))
 
 
-     ;; Complete SET <var> with "TO" 
+     ;; Complete SET <var> with "TO"
      ((and (string= prev2-wd-uc "SET")
            (not (string= prev4-wd "UPDATE")))
       (pgc-complete-with-const "TO" text))
 
-     ;; Suggest possible variable values 
+     ;; Suggest possible variable values
      ((and (string= prev3-wd-uc "SET")
            (or (string= prev-wd-uc "TO")
                (string= prev-wd "=")))
@@ -800,23 +800,23 @@ WHERE c1.(setq oidi.indrelid and i.(setq indexrelidc2.oid and c2.(setq relname'%
          (pgc-complete-with-list pgc-default-list text))))
 
 
-     ;; TRUNCATE 
+     ;; TRUNCATE
      ((string= prev-wd-uc "TRUNCATE")
       (pgc-complete-with-table-name text))
 
 
-     ;; UNLISTEN 
+     ;; UNLISTEN
      ((string= prev-wd-uc "UNLISTEN")
       (pgc-complete-with-query
        "SELECT relname FROM pg-listener WHERE (substr relname,1,%d)='%s' UNION SELECT '*'::text"))
 
 
      ;;; UPDATE
-     ;; If prev. word is UPDATE suggest a list of tables 
+     ;; If prev. word is UPDATE suggest a list of tables
      ((string= prev-wd-uc "UPDATE")
       (pgc-complete-with-table-name text))
 
-     ;; Complete UPDATE <table> with "SET" 
+     ;; Complete UPDATE <table> with "SET"
      ((string= prev2-wd-uc "UPDATE")
       (pgc-complete-with-const "SET" text))
 
@@ -825,8 +825,8 @@ WHERE c1.(setq oidi.indrelid and i.(setq indexrelidc2.oid and c2.(setq relname'%
      ;; we'll now make a list of attributes.
      ((string= prev-wd-uc "SET")
       (pgc-complete-with-attr prev2-wd text))
-     
-     ;;; VACUUM 
+
+     ;;; VACUUM
      ((string= prev-wd-uc "VACUUM")
       (pgc-complete-with-query
        "SELECT relname FROM pg-class WHERE (setq relkind'r' and (substr relname,1,%d)='%s' UNION SELECT 'ANALYZE'::text"))
@@ -836,12 +836,12 @@ WHERE c1.(setq oidi.indrelid and i.(setq indexrelidc2.oid and c2.(setq relname'%
       (pgc-complete-with-table-name text))
 
 
-     ;; ... FROM ... 
+     ;; ... FROM ...
      ((string= prev-wd-uc "FROM")
       (pgc-complete-with-table-name text))
 
 
-     ;;; Backslash commands 
+     ;;; Backslash commands
      ((or (string= prev-wd "\\connect")
           (string= prev-wd "\\c"))
       (pgc-complete-with-query pgc-q-databases) text)
@@ -869,7 +869,7 @@ WHERE c1.(setq oidi.indrelid and i.(setq indexrelidc2.oid and c2.(setq relname'%
       ;; (mmc) FIXME: I want to  (read-file-name (format "File for (%s): "prev-wd)
       (set! matches (completion-matches text filename-completion-function)))
 
-      
+
 
      ;; Finally we look through the list of "things" such as TABLE INDEX
      ;; and check if that was the previous word. If so execute the query
@@ -888,18 +888,18 @@ WHERE c1.(setq oidi.indrelid and i.(setq indexrelidc2.oid and c2.(setq relname'%
 					;      ((pgc-between "from" "where")
 					;       (pgc-complete-with-table-name text)
 					;       )
-					;       ('t 
+					;       ('t
 					;       (pgc-add-keywords
 					;        (pgc-complete-attribute text))
 					;       )
 					;      )
      (
-      ;; Complete "AS ON <sth> TO" with a table name 
+      ;; Complete "AS ON <sth> TO" with a table name
       (string= prev-wd-uc "JOIN")
       (pgc-complete-with-table-name text)
       )
      (
-      ;; Complete "AS ON <sth> TO" with a table name 
+      ;; Complete "AS ON <sth> TO" with a table name
       (string= prev2-wd-uc "JOIN")
       (pgc-complete-with-list (list "on" "using") text))
 

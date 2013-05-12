@@ -44,8 +44,8 @@
   )
 (select-module pg.db)
 
-(define debug-handles #f)
-(define debug #f)
+(define debug-handles #t)
+(define debug #t)
 
 ;;;  `database
 (define-class <pg-database> ()
@@ -388,7 +388,7 @@
         (begin
           ;; push pg into the pool of connections
           (pg:dispose-handle found pg)
-          ;(push! (ref found 'conn-pool) pg)
+					;(push! (ref found 'conn-pool) pg)
           found)
       pg)))
 
@@ -402,7 +402,7 @@
          (database (sys-getenv "PGDATABASE"))
          ;;
          (user (sys-getenv "PGUSER"))
-         (port #f))
+         (port (sys-getenv "PGPORT")))
       (let1 p (keep-unique host port database) ;fixme:  USER!
         (cond
          ((is-a? p <pg-database>)
