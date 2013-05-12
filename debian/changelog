@@ -1,3 +1,16 @@
+gauche-pg (1.15) precise; urgency=low
+
+  * format
+  * C macros uppercase
+  * fix the test
+  * spaces
+  * formatting
+  * spaces
+  * Format
+  * (stupid) reformat of C
+
+ -- Michal Maruska <mmaruska@gmail.com>  Sun, 12 May 2013 17:48:30 +0200
+
 gauche-pg (1.14.2) precise; urgency=low
 
   * for new 0.9.4 (pre2)
