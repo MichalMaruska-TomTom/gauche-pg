@@ -7,5 +7,5 @@ Standards-Version: 3.7.2
 
 Package: gauche-pg
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, gauche, libpq5
+Depends: ${shlibs:Depends}, ${misc:Depends}, gauche-@GAUCHE_VERSION@, libpq5
 Description: libpq binding for Gauche scheme interpreter

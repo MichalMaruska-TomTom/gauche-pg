@@ -1,5 +1,7 @@
 #! /bin/sh
 
+make -f debian/rules  debian/control
+
 # provide the   Automake related files ... install-sh
 
 # sort of run Automake(1)

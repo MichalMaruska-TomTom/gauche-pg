@@ -1,5 +1,9 @@
 #!/usr/bin/make -f
 
+debian/control:
+	# fix the Package name
+	GAUCHE_VERSION=$$(gauche-config -V|sed -e 's/_/-/'); \
+	sed -e "s/Package: gauche-/Package: gauche-$${GAUCHE_VERSION}-/" debian/control.in > $@
 
 %:
 	dh $@
