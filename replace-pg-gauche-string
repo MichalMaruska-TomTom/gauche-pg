@@ -1,0 +1,9 @@
+#!/bin/bash
+
+GAUCHE_VERSION=$(gauche-config -V|sed -e 's/_/-/');
+
+PG_VERSION=$(pg_config --version |sed -e 's/^PostgreSQL //;s/\.[[:digit:]]\+$//');
+
+
+cat $@ | sed -e "s/@GAUCHE_VERSION@/${GAUCHE_VERSION}/g;s/@PG_VERSION@/${PG_VERSION}/g"
+

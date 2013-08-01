@@ -1,6 +1,10 @@
 #! /bin/sh
 
+# debian/control
+#sed -e "s/@PG_VERSION@/$PG_VERSION/" debian/control.in > debian/control
 make -f debian/rules  debian/control
+
+
 
 # provide the   Automake related files ... install-sh
 
