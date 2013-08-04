@@ -44,7 +44,7 @@
 (use pg-hi)
 (use mmc.log)
 (use macros.reverse)
-(define pg (pg-open "linux2"))
+(define pg (pg-open ))
 (define res (pg-exec pg "select * from trad where tipo = 'caratter';"))
 
 ;; fixme:
