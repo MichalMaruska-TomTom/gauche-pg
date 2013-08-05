@@ -10,4 +10,4 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, gauche-@GAUCHE_VERSION@, libpq5
 Description: libpq binding for Gauche scheme interpreter
 Conflicts: gauche-pg (<=1.15)
-Provides: gauche-pg
+Provides: gauche-pg, gauche-@GAUCHE_VERSION@-pg
