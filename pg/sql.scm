@@ -401,7 +401,7 @@
 
 (define (join-by l j)
   ;; note: was  `string-join'
-  (s+ "(" (string-join-non-#f l j) ")"))
+  (s+ "(" (string-join-non-f l j) ")"))
 
 
 (define (sql-and: . rest)

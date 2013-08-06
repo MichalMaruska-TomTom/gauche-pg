@@ -563,7 +563,7 @@ because we receive this exception: ~s\n" c)
                           result)
                     (logformat "copy-tuples-from-port: error lines: ~s\n" result) ;(cdr result)
                     (logformat "killing the consumer thread (thread-join!)\n")
-                    (with-#f-handler
+                    (with-f-handler
                      (thread-join! consumer-thread))
                     (pg-reset handle)
                     ;; this is a problem!!

@@ -107,7 +107,7 @@
                     ;; from:
                     "admin.constraints"
                     ;; fixme!!! use oid!
-                    (string-join-non-#f
+                    (string-join-non-f
                         (list
                          (if relation
                              (s+ "conrelid = " (number->string (ref relation 'oid))) ;'relid
@@ -182,7 +182,7 @@
                     ;; `From:'
                     "pg_constraint X join pg_class A on (conrelid = A.oid)"
                     ;; Where
-                    (string-join-non-#f
+                    (string-join-non-f
                         (list
                          (if (null? conname?)
                              #f
@@ -231,7 +231,7 @@
                ;; FROM:
                "pg_constraint X join pg_class A on (conrelid = A.oid)   join pg_class B on (confrelid = B.oid)"
                ;; confrelid = ~d AND  relid
-               (string-join-non-#f
+               (string-join-non-f
                    (list
                     (format #f "contype = '~a' " type)
                     (if relation
