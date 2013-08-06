@@ -10,7 +10,7 @@
    ;; pg:release-pkey-for
    ;; pg:restore-pkey-for
 
-   
+
    ;;
    pg:release-fk-for pg:release-fk-from
    pg:release-all-fk
@@ -95,14 +95,14 @@
               ;; <pg-constraint>
               ))))))
 
-;;; 
+;;;
 ;;; `Re-Create'
-;;; 
+;;;
 (define (pg:restore-constraint conn namespace relation type)
   ;(let* ((conn (pg:new-handle (ref relation 'database) :user "postgres"))
   (let* ((db (ref namespace 'database))
          (result (pg-exec conn
-                   (sql:select 
+                   (sql:select
                     (list 'conname conrelid 'definition)
                     ;; from:
                     "admin.constraints"
@@ -112,10 +112,10 @@
                          (if relation
                              (s+ "conrelid = " (number->string (ref relation 'oid))) ;'relid
                            #f)
-                     
+
                          (s+ "contype = " (if (char? contype) (pg:char-printer contype)
                                             (pg:text-printer contype)))
-                         
+
                          (s+ "connamespace = " (number->string (ref namespace 'oid))))
                       "AND")
                                         ;(s+  "relname = " (pg:text-printer (ref relation 'name)))
@@ -153,7 +153,7 @@
   (pg-exec handle ; (pg:new-handle (ref relation 'database) :user "postgres")
     ;; the name of the pkey constraint!!!!
     (s+ "ALTER TABLE ONLY " (pg:name-printer relname)
-        ;; fixme:  
+        ;; fixme:
         " DROP constraint " (pg:name-printer conname) ";")))
 
 
@@ -190,10 +190,10 @@
                          (if relation
                              (s+ "conrelid = " (number->string (ref relation 'oid))) ;'relid
                            #f)
-                     
+
                          (s+ "contype = " (if (char? contype) (pg:char-printer contype)
                                             (pg:text-printer contype)))
-                         
+
                          (s+ "connamespace = " (number->string (ref namespace 'oid))))
                       "AND")
                     ";"))))
@@ -207,7 +207,7 @@
 
 
 
-;;; `bulk'    putting aside to       `admin.constraints'  
+;;; `bulk'    putting aside to       `admin.constraints'
 (define (pg:release-all-constraints relation namespace type)
   (if (and relation (not namespace))
       (set! namespace (ref relation 'oid)))
@@ -244,7 +244,7 @@
             (lambda (name slave-relname)
               (pg:drop-constraint conn slave-relname ;fixme!  namespace or (pg:get-relation db slave-relname)
                                   name))))
-        ;; Truncate 
+        ;; Truncate
         ;;(pg-exec conn (string-append "TRUNCATE " relname))
         )
       :user "postgres")))
@@ -252,7 +252,7 @@
 
 ;;;
 ;;; Specific types
-;;; 
+;;;
 
 ;;; 1/ `Foreign' keys
 ;(define (pg:release-all-fk namespace)
@@ -323,7 +323,7 @@
 
 
 
-;; 
+;;
 ;; pg:restore-all-fk
 ;;; `TRIGGERS:'
 (define (pg:drop-trigggers-on db relname)
@@ -346,7 +346,7 @@
                         ;;"pg_get_constraintdef(X.oid)"
                         )
                       "pg_trigger" ; join pg_class A on (conrelid = A.oid)
-                      
+
                       (format #f "tgisconstraint  = 'f' AND tgrelid = ~d"  relid) ;namespace
                                         ;((contype "f")
                                         ; (connamespace  2200))
@@ -362,13 +362,13 @@
                " on "              ; ONLY
                (pg:name-printer relname)
                )))))
-      ;; Truncate 
+      ;; Truncate
                                         ;(pg-exec conn (string-append "TRUNCATE " relname))
       )))
 
 
 
-;;; 
+;;;
 ;;;
 ;;; todo: an `index' object
 ;;;
@@ -400,18 +400,18 @@
       (pg-exec conn
         (s+ "DROP INDEX " (pg:name-printer index-name) ";")))
     :user "postgres"))
-    
+
 
 ;; fixme: with one fixed pg handle?
 (define (pg:release-indexes-on relation)
-  (for-each 
+  (for-each
       (lambda (index)
         (pg:save-index-definition relation index)
         (pg:drop-index (ref relation 'database) index))
     (pg:relation->indexes relation)))
 
 
-;; fixme: i should store oids!!!! 
+;; fixme: i should store oids!!!!
 (define (pg:restore-indexes-on relation)
   (pg:with-private-handle (ref relation 'database)
     (lambda (conn)
