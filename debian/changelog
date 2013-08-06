@@ -1,3 +1,17 @@
+gauche-pg (2.0) precise; urgency=low
+
+  * migrate from CDBS to dh
+  * Bind the binary pkg to specific Gauche
+  * fix test location?
+  * test:  no PG connection -> fail is unavoidable for now.
+  * test: drop specific pg host
+  * Bind to API version of both Gauche & Postgresql
+  * Provide full telescope of Virtual packages
+  * Drop invalid # from symbol names
+  * spaces
+
+ -- Michal Maruska <mmaruska@gmail.com>  Wed, 07 Aug 2013 00:31:02 +0200
+
 gauche-pg (1.15) precise; urgency=low
 
   * format
