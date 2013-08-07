@@ -1,0 +1,56 @@
+
+* db.scm
+
+somehow represent the "database" for the process.
+
+** base.scm
+provides handles to db.scm
+
+* compare
+  sorting for ....?
+
+
+***  attribute
+
+* pg.recreate  fixme: create ?
+
+* fake
+for a fake result.... not pg.
+
+* triggers
+  list them   pg:relation-triggers
+         pg:trigger-definition
+
+* views
+
+
+* database ???
+pg:find-attribute
+pg:relation->indexes
+
+
+* cursor
+
+* hi
+
+* keys
+
+* dependency
+* util
+* metdhods
+* actions
+* deduce
+* namespace
+* links
+* sql
+* oo
+* persistent
+* tempdrop
+* types
+* sync
+* recordset
+* result
+* mt-coppy
+* relation
+* complete
+
