@@ -168,9 +168,9 @@ SCM_RETURN(Scm_Make_PGnotify(n));")
 
 (define-cproc pg-db (pg_conn::<pg-handle>) ::<const-cstring>
   PQdb)
-(define-cproc pg-user (pg_conn::<pg-handle>) ::<const-cstring>
+(define-cproc pg-user (pg_conn::<pg-handle>) ::<const-cstring>?
   PQuser)
-(define-cproc pg-host (pg_conn::<pg-handle>) ::<const-cstring>
+(define-cproc pg-host (pg_conn::<pg-handle>) ::<const-cstring>?
   PQhost)
 (define-cproc pg-port (pg_conn::<pg-handle>) ::<const-cstring>
   PQport)

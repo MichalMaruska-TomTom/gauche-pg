@@ -340,15 +340,26 @@
 ;; path -> identity
 ;; hostname -> `fqhn' ?
 (define (normalize-hostname host)
-  (if (string-prefix? "/" host)         ;local path!
-      host
-    (let1 host (sys-gethostbyname host)
-      ;;(slot-ref host 'aliases)
-      (ref host 'name))))
+  (and host
+       (if (string-prefix? "/" host)	;local path!
+	   host
+	 (let1 host (sys-gethostbyname host)
+	   ;;(slot-ref host 'aliases)
+	   (ref host 'name)))))
 
 ;(normalize-hostname "/tmp")
 ;(normalize-hostname "linux10")
 
+;; strings or #f
+;; almost equal?
+(define (maybe-string=? a b)
+  (cond
+   ((not a)
+    (not b))
+   ((not b)
+    #f)
+   (else
+    (string=? a b))))
 
 ;; returns either <pg-database> or  <pg-conn> to a newly opened DB!
 ;; Called w/ *databases-mutex* locked!
@@ -375,7 +386,7 @@
                  (lambda (db)
                    (and
                     ;; canonic hostname of HOST ?
-                    (string=? hostname (ref db 'host))
+		    (maybe-string=? hostname (ref db 'host))
 		    ;; mmc: why ref and not (pg-hostname db)?
 
                     (string=? port     (ref db 'port))
