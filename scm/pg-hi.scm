@@ -172,29 +172,36 @@
 (define pg-open-accepted-keywords '(:user :port :dbname :host))
 
 (define debug #f)
+
+
+;; filter known :keywords (+ value) from args.
+(define (pg-compose-conninfo args)
+  (let add-param
+      ;; return a list  ((keyword value) ...)
+      ((param '())
+       (rest args))
+    (cond
+     ((null? rest)
+      param)
+
+     (else
+      (let1 name (car rest)
+	(if (member name pg-open-accepted-keywords) ;(keyword? name)
+	    (add-param
+	     (cons
+	      (format #f "~a=~a" (keyword->string name)
+		      (list-ref rest 1))
+	      param)
+	     (cddr rest))
+	  ;; skip...  fixme:  only 1?
+	  (add-param param (cdr rest))))))))
+
+
 ;; the hi level!
 (define (pg-open . args)
   ;; todo:  default connect_timeout of 10seconds?
   ;(logformat "~s\n"(vm-get-stack-trace))
-  (let* ((conninfo (string-join
-                          (let add-param
-                              ((param '())
-                               (rest args))
-                            (cond
-                             ((null? rest)
-                              param)
-                             (else
-                              (let1 name (car rest)
-                                (if (member name pg-open-accepted-keywords) ;(keyword? name)
-                                    (add-param
-                                     (cons
-                                      (format #f "~a=~a" (keyword->string name)
-                                              (list-ref rest 1))
-                                      param)
-                                     (cddr rest))
-                                  ;; skip...
-                                  (add-param param (cdr rest)))))))
-                          " "))
+  (let* ((conninfo (string-join (pg-compose-conninfo args) " "))
          (conn (pg-connect conninfo))   ;fixme:  pg-connectdb ?
          (handle (make <pg>)))
 
