@@ -24,30 +24,30 @@
    pg-find-type
                                         ;pg-set-notice-processor
    ;; macros:
-   with-pg-handle* 
+   with-pg-handle*
                                         ;sync & general
    pg-exec ;; pg-exec-hi
-   
+
    pg-status
    ;; result:
    pg-result->hiresult
    pg-result-prepare!
    ;; help:
-   
+
    pg-result-has-attribute?             ;mmc: might be moved !
    pg-attribute-indexes
    ;; hi-level
    pg-collect-result pg-collect-single-result pg-collect-result-alist
-   
+
    pg:load-alist pg:load-hash
-   
+
    pg:all-relnames
    pg-truncate
 
    ->column
-   
+
    ;; mess:
-   ;; 
+   ;;
    ;; fixme:  referencer ref modifier
 
    ;; backwards compatibility:
@@ -56,7 +56,7 @@
    ;pg:text-printer pg:char-printer
    ;pg:name-printer
 
-   
+
 
    ;pg-type-name
    ; pg-convert
@@ -74,7 +74,7 @@
    ;;pg:initialize-parsers
    ;; pg:type-printers
 
-   pg:start-listening-on   
+   pg:start-listening-on
    ;;
    <pg-row>
    pg-get-row
@@ -89,7 +89,7 @@
    ;; from pg.types
    scheme->pg
    )
-  
+
 
   (use gauche.uvector)                  ; ??
   (use mmc.simple)
@@ -125,7 +125,7 @@
   (
    (types :initform #f)
    (oid->type :initform '())            ;make-hash
-                                        
+
    (host :initform #f)                  ;fixme:  via getter !!
    (user :initform #f)                  ;fixme: same
    (port :initform #f)                  ; i want setters/getters ....
@@ -204,7 +204,7 @@
     ;; New:
     (slot-set! handle 'types (pg-type-hash conn)) ;hash oid -> <pg-type>
 
-    ;; old: 
+    ;; old:
     '(let1 h (make-hash-table)
       (alist->>table! h (pg-init-types conn))
       (slot-set! handle 'oid->type h))
@@ -294,7 +294,7 @@
      (lambda ()
        (let1 row (pg-get-row result current-row)
 	 ;; (make <pg-row>
-	 ;; 	   ;; 
+	 ;; 	   ;;
 	 ;; 	   :result result
 	 ;; 	   :row current-row)
 	 (inc! current-row)
@@ -312,7 +312,7 @@
     ;; types ->  parsers
     (for-numbers<* i 0 fields
       ;; the type should be an object!  (name, parser, printer)
-      ;; 
+      ;;
       (let1 type (pg-find-type pg (pg-ftype presult i))
         ;; (pg-type-name conn (pg-ftype presult i)) ;fixme:  pg-ftype is a generic: it returns type-name!
 
@@ -423,7 +423,7 @@
 
 (define (pg-get-value-by-name result row colname)
   (pg-get-value result row (pg-fnumber result colname)))
-  
+
 
 
 (define (pg-get-value-string result tuple index) ; <pgresult>
@@ -460,7 +460,7 @@
 
 ;; the query should produce 2 columns
 (define (pg:load-alist alist handle query)
-  (for-each 
+  (for-each
       (lambda (row)
       ;; word -> abbrev
       (set! alist
@@ -472,7 +472,7 @@
 
 
 (define (pg:load-hash hash handle query)
-  (for-each 
+  (for-each
       (lambda (row)
       ;; word -> abbrev
       (hash-table-put! hash
@@ -492,7 +492,7 @@
   '(hash-table-ref
     (ref (slot-ref result 'handle) 'types)
     (pg-ftype (slot-ref result 'result) index))
-  
+
   (vector-ref (ref result 'types)
               index
               ;; (pg-ftype (slot-ref result 'result) index)
@@ -528,7 +528,7 @@
     (pg-exec-internal handle query)))
 
 
-;;; now we have the primitives available, 
+;;; now we have the primitives available,
 
 ;(eq? pg-notice-processor #f)
 ;; the default one:
@@ -650,10 +650,10 @@
 ;; fixme:  namespace!
 (define (pg:all-relnames handle)
   (let ((result (pg-exec handle
-			 "select relname 
-            from   pg_class 
-            where  relkind ~ '[r]' 
-            and    relname !~ '^pg_' 
+			 "select relname
+            from   pg_class
+            where  relkind ~ '[r]'
+            and    relname !~ '^pg_'
             and    relname !~ '^xin[vx][0-9]+';")))
     (pg-collect-result result "relname")))
 
@@ -705,7 +705,7 @@
 
 
 
-;;; 
+;;;
 (define (scheme->pg pg-type value)
   ;(logformat "scheme->pg: ~a for ~a\n" value pg-type)
   (cond
@@ -717,8 +717,8 @@
     =>(lambda (p)
         ;(logformat "using the type's printer\n")
         (p value)))
-   ;; not 
-   
+   ;; not
+
    (else
     ;(logformat "fallback to x->string\n")
     (x->string value))))
