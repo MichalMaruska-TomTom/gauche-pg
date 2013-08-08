@@ -1,13 +1,15 @@
 (define-module pg-low
   (export
-
-   ;; fixme: i want gui for it!
    pg-dump-explain
 
+   ;; Converting pg-result into Scheme data:
    pg-attribute-indexes
-   pg-map-result pg-foreach-result pg-map-table
-   ;;
-   with-db-transaction with-db-transaction*
+   pg-map-result
+   pg-foreach-result
+   pg-map-table
+
+   with-db-transaction
+   with-db-transaction*
    )
   (use mmc.log)
   (use mmc.exit)
@@ -22,8 +24,9 @@
 
 ;; apply to the whole RELATION!
 (define (pg-map-table conn relname function)
-  (let* ((result (pg-exec conn (string-append "SELECT * from " (pg:name-printer relname) ";")))
-                                        ;(nrows (pg-ntuples result))
+  (let* ((result (pg-exec conn
+		   (string-append "SELECT * from " (pg:name-printer relname) ";")))
+	 ;;(nrows (pg-ntuples result))
          (nfields (pg-nfields result)))
     (for-numbers<* row 0 (pg-ntuples result)
       (apply function
@@ -122,4 +125,5 @@
      (with-db-transaction
       db (lambda ()
            body ...)))))
+
 (provide "pg-low")
