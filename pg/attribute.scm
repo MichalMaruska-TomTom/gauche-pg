@@ -1,26 +1,28 @@
 
-;;;
+;; Caching of pg_attribute.
+
+;; todo: protocol to flush it.
+;; server side generated Notices...
 
 (define-module pg.attribute
   (export
    <pg-attribute>
-   pg-attribute<
-   pg:attribute-name pg:attribute-type
-
-   ;;
+   pg:attribute-name
+   pg:attribute-type
    relation-of
+
+   pg-attribute<
    )
-  ;(use )
   )
 (select-module pg.attribute)
 
 ;;; todo: this might be done in C
 (define-class <pg-attribute> ()
   ((relation :init-keyword :relation :accessor relation-of)
-   (attname :init-keyword :attname :accessor pg:attribute-name)
    (attnum :init-keyword :attnum)
-   (type :init-keyword :atttyp :accessor pg:attribute-type)
-   ))
+
+   (attname :init-keyword :attname :accessor pg:attribute-name)
+   (type :init-keyword :atttyp :accessor pg:attribute-type)))
 
 
 (define (attribute->relid attr)
