@@ -4,10 +4,6 @@
    ;; fixme: i want gui for it!
    pg-dump-explain
 
-
-   ;; host-or-constant
-   pg-clone-handle ;; handle->description
-   
    pg-attribute-indexes
    pg-map-result pg-foreach-result pg-map-table
    ;;
@@ -41,8 +37,6 @@
 	       (format-nonvoid "pass=~a" (pg-pass handle))))
        " "))
 
-(define (pg-clone-handle handle)
-  (pg-connect (handle->description handle)))
 
 
 ;;; connecting ... should be in   my.host
