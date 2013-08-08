@@ -3,9 +3,9 @@
 
    ;; fixme: i want gui for it!
    pg-dump-explain
-   ;;
-   ;;host-or-constant
-   pg-connect-to
+
+
+   ;; host-or-constant
    pg-clone-handle ;; handle->description
    
    pg-attribute-indexes
@@ -51,11 +51,6 @@
     (if (string=? host hostname)
         constant
       hostname)))
-
-(define (pg-connect-to host)            ;optional user
-  (pg-connect
-   (format "host=~a" (host-or-constant host "/tmp"))))
-
 
 
 
