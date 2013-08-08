@@ -157,17 +157,21 @@
 		    really-new?
 		    user)
 		;; The high level! `<pg>'
-		(let1 conn (if (or user
-                                        ;(slot-bound? database 'name)
-				   )
-			       (pg-open :host (ref database 'host)
-					;; Fixme:  port
-					:dbname (ref database 'name)
-					:user (or user
-                                        ;(ref database 'user)
-						  ))
-			     (pg-open :host (ref database 'host)
-				      :dbname (ref database 'name)))
+		(let1 conn
+		    (pg-open
+		     (append (apply
+			      append
+			      (cond-list
+			       ((ref database 'host)
+				`(:host ,(ref database 'host)))
+			       (user
+				;;(ref database 'user)
+				'(:user user))))
+			     (list
+			      ;; Fixme:  port
+			      :dbname (ref database 'name)
+			      )))
+
 		  (if (or user debug)
 		      (logformat "pg-open as ~a\n" user))
 
