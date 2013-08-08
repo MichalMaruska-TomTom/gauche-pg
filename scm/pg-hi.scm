@@ -1,5 +1,6 @@
 
-;; how about nameing  pgresult (w/o the dash) the low-level object, and pg-result the hi-level?
+;; how about naming  pgresult (w/o the dash) the low-level object,
+;; and pg-result the hi-level?
 ;; for now:
 ;;    HI               lo
 ;;  <pgresult>   <pg-result>
@@ -9,13 +10,11 @@
 (define-module pg-hi
   (extend pg
           pg-low)
+
   (export
    pg-deleted
 
-   ;; <pg-result>                          ;low level
-   ;;
-   <pgresult> result-of                 ;
-
+   <pgresult> result-of
    <pg>
    pg-backend-pid1
    pg-open
@@ -114,9 +113,10 @@
 (define (pg-deleted result)
   ;; fixme:  throw error if the result is not suitable!
   (rxmatch-let
-   (rxmatch #/DELETE ([[:digit:]]+)$/ (pg-cmd-status result))
-   (all number)
-   (string->number number)))
+      (rxmatch #/DELETE ([[:digit:]]+)$/ (pg-cmd-status result))
+      (all number)
+    (string->number number)))
+
 
 
 ;;; connection / handle
