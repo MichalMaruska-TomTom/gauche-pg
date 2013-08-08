@@ -1,7 +1,6 @@
 
 ;; hard-wired  conversions between Scheme & Pg types.
 
-
 (define-module pg.types
   (use pg)
   (use pg-low)
@@ -41,8 +40,7 @@
 
 ;; So i want the <pg-result> to have a vector of these:
 (define-class <pg-type> ()
-  (
-   (oid :init-keyword :oid)
+  ((oid :init-keyword :oid)
    (name :init-keyword :name)
    (printer :init-keyword :printer)
    (parser :init-keyword :parser)

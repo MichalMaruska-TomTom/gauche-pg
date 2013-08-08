@@ -1,5 +1,5 @@
 
-;; Simply create a relation in a given `namespace' with given  `attributes/types'
+;; Simply create a relation in a given `namespace' with given `attributes/types'
 
 (define-module pg.recreate
   (export

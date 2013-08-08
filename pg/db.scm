@@ -373,20 +373,22 @@
   (if debug-handles (logformat-color 'green "keep-unique: ~a ~a ~a\n"
 		      host port database))
   ;; connect
-  (let* ((pg (apply pg-open ;;connect
+  (let* ((pg (apply pg-open
                     (apply
                      append
                      (cond-list
                       (host `(:host ,host))
                       (database `(:dbname ,database)) ;if not given?
                       (port `(:port ,port))))))
+	 ;; <pg> keeps ... types?
+	 ;;
          (pgc (ref pg 'conn))
          (hostname (normalize-hostname (pg-host pgc)))
          ;; This might be #f !
          (port (pg-port pgc))
          (database (pg-db pgc))
 
-         (found (find                   ;filter
+         (found (find
                  (lambda (db)
                    (and
                     ;; canonic hostname of HOST ?

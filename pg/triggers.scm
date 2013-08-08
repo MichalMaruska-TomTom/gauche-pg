@@ -8,16 +8,13 @@
   (use pg.sql)
   (use pg-hi)
 
-  ;;(use pg.base)
-  ;; (use pg.db)
-
   (use pg.database)
 
   (use pg.types)
   (use adt.string)
   (use pg.sql)
 
-  (use macros.assert);; ->
+  (use macros.assert)
   (use mmc.log)
   (use mmc.simple)
   )
