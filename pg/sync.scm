@@ -14,10 +14,10 @@
 
    pg:process-changes-in-rows
    pg:compare-rows-by-key
-   
+
    pg-sync:make-simple-updater
    pg-sync:make-delta-updater
-   
+
    )
   (use macros.assert)
   (use pg-hi)
@@ -40,7 +40,7 @@
 
 ;;; Low-level utils
 
-;;; Top `merging' algorithm 
+;;; Top `merging' algorithm
 
 ;; This needs foreign key in ...
 
@@ -51,13 +51,13 @@
 ;; or `delete'/`insert'
 ;;    delete from relname
 ;;    insert into relname
-;; Yes, relname1 would be useless! 
+;; Yes, relname1 would be useless!
 ;; note: it is similar to comparing 2 alists!?
 (define (pg:sync-cursors c1 c2 relname compare-function update delete insert . rest)
   (let-optionals* rest
       ((cursor-step 100))
   (logformat "pg:sync-cursors: ~d\n"  (pg-backend-pid (ref (ref c2 'handle) 'conn)))
-    
+
   (receive (r1 i1) (pg:fetch-from-cursor c1 cursor-step)
     (receive (r2 i2) (pg:fetch-from-cursor c2 cursor-step)
       (let step ((r1 r1)
@@ -223,7 +223,7 @@
             (map
                 (lambda (att)
                   ;; (logformat "~s\n"
-                  (pg-fnumber r2 
+                  (pg-fnumber r2
                               (ref att 'attname)))
               (ref relation 'p-key))))
 
@@ -243,7 +243,7 @@
                    key-indices)
                  key-values))))
         (port1 #\u
-               (s+ 
+               (s+
                 (sql:update
                  (ref relation 'name)
                  (map cons
@@ -256,7 +256,7 @@
                  where)
                 ";\n"))
         (port2 #\u
-               (s+ 
+               (s+
                 (sql:update
                  (ref relation 'name)
                  (map cons
@@ -288,7 +288,7 @@
     ;; fixme: i could get pg2 from r2 ?
     (define (delta-updater-prepare relname r2) ;relation
       ;; Find the delta relation
-      ;; optional: find IP (& other archive-specific attributes, time?) 
+      ;; optional: find IP (& other archive-specific attributes, time?)
       ;;
       ;; INSERT INTO  ....  VALUES  ....
       (set! relation (pg:find-relation pg relname))
@@ -302,10 +302,10 @@
               (map
                   (lambda (att)
                     ;; (logformat "~s\n"
-                    (pg-fnumber r2 
+                    (pg-fnumber r2
                                 (ref att 'attname)))
                 (ref relation 'p-key)))
-    
+
         (set! delta-relation delta-rel)
         ;; Th
         (let* ((delta-attnames (lset-difference
@@ -335,8 +335,8 @@
 
     ;; mapping
     ;; Different is (0 5 ...)  indices of what differs (IGNORED are not reported!)
-    ;; delta is     (0 1 ....) + pkey! 
-    (define (delta-updater r1 i1 r2 i2 changed-atts port1 port2) 
+    ;; delta is     (0 1 ....) + pkey!
+    (define (delta-updater r1 i1 r2 i2 changed-atts port1 port2)
                                         ;(unless (null? changed-atts)
       (let ((changed-atts-names
              (map
@@ -362,8 +362,8 @@
                     changed-atts
                   (lset-difference =-test
                                    changed-atts to-be-archived)))
-         
-               ;; 
+
+               ;;
                (key-values
                 (map
                     (lambda (key-att)
@@ -401,14 +401,14 @@
 
             ;; fixme: Only  non-null values!
             #;(port2 #\u
-            (s+ 
+            (s+
             (sql:update-old
             relname1
 
             (map cons
             (map (cute pg-fname r1 <>)
             interesting-changes)
-                       
+
             (map cons
             (map
             (cute pg-get-value-string-null r2 i2 <>)
@@ -420,9 +420,9 @@
             where)
             ";\n\n"))
 
-        
+
             ;; intersection  `different' with `delta-fields'
-        
+
             ;; insert into delta
             (port1 #\i                  ;fixme! #\i  is just nonsense!
                    (s+
@@ -449,11 +449,11 @@
                             (cute pg:text-printer <>)
                           key-values)))
                      ) ";\n")))
-    
-          ;; `update' 
+
+          ;; `update'
           ;; update r2 with data from r1:
           (port1 #\u
-                 (s+  
+                 (s+
                   (sql:update
                    (ref relation 'name) ;fixme!
                    (map cons
