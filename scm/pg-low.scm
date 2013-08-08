@@ -19,34 +19,6 @@
 
 
 ;; necessary for modules imported by pg-hi.
-;; 
-
-
-
-;;; Connecting
-
-(define (handle->description handle)
-  (string-join			; non empty !!
-      (remove not
-	      (list
-	       (format-nonvoid "host=~a" (pg-host handle))
-	       (format-nonvoid "dbname=~a" (pg-db handle))
-	       (format-nonvoid "user=~a" (pg-user handle))
-	       (format-nonvoid "port=~a" (pg-port handle))
-	       (format-nonvoid "options=~a" (pg-options handle))
-	       (format-nonvoid "pass=~a" (pg-pass handle))))
-       " "))
-
-
-
-;;; connecting ... should be in   my.host
-(define (host-or-constant hostname constant)
-  (let ((host (sys-gethostname)))
-    (if (string=? host hostname)
-        constant
-      hostname)))
-
-
 
 ;; apply to the whole RELATION!
 (define (pg-map-table conn relname function)

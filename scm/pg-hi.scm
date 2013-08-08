@@ -196,6 +196,21 @@
 	  ;; skip...  fixme:  only 1?
 	  (add-param param (cdr rest))))))))
 
+;;; Connecting
+
+(define (handle->description handle)
+  (string-join			; non empty !!
+      (remove not
+	      (list
+	       (format-nonvoid "host=~a" (pg-host handle))
+	       (format-nonvoid "dbname=~a" (pg-db handle))
+	       (format-nonvoid "user=~a" (pg-user handle))
+	       (format-nonvoid "port=~a" (pg-port handle))
+	       (format-nonvoid "options=~a" (pg-options handle))
+	       (format-nonvoid "pass=~a" (pg-pass handle))))
+       " "))
+
+
 
 ;; the hi level!
 (define (pg-open . args)
