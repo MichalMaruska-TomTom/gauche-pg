@@ -23,13 +23,16 @@
    ))
 
 
+(define (attribute->relid attr)
+  (ref (ref attr 'relation) 'oid))
+
 ;; Ordering of <pg-attribute>s `inside' a pg-database !
 (define (pg-attribute< attribute1 attribute2)
   ;; (assert same-databases todo!
   (unless (is-a? attribute1 <pg-attribute>)
     (errorf "pg-attribute<: ~a is not <pg-attribute>\n" attribute1))
-  (let ((rel-oid1 (ref (ref attribute1 'relation) 'oid))
-        (rel-oid2 (ref (ref attribute2 'relation) 'oid)))
+  (let ((rel-oid1 (attribute->relid attribute1))
+        (rel-oid2 (attribute->relid attribute2)))
     (or
      (< rel-oid1 rel-oid2)
      (and (= rel-oid1 rel-oid2)
