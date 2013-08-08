@@ -1,4 +1,15 @@
 
+
+* at the bottom we have: ../scm/pg.scm + ../pg.stub
+
+* pg-low.scm
+  iterating over result.
+
+* pg-hi.scm
+  depends on modules here!
+
+
+
 * db.scm
 
 somehow represent the "database" for the process.
