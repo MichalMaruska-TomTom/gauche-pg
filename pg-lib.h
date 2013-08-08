@@ -40,9 +40,6 @@ extern void pg_print(ScmObj obj, ScmPort *out, ScmWriteContext *ctx);
 
 extern ScmObj new_pg_handle(PGconn* handle);
 
-
-
-
 /**** result  */
 SCM_CLASS_DECL(ScmPgR_class);
 
@@ -85,13 +82,7 @@ extern ScmObj Scm_Make_PGnotify(PGnotify *data);
 
 
 
-
-
-
-extern char* mule_to_utf(const char* string);
-
-
-
-
+char* mule_to_utf(const char* string);
+int binary_search(char* vector, int start, int end, char element);
 
 #endif
