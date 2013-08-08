@@ -1,3 +1,26 @@
+gauche-pg (2.1) precise; urgency=low
+
+  * spaces
+  * mark pg-host() return value as  possibly NULL.
+  * refactor  pg-compose-conninfo --- still todo!
+  * Comment on wrong API ... pg2dbm
+  * hi-level documentation
+  * simplify a bit ... using optionals for pg-open
+  * comments & debug option
+  * drop pg-connect-to
+  * drop  pg-clone-handle
+  * spaces
+  * pg-low is not about  establishing connection -- remove functions
+  * pg-low reformat
+  * refactor
+  * base: document the associated 'handle' of objects
+  * format
+  * comments on   pg.attribute
+  * update  hi-level documentation
+  * format
+
+ -- Michal Maruska <mmaruska@gmail.com>  Thu, 08 Aug 2013 22:45:09 +0200
+
 gauche-pg (2.0) precise; urgency=low
 
   * migrate from CDBS to dh
