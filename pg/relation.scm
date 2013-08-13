@@ -24,7 +24,6 @@
    ;;; Depends on `pg.attributes'
    ;; type-of-attribute
 
-   ;; pg:attribute-indexes->names   ... needs fix!
    pg:attname->attnum
 
 
@@ -518,15 +517,7 @@
 
       (values attributes-hash info-vector))))
 
-'(define (pg:attribute-indexes->names relation indexes)
-  (let* ((attributes (ref relation 'attributes)) ;'attributes
-         (p-key (slot-ref relation 'p-key)) ;not bound ->  error !
-         (p-key-names (map
-                          (lambda (index)
-                            (pg:attribute-name (vector-ref attributes index)))
-                        p-key)))
-    ;(logformat "pg:attribute-indexes->names: ~s\n" p-key-names)
-    p-key-names))
+
 
 
 
