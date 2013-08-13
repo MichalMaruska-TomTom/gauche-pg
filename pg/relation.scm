@@ -189,7 +189,7 @@
   ;; <next-method>
   (next-method)                         ;initiags)
   ;; fixme: i should enforce the namespace!  if not present, get it from DB !
-  (if debug (logformat "initialize: ~a (in ~a)\n" (ref rel 'name) (ref rel 'namespace)))
+  (DB "initialize: ~a (in ~a)\n" (ref rel 'name) (ref rel 'namespace))
   (pg:refresh-relation-info rel))
 
 
@@ -291,7 +291,7 @@
             (slot-set! rel 'p-key-name name)
                                         ;(pg:attribute-indexes->names rel p-key)
             )))))
-  (if debug (logformat "p-key: ~a\n" (ref rel 'p-key))))
+  (DB "p-key: ~a\n" (ref rel 'p-key)))
 
 
 ;;;
@@ -304,7 +304,7 @@
         <pg-view>)
     (let1 relname (pg-get-value-by-name result index "relname")
       ;; fixme: Check!
-      (if debug (logformat "creating ~a: ~a\n" class relname))
+      (DB "creating ~a: ~a\n" class relname)
 
       ;; todo: hook?  (reload-view-definition! view)
       (make class ;;<pg-relation>
