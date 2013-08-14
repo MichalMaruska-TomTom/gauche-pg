@@ -13,7 +13,7 @@
    rs-row-get rs-row-resolve
    rs-row-inserted?
    attribute-present?
-   ;; 
+   ;;
    rs-get-link
 
    rs-get-tuple
@@ -21,7 +21,7 @@
    pg:link+row->rs
    pg:get-fk-linked-rs
 
-   ;; 
+   ;;
    get-linked-rs get-linked-rs-1
    ;;
    ;; recordset-get
@@ -70,15 +70,15 @@
   (
    ;; when we search for a value, it might have been fixed in the parent, hence somewhat available!?
    (parent :init-keyword :parent)
-   
+
    ;;
    (database :init-keyword :database)
-   
+
 
    ;;; These form the `query:'
    (query)
    ;; either list or alist ?  aliases is just a complication! I want numbers?
-   ;; 
+   ;;
    (relations :init-keyword :relations)
 
    ;; mmc: Useful?
@@ -98,7 +98,7 @@
    (limit :init-keyword :limit)
    (offset :init-keyword :offset)
 
-   
+
 
    ;;; These keep the `result' and calculations on it:
    ;; post-query-execution:
@@ -173,7 +173,7 @@
 	       (possibly-join (slot-ref rs 'attributes)))
 
 	      ;; fixme!  This should remove Fixed attributes! And somehow i should add them
-	      ;;  to the hash of 
+	      ;;  to the hash of
 	      (else "*")))
 	    ;; Get the relations
 	    (relations
@@ -187,7 +187,7 @@
 		   (slot-ref rel 'name))
 		  ((pair? rel)
 		   (string-join rel ", "))
-              
+
 		  (else
 		   ;; not a list:
 		   '(map
@@ -374,7 +374,7 @@
 
 
 ;; out-of-the result .... get the value of relation/attnum.
-;; why is this useful?  fixme!  todo: I should use an index rather than relation. Think about 
+;; why is this useful?  fixme!  todo: I should use an index rather than relation. Think about
 ;;     2 same relations joined!!
 
 ;; fixme: should the result have a hashtable?
@@ -383,7 +383,7 @@
   ;; if more than 1  error!
   ;; look at the result:
   (pg-tuple:solve-value tuple (ref row 'index) attribute)
-         
+
   #;
   (let* ((result (ref (ref row 'recordset) 'result))
          (relid (ref relation 'oid))
@@ -440,7 +440,7 @@
 
 (define db-programs (list ))
 
-;; todo: 
+;; todo:
 ;; This is my 0-generation  hack.  will be obsoleted!
 (define (rs-get-link row relation fattribute attribute)
   (make <recordset>
@@ -561,12 +561,12 @@
   (pg:get-fk-linked-rs row tuple link-relation)))
 
 
-  
+
 ;; attributes ->  query (recordset)
 '(define (define-link name . keywords)
   ;;add-to-list
   (push db-programs
-        (make 
+        (make
             )
         ))
 
