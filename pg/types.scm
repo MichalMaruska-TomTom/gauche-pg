@@ -506,24 +506,21 @@
      (pg-get-value result tuple index)
      (pg-ftype result index)))
 
+;;;
+(define (scheme->pg pg-type value)
+  ;(logformat "scheme->pg: ~a for ~a\n" value pg-type)
+  (cond
+   ;;
+   ((string? value)
+    (pg:text-printer value))
 
-
-
-; old:
-;(define (scheme->pg pgconn value oid)
-;  ((pg-printer pgconn oid) value))
-
-
-;; todo:
-(define (scheme->pg type value)
-  ((ref type 'printer)
-   value))
-
-
-;   (let ((printer (assoc oid pg:*parsers*)))
-;     (if (pair? parser)
-;         ((cddr parser) value)
-;       (x->string str))))
+   ((ref pg-type 'printer)
+    =>(lambda (p)
+        ;(logformat "using the type's printer\n")
+        (p value)))
+   (else
+    ;(logformat "fallback to x->string\n")
+    (x->string value))))
 
 
 

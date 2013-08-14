@@ -727,29 +727,6 @@
 ;;   (map-numbers* row 0 (pg-ntuples result)
 ;;     (function result row)))
 
-
-
-
-
-;;;
-(define (scheme->pg pg-type value)
-  ;(logformat "scheme->pg: ~a for ~a\n" value pg-type)
-  (cond
-   ;;
-   ((string? value)
-    (pg:text-printer value))
-
-   ((ref pg-type 'printer)
-    =>(lambda (p)
-        ;(logformat "using the type's printer\n")
-        (p value)))
-   ;; not
-
-   (else
-    ;(logformat "fallback to x->string\n")
-    (x->string value))))
-
-
 ;(define (pg-get-value pg query)
 ;  (pg-get-value (pg-exec pg query) 0 0))
 
