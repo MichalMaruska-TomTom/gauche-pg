@@ -1,5 +1,5 @@
 
-;; Caching of pg_attribute.
+;; basis for _caching_ of pg_attribute.
 
 ;; todo: protocol to flush it.
 ;; server side generated Notices...
