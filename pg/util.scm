@@ -16,7 +16,7 @@
    ;;pg-date->date
    ;pg-dump-explain
    pg-prepare-handle
-   
+
    pg:with-transaction
    ;; fixme: make obsolete ... warn?
    with-transaction with-transaction*
@@ -59,7 +59,7 @@
        (rxmatch-substring match 2)
        "00")))
     (set! pg-date better))
-  
+
   (string->date
    pg-date "~Y-~m-~d ~k:~M:~S~z"))
 
@@ -72,7 +72,7 @@
     (pg-exec handle
       ;; (format #f "update pg_class set reltriggers = 0 where relname = '~a';" relname)) ;; fixme:
       (string-append
-       ;; sql::update 
+       ;; sql::update
        "UPDATE pg_trigger SET tgenabled= "
        (pg:text-printer state)
        " FROM pg_class x WHERE(tgrelid=x.oid) AND x.relname="
@@ -176,7 +176,7 @@
     (pg-result-error-field result PG_DIAG_SOURCE_LINE)
     (pg-result-error-field result PG_DIAG_MESSAGE_PRIMARY)
     (pg-result-error-field result PG_DIAG_STATEMENT_POSITION)))
-  
+
 (define (pg-describe-error-on-connection handle)
   (logformat "|-status: ~d\npg-error-message: ~a|_\n"
     (pg-status handle)
