@@ -1,4 +1,6 @@
 
+;; This is the wrapper of C code.
+
 ;; todo: the result of BEGIN indicates, that the handle enters a transaction
 ;; ..... try to detect it!!
 
