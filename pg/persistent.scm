@@ -234,7 +234,7 @@
 
 
 (define (pg:row->object class result row)
-  (if debug (logformat "pg:row->object\n"))
+  (DB "pg:row->object\n")
   (let1 o (make class)
     ;; We have got it from DB!
     (slot-set! o '%new #f)
@@ -275,7 +275,7 @@
   (let* ((d (ref class 'relation))
          (pkey (ref d 'p-key)))
     ;; look in hash!
-    (if debug (logformat "now decode-pkey: ~a\n" key))
+    (DB "now decode-pkey: ~a\n")
     (let1 key-list (if (list? key)
 		       key
 		     (decode-pkey key))
@@ -296,7 +296,7 @@
                   (map
 		      pg:text-printer
 		    key-list))))))
-	(if debug (logformat "row->object ~a ~d\n" class (pg-ntuples r)))
+	(DB "row->object ~a ~d\n")
 
         (if (zero? (pg-ntuples r))
             #f
