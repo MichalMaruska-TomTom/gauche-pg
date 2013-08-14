@@ -1,21 +1,16 @@
 
-;;; Comparing PG data.   for ordering.
+;;; Comparing PG data. For ordering.
 
 (define-module pg.compare
   (export
-   ;; fixme!  pg:compare-data   etc.
    pg:compare-date
    pg:string-compare
    pg:compare-char
    )
   (use srfi-19)
   (use srfi-13)
-
   )
 (select-module pg.compare)
-
-
-
 
 ;; -1 if d1 < d2
 (define (pg:compare-date d1 d2)
@@ -26,7 +21,6 @@
       -1)
      ((time=? t1 t2)
       0)
-
      (else
       1))))
 
@@ -49,7 +43,5 @@
 
 ;(compare-char #\a #\b)
 ;(compare-char #\c #\b)
-
-
 
 (provide "pg/compare")
