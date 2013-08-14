@@ -107,7 +107,7 @@
 
 
   (let ((aot (slot-definition-option slot :out-of-transaction :read-only))) ;:read-only is default
-    ;;  :out-of-transaction  -> 
+    ;;  :out-of-transaction  ->
     (lambda (o)
       (if (current-db)                  ; mmc: what if I have 2 different DBs?
           (ensure-transaction o)        ; mmc:  in metainfo!
@@ -116,7 +116,7 @@
 
       ;; Try to see if the object has (in the slot) already a retrieved value
       ;; otherwise there should be a wrapper -> peel-wrapper  runs it?
-      ;; 
+      ;;
       (let1 val (slot-ref-using-accessor o acc)
         (if (is-a? val <kahua-wrapper>)
             (let1 real (peel-wrapper val)
@@ -146,7 +146,7 @@
     (slot-set-using-accessor! o acc v)
     ;;
     (unless (memq (car slot) (ref o '%modified-slots))
-      (push! (ref o '%modified-slots) (car slot))))) ;slot-name  symbol! 
+      (push! (ref o '%modified-slots) (car slot))))) ;slot-name  symbol!
 
 ;; from kahua, not used here!
 ;; fixme: So not used anywhere!
@@ -160,13 +160,13 @@
               ;; mmc: why transaction ?
               (ensure-transaction o)    ; the class has '%transaction-id .... so all records of the class
                                         ; need to be in the same transaction!  ... consistency!
-              ;; mark the instance and be done!  
+              ;; mark the instance and be done!
               (unless (memq o (ref db 'modified-instances))
                 (push! (ref db 'modified-instances) o))
               ;; accept the value
               (slot-set-using-accessor! o acc v))
 
-          ;; no DB! 
+          ;; no DB!
           (if (eq? aot :read/write)
               (begin
 
@@ -209,13 +209,13 @@
 
            (else
 	    ;; get the first
-	    ;; greedy 
+	    ;; greedy
             (let1 match (rxmatch #/^((?:[^#\\]+(?=[#\\])|(?:\\.)+)+)#/
                                         ;#/^((?:[^#\\]*|(?:\\.))*)#/
-                   
+
                          ;; [^\\](\\)*\#
                          ;; ([^#] )*
-                         ;; 
+                         ;;
                          ;;   #/^(\#|.*[^\\](\\\\)*#)/
                          rest)
               (if match
@@ -310,7 +310,7 @@
 
 
 
-;; how to make it a method?  
+;; how to make it a method?
 ;; (define-method store-kahua-instance ((object <pg-tuple-base>))
 ;;   (pg:store-tuple object))
 ;; see:
@@ -334,7 +334,7 @@
              ;; fixme: If the relation has some default values (and I don't set them here explicitely), I should retrieve them! todo!
              (sql:insert
               (ref relation 'name)
-              ;; 
+              ;;
               (map
                   (lambda (slot)
                     ;; fixme!
@@ -347,7 +347,7 @@
 
            ;; let's first construct this, as without it it's a no-go situation:
            (let1 where-alist (map
-                                 ;; fixme: This must be present! If P-key is not known, we must not run the UPDATE! 
+                                 ;; fixme: This must be present! If P-key is not known, we must not run the UPDATE!
                                  (lambda (attribute)
                                    (cons (ref attribute 'attname)
                                          ;; fixme:
@@ -374,7 +374,7 @@
               ;; where
               (sql:alist->where where-alist))))))
      ;; todo: check that only 1 object is updated indeed?
-     
+
      ;; Reset:
      (if (slot-ref object '%new)
          (slot-set! object '%new #f))
