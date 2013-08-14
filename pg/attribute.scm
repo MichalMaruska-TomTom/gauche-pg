@@ -24,7 +24,6 @@
    (attname :init-keyword :attname :accessor pg:attribute-name)
    (type :init-keyword :atttyp :accessor pg:attribute-type)))
 
-
 (define (attribute->relid attr)
   (ref (ref attr 'relation) 'oid))
 
@@ -41,7 +40,6 @@
           (< (ref attribute1 'attnum)
              (ref attribute2 'attnum))))))
 
-
 (define-method write-object ((o <pg-attribute>) port)
   (format port
     "<~a: ~d/~a in ~a>"
@@ -54,7 +52,5 @@
     (or
      (ref (ref o 'relation) 'name)
      "??")))
-
-
 
 (provide "pg/attribute")
