@@ -13,7 +13,6 @@
    ;; fixme:  pg:with-triggers-*
    with-triggers-disabled with-triggers-disabled*
 
-   ;;pg-date->date
    ;pg-dump-explain
    pg-prepare-handle
 
@@ -46,24 +45,6 @@
 
 
 ;(use srfi-2)
-
-;; Pg uses:  fractional seconds
-;;    and  timezone +hh  not +hhmm
-(define (pg-date->date pg-date)         ;obsolete !
-  (and-let*
-    ((match (rxmatch #/^(.*)\.\d*\+(\d{2})$/  pg-date))
-     (better
-      (string-append
-       (rxmatch-substring match 1)
-       "+"
-       (rxmatch-substring match 2)
-       "00")))
-    (set! pg-date better))
-
-  (string->date
-   pg-date "~Y-~m-~d ~k:~M:~S~z"))
-
-
 
 ;; must not be inside a transaction !!
 (define (disable-trigggers-on handle relname . rest)
