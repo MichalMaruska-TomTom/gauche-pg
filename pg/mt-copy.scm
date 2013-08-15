@@ -18,7 +18,7 @@
    copy-tuples-to
    ;copy-from-port
    )
-  
+
   (use pg)
   (use pg-hi)
   (use pg.util)
@@ -33,7 +33,7 @@
   (use gauche.threads)
   ;(use adt.mt-queue)
   (use mtqueue)
-  
+
   (use adt.fixed-queue)
   (use mmc.log)
   (use mmc.xterm)
@@ -75,8 +75,8 @@
 
 
 ;;; I/F:
-;; exceptions:     cannot-connect,   error,  
-;;  
+;; exceptions:     cannot-connect,   error,
+;;
 ;; Entry points:    abort, get-next
 
 ;;; extended `protocol' on the mt-queue
@@ -152,7 +152,7 @@
                     message)
             (set error-rows #t))
         handle)
-      
+
       ;; i need also an abort-handler
       ;;(logformat "make-copy-from-coroutine. backend-pid:~d\n" (pg-backend-pid handle))
 
@@ -177,10 +177,10 @@
                   (logformat-color 'yellow "the handle is NOT associated w/ any BE\n"))
               (logformat-color 'yellow "start failed")
               (exit #f))                ;producer-exit
-          ;; error --->     TO STDOUT  ---> close other consumers .... 
+          ;; error --->     TO STDOUT  ---> close other consumers ....
           (start-copy handle relname #t delimiter))
 
-        
+
         ;;  error occurs in the middle .... tell the consumer.  We cannot continue, b/c PG doesn't provide any means.
         (with-chained-exception-handler*
             (lambda (c next)
@@ -205,12 +205,12 @@
     (let* ((tuple 0)
            ;; `event-loop' evaluator:
            (do-process-result
-            (lambda (result) 
+            (lambda (result)
               (if (and (pair? result)
                        (eq? (car result) 'error))
                                         ;(exception? result)
                   (raise (list 'consumer result)))))
-           ;; 
+           ;;
            (found-last-line ;close COPY on the handle & tell the consumer:
             (lambda (error?)
               (logformat-color debug-color "sending 'end ~d\n" tuple)
@@ -231,14 +231,14 @@
                            ;; if we exceed the length, we start dropping the old tuples, therefore raise the
                            ;; tag
                            (push-item error-queue (list tuple tuple-number completed)))))
-                
+
         ;; The `cycle'
         (let one-line ((message-number 0))
           ;(logformat "one-line starts!\n")
           ;; get the data:
           (let1 buffer (pg-get-copy-data-uvector handle #f)
            ; (logformat "~a: one-line: got line from pg\n" (thread-name (current-thread)))
-            ;; `debugging' 
+            ;; `debugging'
             ;;(format #t "FROM:\tstatus: ~d ~d -> ~d\n" start end status)
             (if (zero? (modulo tuple mtc-debug-modulo))
                 (logformat-color debug-color "producer: tuple #: ~a (~a)\n"
@@ -300,7 +300,7 @@
 
 ;; flush the copy buffer, so we get all the error messages (if any).
 ;; call SIGNAL-ERROR w/ the row numbers of unparable lines.
-(define (copy-stop-and-report-error-lines c handle exporter-state error-queue signal-error) ;fixme: 
+(define (copy-stop-and-report-error-lines c handle exporter-state error-queue signal-error) ;fixme:
   (let ((answer #f))
     (logformat "*** trying to terminate the COPY communication to get all pending error message from the server,
 because we receive this exception: ~s\n" c)
@@ -342,7 +342,7 @@ because we receive this exception: ~s\n" c)
 
         ;; fixme: throw -> tell producer !
         (start-copy handle relname #f delimiter) ;we have to end it.... so  unwind-protect?
-           
+
         ;; keep the last rows ...
         (let* ((last-lines-kept 150)
                (error-queue (make <error-queue>
@@ -357,7 +357,7 @@ because we receive this exception: ~s\n" c)
 
           ;; start pushing: But if an _error_ from the Pg side:  abort the copy & scan the error messages.
           ;; any other error -> abort: we _have_ to signal the end of COPY.
-          ;; success  
+          ;; success
           (with-chained-exception-handler-safe*
            (lambda (c next)
              (if (is-a? c <error>) (error-handler:print-message c))
@@ -402,7 +402,7 @@ because we receive this exception: ~s\n" c)
             ;; fixme: if we are in the middle of a line??
             ;; we could terminate the copy
             1)
-        
+
         (logformat-color debug-color "got ~a ... instead of ~d\n" message tuple)
         (error message))
 
@@ -410,7 +410,7 @@ because we receive this exception: ~s\n" c)
         (logformat-color debug-color "got EOF ... (at line ~d)\n" tuple)
         (pg-put-copy-end handle #f)
         #t)                             ;official successful return!
-       
+
        (else
         ;; stuff to `send'
         ;; fixme: we could run out-of-memory !!!
@@ -464,7 +464,7 @@ because we receive this exception: ~s\n" c)
     (let1 mt-queue (make-mtqueue 20000)
       ;; I want to be able to exit here:
       ;; That means stopping the other thread ??
-;;; [05 gen 05]  mmc: i cannot  trust this now:      
+;;; [05 gen 05]  mmc: i cannot  trust this now:
 
 ;       (with-exit-exception-handler* exit-variable
 ;           (lambda (exit-cc c)
@@ -488,7 +488,7 @@ because we receive this exception: ~s\n" c)
         ;; 3rd thread shows a GUI ?
       (logformat "spawning the threads\n")
 
-      (let ((producer-thread 
+      (let ((producer-thread
              (spawn* "pg-copy:producer"
                (copy-import from-handle relname
                  ;; consumer:
@@ -543,7 +543,7 @@ because we receive this exception: ~s\n" c)
               (logformat "copy-tuples-to: producer (tuple-function) returned EOF. calling thread-join! on the consumer\n")
               (thread-join! consumer-thread) ;wait for the consumer
               #t))
-           
+
           ;; fixme:  these calls increase line-number, but don't contribute. bug!
            ((eq? line #f) ;(not line) ;; #f
             ;; skip this one:

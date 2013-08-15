@@ -1,7 +1,7 @@
 ;; `methods' on the `<pgresult>'
 
 
-;; having an abstract object (`pg-result' here), we want to extract (uniform) sub-objects, and run  
+;; having an abstract object (`pg-result' here), we want to extract (uniform) sub-objects, and run
 ;; through the interface of `for-each' a function on each sub-object.
 
 ;; This module is all to provide this method (for-each) ....
@@ -47,7 +47,7 @@
    (index :init-value -1)
 
    (class :init-keyword :class)
-   
+
    (slots :init-keyword :slots)
    (numbers :init-keyword :numbers)
    ;(type-converters :init-keyword :type-converters)
@@ -82,7 +82,7 @@
      (slot-set! object slot
        (pg-get-value result row index))
      object)
-   
+
    object
    numbers
    slots))
@@ -108,7 +108,7 @@
 
           ;; fixme: This should be called with 2 lists:  slots and indexes!
           ;; b/c we compose the query to have it slot1 = 0, slot2 = 1 ...
-          
+
           (db (slot-ref result 'handle))
           (processed-tuple 0))
 
@@ -139,10 +139,10 @@
       (function
        ((slot-ref i 'function)
         result row)))))
-        
+
 ;        (transform-row-into-object
 ;         result row
-;         (make class) 
+;         (make class)
 ;         (slot-ref i 'numbers)
 ;         (slot-ref i 'slots)
 ;         (slot-ref i 'type-converters))))))
@@ -156,8 +156,8 @@
 (define (pg-make-object-iterator result class slot-binding);  produces objects of CLASS by extracting SLOTS from the rows of the RESULT
   ;(logformat "pg-make-object-iterator: ~s ~s ~s\n" result class slot-binding)
   (check-type result <pgresult> "pg-make-object-iterator")
-  
-  
+
+
   (let* ((numbers (map (cut pg-fnumber result <>)
                     (ssm-range slot-binding)))
          (slots (ssm-domain slot-binding)))
@@ -166,7 +166,7 @@
       (lambda (result row); result useless....already in closure.
         (transform-row-into-object
          result row
-         (make class) 
+         (make class)
          numbers slots))
       :result result
       ;; not needed?
