@@ -99,8 +99,8 @@
   (ref (pg:nspname->namespace db nspname) 'oid))
 
 
-(define (pg:oid->namespace db oid) ;;fixme!
-  (if debug (logformat "pg:oid->namespace: ~d\n" oid))
+(define (pg:oid->namespace db oid)
+  (DB "pg:oid->namespace: ~d\n")
   (with-locking-mutex* (ref db 'namespaces-mutex)
     (or
      (find (lambda (ns)
@@ -120,7 +120,7 @@
 ;;; to an alist (nspname  <pg-namespace>)
 ;; note: can be used to refresh too!
 (define (pg:load-namespaces! db)
-  (if debug (logformat "pg:load-namespaces!\n"))
+  (DB "pg:load-namespaces!\n")
   (if (slot-bound? db 'namespaces)
       (error "pg:load-namespaces! must not be run twice!"))
   (pg:with-admin-handle db
