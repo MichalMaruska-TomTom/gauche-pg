@@ -78,12 +78,8 @@
     (pg:nspname->namespace db ns)))
 
 ;; `by-name'
-(define (pg:extract-namespace db namespace?)
-  (if (not (null? namespace?))
-      ;; name or object:
-      (normalize-namespace  db (car namespace?)) ;fixme!  bug!
-    (pg:nspname->namespace db "public")))
-
+(define (pg:extract-namespace db :optional (namespace "public"))
+  (normalize-namespace db namespace))
 
 
 ;; given NAME return `<pg-namespace>' object
