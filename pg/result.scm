@@ -5,13 +5,13 @@
 ;; we have a list of `<pg-tuple>'s
 ;; and then mapping:
 
-;; So, for I-th column in the result, we can obtain: 
+;; So, for I-th column in the result, we can obtain:
 ;;  pg-fsource gives us the <pg-tuple>, and its attribute!  pg-fcolumn  gives the index into ... <pg-tuple>
 ;; Then what?
 ;; I can get: is-key-available? <pg-attribute>
 ;;
 ;; `pg-tuple:->result-column' maps  (N, I) -> X, so that  pg-fcolumn(X) = I  AND pg_fsource(X) = N
-;; 
+;;
 ;; to use, map over the list of <pg-tuples> !
 
 ;;; old doc:
@@ -45,12 +45,12 @@
   (use pg)
   (use pg.database)                     ;What do we need?
   (use pg.relation)                     ;fixme: do we need only this one?
-  
+
 
   ;; fixme:  this will need pg.views  also!
   ;; I could push the <pg-view> into  `database'
   ;; and have some method in a higher module, which uses this one: `result'.
-  ;; 
+  ;;
   (use mmc.simple)
   (use adt.alist)
   (use macros.reverse)
@@ -75,7 +75,7 @@
                     relname))
     ;; Todo:
     ;;(let1 relation (pg:find-relation (ref (ref (car tuples) 'result) 'database) relname)
-  
+
     (find
      ;; ((tuple-index  .  <pg-tuple>) ...)
      (lambda (info)
@@ -97,7 +97,7 @@
    ;; This tells us if it's a VIEW!
    (relation :init-keyword :relation
              :setter tuple-set-relation)
-   
+
    (p-key :init-value #f)                ; has-p-key? (boolean)  By default not present.
 
    ;; WHERE gender='m'  -> gender is fixed!
@@ -241,7 +241,7 @@
                                 (= (ref (cdr i) 'attnum)
                                    (ref attribute 'attnum)))
                               (ref tuple 'attribute-index-alist)))
-              
+
               (logformat "Could not find: ~a in ~a\n Only ~a\n" attribute (ref tuple 'attribute-index-alist)
                          (eq? guess attribute))))
           (car info)))
@@ -355,7 +355,7 @@
               ;; fixme: <pg-view> fits too!
               (if (not (is-a? relation <pg-relation>))
                   (if debug (logformat "result: ~d is not from a relation, it is from: ~a\n" i relation))
-                ;; 
+                ;;
                 (let1 attribute (pg:nth-attribute relation (pg-ftablecol result i))
                   (if debug (logformat "\t~a -> tuple ~d (reliod ~d): ~a\n"
                               (pg-fname result i)
@@ -408,7 +408,7 @@
 ;;                that is the `pg-fsource'
 ;;  `<pg-tuple>'  has a list of indexes in the result
 (define (pg:query-extract-tuples database result) ;fixme: isn't database provided by result?
-  
+
   ;; get a list of tuples, and a list of non-assigned attributes.
   ;; Should a column be an object?
   (unless (is-a? result <pgresult>)
