@@ -1,9 +1,9 @@
 (define-module pg.namespace
-  (export 
+  (export
    ;; `Schemas:'
    pg:load-namespaces!                  ;no need to use explicitely!
    <pg-namespace>
-   
+
    pg:nspname->namespace pg:get-namespace
 
    pg:namespace->oid
@@ -22,7 +22,7 @@
   (use pg-hi)
   (use pg.types)
   (use pg.sql)
-  
+
   (use pg.base)
   (use pg.db)
 
@@ -39,15 +39,15 @@
 
 
 ;;; schema
-(define-class <pg-namespace> ()           
+(define-class <pg-namespace> ()
   (;; back
    (database :init-keyword :database)
-   ;; 
+   ;;
    (name :init-keyword :name)
    (oid :init-keyword :oid)
    ;; Sure not a function?
    (relation-mutex :init-form (make-mutex))
-   (relnames) 
+   (relnames)
    (relations :init-form (make-hash-table 'string=?))))
 
 (define-method write-object ((n <pg-namespace>) port)
@@ -80,7 +80,7 @@
 
 
 ;; given NAME return `<pg-namespace>' object
-(define (pg:nspname->namespace db nspname) 
+(define (pg:nspname->namespace db nspname)
   (with-locking-mutex* (ref db 'namespaces-mutex)
     ;; fixme!
     (or
@@ -94,7 +94,7 @@
 (define pg:get-namespace pg:nspname->namespace)
 
 
-;; returns just the oid 
+;; returns just the oid
 (define (pg:namespace->oid db nspname)
   (ref (pg:nspname->namespace db nspname) 'oid))
 
@@ -159,7 +159,7 @@
       (pg-exec h
         (sql:select
          '("relname")
-           
+
          "pg_class"
          (string-append
           "relkind = " (pg:text-printer type) " AND "
