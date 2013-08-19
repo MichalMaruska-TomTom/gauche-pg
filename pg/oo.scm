@@ -89,7 +89,7 @@
            (slots (map slot-definition-name (class-slots (class-of object)))))
 
       ;(logformat "initiags:  attributes-of returned ~a\n" attributes)
-      
+
       (slot-set! object 'attribute-mapping
         (intersection
          (map pg-attribute->symbol attributes)
@@ -110,7 +110,7 @@
   (let* ((rel-info (slot-ref object 'db-relation))
          (mapping (slot-ref object 'attribute-mapping))
          ;(db (->db object))             ; get it !!
-        
+
          (interesting
           (filter (lambda (a)
                     (slot-bound? object a))
@@ -122,7 +122,7 @@
    (let* ((rel-info (slot-ref object 'db-relation))
           (mapping (slot-ref object 'attribute-mapping))
           ;(db (->db object))            ; get it !!
-        
+
           (interesting
            (filter (lambda (a)
                      (slot-bound? object a))
@@ -180,7 +180,7 @@
      ";")))
 
 
-;;; 
+;;;
 (define-class <db-stored-class-info> ()
   (
    (db-relation :init-keyword :db-relation
@@ -214,7 +214,7 @@
              #f))
            slots))
       (if debug (logformat "the slot <-> pg-attribute mapping is: ~a\n" (slot-ref object 'attribute-mapping)))
-      
+
       ;;       (intersection
       ;;        (map pg-attribute->symbol attributes)
       ;;        slots)
@@ -222,7 +222,7 @@
   object)
 
 
-;;;  SQL 
+;;;  SQL
 (define-generic db-insert)
 
 
@@ -254,7 +254,7 @@
           pg
         (sql:insert
          (name-of relation)
-       
+
          value-list
          attnames)))))
 
@@ -282,7 +282,7 @@
        (db-where relation mapping object))))
   ;; now:
   ;; update the object itself!
-  (for-each 
+  (for-each
       (lambda (slot-value)
         (logformat-color 49 "db-update-object: ~a ~a <- ~a\n" ;'orange
           (car slot-value)
@@ -321,7 +321,7 @@
 
 
 ;; todo:    db-delete-and-backup
-;; 
+;;
 (define-method db-delete ((object <db-stored-class-info>) data-object)
   (logformat "->db in db-delete\n")
   (let* ((rel-info (slot-ref object 'db-relation))
@@ -345,7 +345,7 @@
 
 ;; this is like   find, delete -> not remove (takes predicate)!
 
-;; query to 
+;; query to
 ;; REL-INFO   +  alist  ((attname  value) ....)   ->   pg result
 ;;
 ;; Fixme: I should hand it (optionally) a pg handle!
@@ -370,7 +370,7 @@
                (map ;; type !!!!
                    (lambda (attribute-value)
                      ;; Of course car is <pg-attribute>
-                   
+
                      (let1 type (pg:attribute-type (car attribute-value))
                                         ;(pg:find-attribute-type relation (car attribute-value))
                        (cons
