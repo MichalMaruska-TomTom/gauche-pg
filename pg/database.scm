@@ -1,11 +1,10 @@
 
-;;;  A mirror of the objects in DB
-;;;
+;;;  Intended as access point for applications.
+
+;;; Concentrates all the apis/modules to mirror objects in DB
 
 ;; Todo:  pg:db-admin-handle
 ;;        given under a mutex.
-;;
-
 (define-module pg.database
   (extend pg.base
           pg.db
@@ -13,12 +12,10 @@
           pg.attribute
           pg.relation
           ;;pg.order
-          ;;(use pg.actions)
           pg.actions
           pg.keys)
 
   (export
-
    ;;; Tree of data:
 
    ;;  p-key   list of indexes
@@ -56,15 +53,12 @@
   (use srfi-13)
   (use srfi-1)
   (use util.list)
-
   )
 (select-module pg.database)
 
 ;; fixme:
 ;; (pg:add-database-hook 'namespaces pg:load-namespaces!)
-
 (define debug #f)
-
 
 (define (pg:find-attribute pg nm rel att)
   ;; error on #f!
@@ -74,7 +68,6 @@
          (attribute (pg:attname->attribute relation att)))
         attribute)
       (error "Cannot find attribute" nm rel att)))
-
 ;; 'relations  -> hash   name-> object
 
 (define-class <db-index> ()
@@ -86,9 +79,6 @@
    ;;
    ;; (fields :init-keyword :m-fields)
    ))
-
-
-
 
 (define (pg:relation->indexes relation)
   (pg:with-admin-handle (ref relation 'database)
@@ -106,23 +96,15 @@
              (result (pg-exec handle query)))
         (pg-collect-result result "indexname")))))
 
-
-
-
 ;;; unique:
-
 '(define-class <db-unique> ()
   ((name :init-keyword :name)
    ;; relation
    (attributes :init-keyword :attributes)
    ))
 
-
-
-
 ; fixme!
 ;(define-method ->db ((pg <pg>))
 ;  (slot-ref pg 'database))
-
 
 (provide "pg/database")
