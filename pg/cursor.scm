@@ -1,8 +1,8 @@
 
 ;;; Operating on pg cursor.
 ;;; This provides caching. ad-hoc creating
-;;;
 
+;; todo:  (define-method for-each <pg-cursor> ...)
 
 (define-module pg.cursor
   (export
@@ -10,19 +10,17 @@
    pg:declare-cursor
    pg:fetch-from-cursor
    pg:with-cursor
-   ;; I want `for-each'
-   ;;
-
    )
+
+
   (use pg-hi)
   (use pg-low)
   (use adt.string)
 
   (use mmc.log)
-  ;;
-  (use gauche.collection)
 
-  )
+  (use gauche.collection))
+
 (select-module pg.cursor)
 
 
@@ -34,14 +32,9 @@
    (query :init-keyword :query)
 
    (current-result)
-   (current-row)
-   ))
-
-
+   (current-row)))
 
 ;; ((c <pg-cursor>) proc . options)
-
-
 (define (pg:declare-cursor h name query)
   (DB "pg:declare-cursor: ~d\n")
   (pg-exec h
@@ -53,12 +46,12 @@
     :query query))
 
 
-;; returns 2 values
-;; result
-;; row-index  ...either a number or #f (if no row availale)!
+;; returns 2 values:
+;; @result
+;; @row-index  ...either a number or #f (if no row availale)!
+;; It decouples the 2 amounts -- some `buffering' is used, by default!
 (define (pg:fetch-from-cursor cursor . how-many)
-  (if
-      (and (slot-bound? cursor 'current-result)
+  (if (and (slot-bound? cursor 'current-result)
            (> (pg-ntuples (ref cursor 'current-result))
               (+ 1 (ref cursor 'current-row))))
       (begin
@@ -68,7 +61,6 @@
                    (+ 1 v)))
         (values (ref cursor 'current-result)
                 (ref cursor 'current-row)))
-
     (begin
       (DB "pg:fetch-from-cursor ~d ~a\n"
 	  (pg-backend-pid (ref (ref cursor 'handle) 'conn))
@@ -77,12 +69,10 @@
       (let1 r (pg-exec (ref cursor 'handle)
                 (s+ "FETCH "
                     (if (null? how-many)
-                        "100"               ;"NEXT"
+                        "100"		;"NEXT"
                       (number->string (car how-many)))
                     " FROM "
                     (ref cursor 'name) ";"))
-        ;(if debug (logformat "fetched!\n"))
-
         ;; fixme!
         (if (eq? PGRES_TUPLES_OK
                  (pg-result-status (ref r 'result)))
@@ -101,7 +91,7 @@
   (syntax-rules ()
     ((_ handle name query function)
      ;; Cursors need a transaction:
-     ;; we might check if it's not in transaction already.... but in `with-db-transaction*'  !!
+     ;; todo: we might check for one, but needs code in `with-db-transaction*'
      (with-db-transaction* handle
        (function
         (pg:declare-cursor handle name query))))))
