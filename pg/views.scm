@@ -34,9 +34,17 @@
   (check-parameter-type view <pg-view> "wrong type: expected ~a, got ~a")
     (lambda (h)
       ;; the real definition is in `pg_rewrite' (pg_rules)
-      (let* ((query (s+ "SELECT " "pg_get_viewdef(oid) AS definition"
-                        " FROM pg_class " " WHERE "
-                        " oid = " (pg:number-printer (ref view 'oid))))
+;;       (sql:select-function
+;;            "pg_get_viewdef"
+;;            (pg:number-printer (ref view 'oid))
+;;            (pg:bool-printer "f")
+      (let* ((query (sql:select-k
+		     "pg_get_viewdef(oid) AS definition"
+		     :from "pg_class"
+		     :where
+		     (sql:alist->where
+		      `(("oid" . ,(pg:number-printer (ref view 'oid)))))))
+	     ;; low level execution:
              (res (pg-exec h query)))
         ;;
         (if (zero? (pg-ntuples res))
