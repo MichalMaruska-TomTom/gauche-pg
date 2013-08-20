@@ -316,6 +316,36 @@
 ;; see:
 ;; write-kahua-instance
 
+(define (pg:update-tuple object)
+  (let1 where-alist
+      (map
+	  ;; fixme: This must be present! If P-key is not known, we must not run the UPDATE!
+	  (lambda (attribute)
+	    (cons (ref attribute 'attname)
+		  ;; fixme:
+		  (scheme->pg
+                                        ;(ref attribute 'attname)
+		   (slot-ref attribute 'type)
+		   (slot-ref object
+			     (string->symbol (ref attribute 'attname))))))
+	(ref relation 'p-key))
+    (sql:update
+     (ref relation 'name)
+     (map
+	 (lambda (slot)
+	   (cons (symbol->string slot)
+		 ;; fixme!
+		 (if (slot-ref object slot)
+		     (scheme->pg
+                                        ;(pg:attribute-type
+		      (pg:find-attribute-type relation (symbol->string slot))
+                                        ;(x->string
+		      (slot-ref object slot))
+		   "NULL")))
+       modified-slots)
+     ;; where
+     (sql:alist->where where-alist))))
+
 (define (pg:store-tuple object)
   (let* ((modified-slots (ref object '%modified-slots))
          (class (class-of object))
@@ -346,33 +376,7 @@
               (map symbol->string modified-slots))
 
            ;; let's first construct this, as without it it's a no-go situation:
-           (let1 where-alist (map
-                                 ;; fixme: This must be present! If P-key is not known, we must not run the UPDATE!
-                                 (lambda (attribute)
-                                   (cons (ref attribute 'attname)
-                                         ;; fixme:
-                                         (scheme->pg
-                                        ;(ref attribute 'attname)
-                                          (slot-ref attribute 'type)
-                                          (slot-ref object
-                                                    (string->symbol (ref attribute 'attname))))))
-                               (ref relation 'p-key))
-             (sql:update
-              (ref relation 'name)
-              (map
-                  (lambda (slot)
-                    (cons (symbol->string slot)
-                          ;; fixme!
-                          (if (slot-ref object slot)
-                              (scheme->pg
-                                        ;(pg:attribute-type
-                               (pg:find-attribute-type relation (symbol->string slot))
-                                        ;(x->string
-                               (slot-ref object slot))
-                            "NULL")))
-                modified-slots)
-              ;; where
-              (sql:alist->where where-alist))))))
+	   (pg:update-tuple tuple))))
      ;; todo: check that only 1 object is updated indeed?
 
      ;; Reset:
