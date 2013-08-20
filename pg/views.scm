@@ -30,8 +30,8 @@
 
 
 (define (pg:reload-view-definition! view)
-  ;; fixme: check that it is a view!!
-  (pg:with-admin-handle (ref view 'database) ;fixme: Does this catch the possible error inside?
+  ;; todo: check that it is a view!!
+  (check-parameter-type view <pg-view> "wrong type: expected ~a, got ~a")
     (lambda (h)
       ;; the real definition is in `pg_rewrite' (pg_rules)
       (let* ((query (s+ "SELECT " "pg_get_viewdef(oid) AS definition"
@@ -65,7 +65,7 @@
 
 
 (define (pg:view-definition-sql view)
-  ;; (assert (is-a? view <pg-view>))
+  (check-parameter-type view <pg-view> "wrong type: expected ~a, got ~a")
   (s+ "CREATE VIEW " (ref view 'name) " AS "
       (ref view 'definition)))
 
