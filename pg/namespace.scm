@@ -16,7 +16,9 @@
    ;; content:
    pg:namespace-viewnames
    pg:namespace-relnames
-   pg:extract-namespace                 ;fixme: for friends!
+   pg:find-namespace
+   ;; obsolete name:
+   pg:extract-namespace
 
 
    ;; utils:
@@ -78,9 +80,9 @@
     (pg:nspname->namespace db ns)))
 
 ;; `by-name'
-(define (pg:extract-namespace db :optional (namespace "public"))
+(define (pg:find-namespace db :optional (namespace "public"))
   (normalize-namespace db namespace))
-
+(define pg:extract-namespace pg:find-namespace)
 
 ;; given NAME return `<pg-namespace>' object
 (define (pg:nspname->namespace db nspname)
