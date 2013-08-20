@@ -44,26 +44,20 @@
 ;; but not the data.
 ;; (put 'pg-fake-result 'indent- 3)
 (define (pg-fake-result result)
-  (let* ((n (pg-nfields result))
-         (fcolumn (make-vector n #f))
-         (fsource (make-vector n #f))
-         (ftable (make-vector n #f))
-         (names (make-vector n #f))
-         ;; types
-         ;; fmods
-         )
-    (for-numbers< 0 n
-      (lambda (i)
-        (vector-set! fcolumn i (pg-ftablecol result i))
-        (vector-set! fsource i (pg-fsource result i))
-        (vector-set! ftable i (pg-ftable result i))
-        (vector-set! names i (pg-fname result i))))
-    (let1 ft
-        (make <fake-result>
-          :names names
-          :fcolumn fcolumn
-          :fsource fsource
-          :ftable ftable)
+  (let-create-fill-vectors (pg-nfields result)
+			   (fcolumn fsource ftable names)
+
+			   ((cute pg-ftablecol result <>)
+			    (cute pg-fsource result <>)
+			    (cute pg-ftable result <>)
+			    (cute pg-fname result <>)
+			    )
+     (let1 ft
+	 (make <fake-result>
+	   :names names
+	   :fcolumn fcolumn
+	   :fsource fsource
+	   :ftable ftable)
       (if (slot-bound? result 'tuples)
           (slot-set! ft 'tuples (slot-ref result 'tuples)))
       ft)))
