@@ -1,10 +1,13 @@
+;; Sometimes it's good to make a Scheme only copy
+;; of a pg-result, without the data.
+;; So just the `header'
 
 (define-module pg.fake
   (export
-   <fake-result>                        ;todo: rename!
-   pg-fake-result
-   )
-  (use mmc.simple)
+   <fake-result>  ;;todo: rename!
+   pg-fake-result)
+
+  (use macros.vector)
   (use pg)
   )
 (select-module pg.fake)
@@ -22,8 +25,8 @@
    ;; fmods
 
    ;; Forced by `../pg-hi.scm'
-   (tuples)                             ;list of <pg-tuple> objects
-   ))
+   ;; list of <pg-tuple> objects
+   (tuples)))
 
 ;;
 (define-method pg-ftablecol ((r <fake-result>) i)
@@ -36,6 +39,10 @@
   (vector-ref (ref r 'names) i))
 
 
+;; given a <pg-result> (or <pgresult>?)
+;; create a fake one -- one that returns same characteristics,
+;; but not the data.
+;; (put 'pg-fake-result 'indent- 3)
 (define (pg-fake-result result)
   (let* ((n (pg-nfields result))
          (fcolumn (make-vector n #f))
