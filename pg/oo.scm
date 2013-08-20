@@ -4,7 +4,7 @@
 ;;  tight  binding between  DB `tuples' (objects)  and gauche `objecs'
 
 
-;; i have 2 ways:  either
+;; I have 2 ways:  either
 ;; *  symbolic attribute names   -- for now this one is implemented!
 ;; * or  indexes, w/ a hook for when something changes.
 
@@ -48,17 +48,16 @@
 (select-module pg.oo)
 
 (define debug #f)
-;; i would like to define it as a metaclass. But i'm not good at the oo system yet.
 
-
+;; todo: I would like to define it as a metaclass. But i'm not good at the oo system yet.
 
 ;;; metaclass  where attributes have a specification for the backing  DB attribute
 
-;; then i can have   methods  db-remove  db-insert ...
+;; then I can have   methods  db-remove  db-insert ...
 
 ;; class-variable points here:
 
-;; i don't use this anymore ?  b/c the entire class has the _same_ settting. 
+;; i don't use this anymore ?  b/c the entire class has the _same_ settting.
 (define-class <db-stored-class> ()
   (
    ;; this works w/ only 1 relation backing it.
@@ -95,13 +94,12 @@
          (map pg-attribute->symbol attributes)
          slots))))
   object)
+
+
 ;;; Generics
 (define-method ->db ((o <db-stored-class>))
   (logformat "-db of <db-stored-class>\n")
   (->db (slot-ref o 'db-relation)))
-
-
-
 
 
 ;;  fixme:  p-key all bound?
@@ -182,8 +180,7 @@
 
 ;;;
 (define-class <db-stored-class-info> ()
-  (
-   (db-relation :init-keyword :db-relation
+  ((db-relation :init-keyword :db-relation
                 ;:allocation  :each-subclass
                 )
    (handle :init-keyword :handle)
