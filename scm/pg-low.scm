@@ -68,9 +68,6 @@
              (map (cut pg-get-value result row <>)
                numbers)))))
 
-
-
-
 ;; fixme: this should use pg-foreach-result
 (define (pg-map-result result attributes function)
   (let ((numbers (map (cut pg-fnumber result <>) attributes)))
@@ -91,10 +88,7 @@
     (error "the result doesn't give a mapping/alist (insufficient columns)" result)))
 
 
-
-
 ;;; `sql'
-
 ;; todo!!!!
 (define (pg-dump-explain result)
   (for-numbers< 0 (pg-ntuples result)

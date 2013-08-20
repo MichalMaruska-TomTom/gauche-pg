@@ -82,8 +82,6 @@
    ;; emacs-mule->cyrillic
    pg-default-separator
    ;; fixme:   if the result is null (e.g. if the handle is wrong !!),  pg-cmd-tuples  segfaults
-   ;;;
-
 
    ;; from pg.types
    scheme->pg
@@ -234,6 +232,12 @@
     ;; (slot-set! oid->type 'converters pg:*parsers*)
     ;; (pg:initialize-parsers handle)
     handle))
+
+
+
+
+
+
 
 
 (define (pg-find-type pg oid)
