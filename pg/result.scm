@@ -125,16 +125,15 @@
 
 ;;; Accessors:
 
-;; return the column index in the pg-result associated with the TUPLE
-;; of the  I-th attribute (of the tuple)
-(define (pg-tuple:->result-column tuple i)
+;; return the column index in the pg-result, which contains the N-th attribute
+;; of the @tuple.
+(define (pg-tuple:->result-column tuple n)
   ;; fixme:
   (unless (slot-bound? tuple 'tuple->result-map)
-    (logformat "pg-tuple:->result-column: the tuple has no 'tuple->result-map\n")
+    (db "pg-tuple:->result-column: the tuple has no 'tuple->result-map\n")
     (pg-result->tuple-order! (ref tuple 'result) tuple))
-  (vector-ref (ref tuple 'tuple->result-map) i))
 
-
+  (vector-ref (ref tuple 'tuple->result-map) n))
 
 ;; return <pg-attribute>s in the relation of the tuple:
 (define (pg:attributes-in-tuple tuple)
