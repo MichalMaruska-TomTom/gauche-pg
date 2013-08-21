@@ -63,36 +63,10 @@
 
 (define debug #f)
 
-
-;; `Ugly_hack:' Given `pg-tuples' (of some pg-result), find the first one which comes from RELNAME.
-;; fixme: should accept `pg-relation', not relname!
-;; mmc: see `rs-get-tuple' in recordset.scm
-(define (pg:find-relation-tuple tuples relname)
-  ;; bug!  this should at least raise error if more than 1 found!
-  (logformat "pg:find-relation-tuple still HACKISH to search by relname only (~a)\n" relname)
-  (let1 relation (if (is-a? relname <pg-relation>)
-                     relname
-                   (pg:find-relation
-                    (db-of (ref (car tuples) 'relation))
-                    relname))
-    ;; Todo:
-    ;;(let1 relation (pg:find-relation (ref (ref (car tuples) 'result) 'database) relname)
-
-    (find
-     ;; ((tuple-index  .  <pg-tuple>) ...)
-     (lambda (info)
-       (let ((index (car info))
-             (pg-tuple (cdr info)))
-         ;(string=? (ref (slot-ref pg-tuple 'relation) 'name) relname)
-         (eq? (slot-ref pg-tuple 'relation) relation)))
-     tuples)))
-
-
-
-;; Records presence of a subtuple (of a table in database) in a row of a query result (`<pg-result>').
+;; Records presence of a subtuple (of a table in database) in a row of a query result
+;; (`<pg-result>').
 (define-class <pg-tuple> ()
-  (
-   ;; Does this have the query (plan tree or plain sql)?
+  (;; Does this have the query (plan tree or plain sql)?
    (result :init-keyword :result)       ;back-link
    (index :init-keyword :index)         ;pg-fsource
 
@@ -167,6 +141,28 @@
 (define (pg:nth-tuple ts n)
   ;; or maybe (aget ts n)  !!!
   (cdr (list-ref ts n)))
+;; `Ugly_hack:' Given `pg-tuples' (of some pg-result), find the first one
+;; which comes from RELNAME.
+;; mmc: see `rs-get-tuple' in recordset.scm
+
+;; todo: This should use a "finger" pointing at 1 result column.
+
+;; @tuples is ((tuple-index . <pg-tuple>) ...)
+;; returns first (tuple-index . <pg-tuple) which is from @relname
+(define (pg:find-relation-tuple tuple-set relname)
+  ;; bug!  this should at least raise error if more than 1 found!
+  (logformat "pg:find-relation-tuple still HACKISH to search by relname only (~a)\n"
+    relname)
+  (let* ((db (db-of (ref (car tuple-set) 'relation)))
+	 (relation (pg:find-relation db relname)))
+
+    (find
+     (lambda (info)
+       (let ((index (car info))
+             (pg-tuple (cdr info)))
+         (eq? relation
+	      (slot-ref pg-tuple 'relation))))
+     tuple-set)))
 
 
 ;; Given Attributes in the first tuple of TOWER,
