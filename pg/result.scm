@@ -24,7 +24,9 @@
 (define-module pg.result
   (export
    <pg-tuple>                           ;todo  don't export!
-   pg-result->tuple-order!
+   ;; should be internal:
+   ;; pg-result->tuple-order!
+
    pg:find-relation-tuple               ;hopefully not used!
 
    pg-tuple:solve-value
