@@ -74,19 +74,20 @@
    (relation :init-keyword :relation
              :setter tuple-set-relation)
 
-   (p-key :init-value #f)                ; has-p-key? (boolean)  By default not present.
+   ;; has-p-key? (boolean)  By default not present.
+   (p-key :init-value #f)
 
    ;; WHERE gender='m'  -> gender is fixed!
-   (fixed-attributes)
    ;; alist   ((<pg-attribute> . value) ...)
+   (fixed-attributes)
 
 
    ;; The core:
    ;;((index .  <pg-attribute>) ...)  where INDEX indicates the `<pg-result>' columns.
    ;; possibly ordered!
    ;; fixme: Should not be accessible!
-   (attribute-index-alist :init-keyword :attribute-index-alist)
    ;; should be named attribute-alist !?
+   (attribute-index-alist :init-keyword :attribute-index-alist)
 
 
    ;; note: EXPLANATION
@@ -101,20 +102,20 @@
    ;; and make a `reverse'(??) mapping stored in `tuple->result-map':
    (tuple->result-map)
 
+   ;; If the relation is a View (or once we walk the PLAN, rather than simple
+   ;; `pg-fsource'), then this gives the next level:
+   (subtuples :init-keyword :subtuples)))
 
-   ;; If the relation is a View (or once we walk the PLAN, rather than simple `pg-fsource'), then this gives the next level:
-   (subtuples :init-keyword :subtuples)
-   ))
 
 ;; mmc: I should find out, where we need these 2 ADTs.
 (define-method write-object ((object <pg-tuple>) port)
-  (format  port "<pg-tuple::~a~a: ~a>"
-           (slot-ref object 'relation)  ;name!
-           (if (slot-ref object 'p-key)
-               "-RW" "-RO")
-           (slot-ref object 'attribute-index-alist)
-           ;; attribute-index-alist
-           ))
+  (format port "<pg-tuple::~a~a: ~a>"
+          (slot-ref object 'relation)   ;name!
+          (if (slot-ref object 'p-key)
+              "-RW" "-RO")
+          (slot-ref object 'attribute-index-alist)
+          ;; attribute-index-alist
+          ))
 
 ;;; Accessors:
 
