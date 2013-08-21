@@ -87,17 +87,4 @@
   (s+ "CREATE VIEW " (ref view 'name) " AS "
       (ref view 'definition)))
 
-;; (define (pg:view-definition view)
-;;   (pg:with-handle-of* view h
-;;     (let1 r
-;;         (pg-exec h
-;;           (sql:select-function
-;;            "pg_get_viewdef"
-;;            (pg:number-printer (ref view 'oid))
-;;            (pg:bool-printer "f")
-;;            )))))
-
-
-
-
 (provide "pg/views")
