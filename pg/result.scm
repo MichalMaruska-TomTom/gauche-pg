@@ -1,21 +1,27 @@
 
-;;;  analyzing the pgresult object
+;;;  Analyzing the pgresult object
 
-;; How can we describe a result:
-;; we have a list of `<pg-tuple>'s
-;; and then mapping:
+;; columns can be determined to come from table rows:
+;; so we have a list of `<pg-tuple>'s and the mapping
+;; pg-tuple & index (attribute thereof) -> index in the result (columns).
 
-;; So, for I-th column in the result, we can obtain:
-;;  pg-fsource gives us the <pg-tuple>, and its attribute!  pg-fcolumn  gives the index into ... <pg-tuple>
-;; Then what?
-;; I can get: is-key-available? <pg-attribute>
-;;
-;; `pg-tuple:->result-column' maps  (N, I) -> X, so that  pg-fcolumn(X) = I  AND pg_fsource(X) = N
-;;
+;; This is the mapping the user is interested in.
+;; `pg-tuple:->result-column' maps  (N, I) -> X, so that
+;;   pg-fcolumn(X) = I  AND pg_fsource(X) = N
 ;; to use, map over the list of <pg-tuples> !
 
-;;; old doc:
 
+;; The reverse mapping, the one we can build (at start):
+;;  `split-result-into-tuples' pg:query-extract-tuples
+;; So, for I-th column in the result, we can obtain:
+;;  pg-fsource gives us the <pg-tuple>, and its attribute!
+;;  pg-fcolumn  gives the index into ... <pg-tuple>
+;;
+;; What else about the pg-tuples's?
+;; I can get: is-key-available? <pg-attribute>
+;;
+
+;;; old doc:
 ;;  look at the vector of columns.
 ;;  if a column is an attribute (not a complex expression), see, if there's a primary key.
 ;;  if yes, form an object `tuple', which has the pkey associated. (as alist?)
