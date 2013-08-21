@@ -320,7 +320,7 @@
 
   (let1 tuples '()
     ;; fold!!
-    (if debug (logformat "extract (keyed) tuples: ~a\n" result))
+    (DB "extract (keyed) tuples: ~a\n" result)
     (for-numbers<* i 0 (pg-nfields result)
       ;; pg-fsource not implemented ...  fixme: ?????
       (let1 class (pg-fsource result i) ;mmc: This is the magick!
@@ -392,12 +392,12 @@
                                         ;(tuple-set-relation tuple relation)
     ;; is the p-key among he attributes?
     (let ((p-key (ref relation 'p-key)))
-      (if debug (logformat "Testing p-key presence! ~a\n" p-key))
+      (DB "Testing p-key presence! ~a\n" p-key)
       (when (and p-key
                  (lset<= eq? p-key      ;subset
                          (map cdr (ref tuple 'attribute-index-alist))))
         (slot-set! tuple 'p-key #t)
-        (if debug (logformat "tuple has primary key!\n"))))))
+        (DB "tuple has primary key!\n")))))
 
 
 ;; returns a list of tuples
