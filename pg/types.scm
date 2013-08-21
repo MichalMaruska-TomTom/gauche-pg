@@ -136,6 +136,8 @@
         ;; has occured: 1901-12-13 20:45:52
         (tz      (string->number (substring str 19 22))))
     ;; gauche wants  nanosec
+    ;; but this needs the TZ with 00 appended:
+    ;; (string->date   str "~Y-~m-~d ~k:~M:~S~z")
     (make-date 0 seconds minutes hours day month year (* 3600 tz))))
 					;; mmc: (- year 1900) (- month 1)
 
