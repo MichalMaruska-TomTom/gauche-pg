@@ -43,7 +43,7 @@
 
 
 (define (pg:declare-cursor h name query)
-  (if debug (logformat "pg:declare-cursor: ~d\n" (pg-backend-pid (ref h 'conn))))
+  (DB "pg:declare-cursor: ~d\n")
   (pg-exec h
     (s+ "DECLARE " name
         " CURSOR FOR " query))
@@ -62,7 +62,7 @@
            (> (pg-ntuples (ref cursor 'current-result))
               (+ 1 (ref cursor 'current-row))))
       (begin
-        ;(logformat "reusing!\n")
+        (DB "reusing!\n")
         (update! (ref cursor 'current-row)
                  (lambda (v)
                    (+ 1 v)))
@@ -70,10 +70,10 @@
                 (ref cursor 'current-row)))
 
     (begin
-      (if debug (logformat "pg:fetch-from-cursor ~d ~a\n"
-                  (pg-backend-pid (ref (ref cursor 'handle) 'conn))
-                  how-many))
-      ;(if debug (logformat "fetching!\n"))
+      (DB "pg:fetch-from-cursor ~d ~a\n"
+	  (pg-backend-pid (ref (ref cursor 'handle) 'conn))
+	  how-many)
+      ;; (DB "fetching!\n")
       (let1 r (pg-exec (ref cursor 'handle)
                 (s+ "FETCH "
                     (if (null? how-many)
