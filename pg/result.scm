@@ -409,20 +409,23 @@
 
   ;; get a list of tuples, and a list of non-assigned attributes.
   ;; Should a column be an object?
-  (unless (is-a? result <pgresult>)
-    (logformat "pg:query-extract-tuples on ~a\n" result))
+
   ;; (if (is-a? result <pgresult>)
   ;;    (set! result (result-of result)))
+  (unless (is-a? result <pgresult>)
+    (errorf "pg:query-extract-tuples on ~a\n" result))
 
   (let1 tuples (split-result-into-tuples database result)
 
-    (if debug (logformat "\n"))
+    (DB "\n")
 
     ;; Find primary keys & ...
-    (for-each analyze-tuple! tuples)
+    (for-each (lambda (pair)
+		(analyze-tuple! (cdr tuple)))
+      tuples)
     ;; fixme:
     ;; I want to associate this analysis with the result!  here, not in the caller!
-    (slot-set! result 'tuples tuples)   ;alist (1 (tuple)) ?
+    (slot-set! result 'tuples tuples)
     tuples))
 
 
@@ -439,8 +442,7 @@
             tuples)
          (cdr i)
       ;; (aget tuples relname)
-      (error "rs-get-tuple cannot find tuple from this relation" relname)
-      )))
+      (error "rs-get-tuple cannot find tuple from this relation" relname))))
 
 
 
