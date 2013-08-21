@@ -1,14 +1,19 @@
+
+
 (define-module pg.namespace
   (export
    ;; `Schemas:'
    pg:load-namespaces!                  ;no need to use explicitely!
    <pg-namespace>
 
-   pg:nspname->namespace pg:get-namespace
+   ;; name -> object -> oid
+   pg:nspname->namespace
+   pg:get-namespace
 
    pg:namespace->oid
    pg:oid->namespace
 
+   ;; content:
    pg:namespace-viewnames
    pg:namespace-relnames
    pg:extract-namespace                 ;fixme: for friends!
@@ -35,8 +40,8 @@
   (use mmc.log)
   )
 (select-module pg.namespace)
-(define debug #f)
 
+(define debug #f)
 
 ;;; schema
 (define-class <pg-namespace> ()
@@ -47,6 +52,8 @@
    (oid :init-keyword :oid)
    ;; Sure not a function?
    (relation-mutex :init-form (make-mutex))
+
+   ;; why not just the keys of the hash?
    (relnames)
    (relations :init-form (make-hash-table 'string=?))))
 
@@ -64,7 +71,7 @@
     function))
 
 
-
+;; to use a name & object interchangeably, this the conversion:
 (define (normalize-namespace db ns)
   (if (is-a? ns <pg-namespace>)
       ns
@@ -82,7 +89,6 @@
 ;; given NAME return `<pg-namespace>' object
 (define (pg:nspname->namespace db nspname)
   (with-locking-mutex* (ref db 'namespaces-mutex)
-    ;; fixme!
     (or
      (find (lambda (ns)
              ;; fixme: mutex?  either we get the list of schemas immediately, or
@@ -96,6 +102,7 @@
 
 ;; returns just the oid
 (define (pg:namespace->oid db nspname)
+  ;; todo: this constructs & discards. Could be simpler!
   (ref (pg:nspname->namespace db nspname) 'oid))
 
 
@@ -125,7 +132,7 @@
       (error "pg:load-namespaces! must not be run twice!"))
   (pg:with-admin-handle db
     (lambda (h)
-      ;; This wait for Readers to finish:
+      ;; This waits for Readers to finish:
       (with-locking-mutex* (ref db 'namespaces-mutex)
         (slot-set! db 'namespaces
           (pg-map-result (pg-exec h
@@ -137,17 +144,8 @@
                 :name name
                 :oid oid))))))))
 
-
 ;; Trick:
 (pg:add-database-hook 'namespaces pg:load-namespaces!)
-
-
-
-;; todo:
-;; Create namespace
-;; ensure namespace
-;; create table in namespace
-
 
 (define (namespace-relnames-locked h namespace type)
   ;; mutex held!
@@ -182,7 +180,6 @@
           (let1 val (namespace-relnames-locked h namespace "r")
             (slot-set! namespace 'relnames
               ;; todo: here we don't need the mutexes.
-                                        ;
               val)
             val ;;(ref namespace 'relnames)
             ))))))
@@ -196,10 +193,13 @@
         (namespace-relnames-locked h namespace "v")))))
 
 
+;; todo:
+;; create table in namespace
 
 ;;; utils:
 (define (pg:create-namespace db nspname)
   ;; todo: return the oid &update `DB!'
+  ;; fixme: make it generic!
   (pg-exec (pg:new-handle db :user "postgres")
     (format #f "CREATE SCHEMA ~a;" nspname)))
 
