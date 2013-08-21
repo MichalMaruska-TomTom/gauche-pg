@@ -127,7 +127,6 @@
        (lambda ()
          body ...)))))
 
-
 ;; fixme:  use `<pg-exporter-data>' !!
 ;; collector is an object with slot 'errors.
 (define (make-error-collector-monitor collector)
@@ -139,15 +138,11 @@
       ;; run previous handler...  no: this is asynchronous. !!!
       )))
 
-
-
 '(define (with-chained-monitor handle monitor)
   (let previous ;; ... get the current!!!
       (unwind-protect
           )
     ))
-
-
 
 (define (pg-describe-error-of-result result)
   (logformat "|-severity: ~a\ndetail: ~a\nhint: ~a\nline: ~a\nprimary:~a\nposition: ~a|_\n"
@@ -163,11 +158,5 @@
     (pg-status handle)
     (pg-error-message handle)))
 
-
 (provide "pg/util")
-
-
-
-
-
 
