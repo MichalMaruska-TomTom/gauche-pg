@@ -162,17 +162,19 @@
 ;; (sql:select-k WHAT FROM)
 ;; (sql:select-k WHAT FROM :where WHERE ....)
 (define (sql:select-full what from where group-by order-by limit offset)
-  (s+
-   "SELECT "
-   (sql:string-or-list->string what)
-   ;; new-line
-   ;; fixme: could be non-necessary! bug!
-   " FROM " (sql:string-or-list->string from)
-   (and-s+ " WHERE " where)
-   (and-s+ " GROUP BY " group-by)
-   (and-s+ " ORDER BY " order-by)
-   (and-s+ " LIMIT " (number->string limit))
-   (and-s+ " OFFSET " (number->string offset))))
+  (DB "sql:select-full: what ~a\n\tfrom: ~a\n" what from)
+  (string-join-non-f
+   (list
+    "SELECT "
+    (sql:string-or-list->string what)
+    ;; new-line
+    ;; fixme: could be non-necessary! bug!
+    " FROM " (sql:string-or-list->string from)
+    (and-s+ " WHERE " where)
+    (and-s+ " GROUP BY " group-by)
+    (and-s+ " ORDER BY " order-by)
+    (and-s+ " LIMIT " (and limit (number->string limit)))
+    (and-s+ " OFFSET " (and offset (number->string offset)))) ""))
 
 ;; I think the best API:
 (define (sql:select-u what
