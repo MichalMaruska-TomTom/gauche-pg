@@ -52,6 +52,7 @@
   )
 (select-module pg.sql)
 
+(define debug #t)
 
 (define (wrap-in-parens s)
   (s+ "( " s ")"))
