@@ -108,7 +108,7 @@
 
 ;; a semi-tuple as alist constants !!!
 (define (sql:get-tuples-alist relname tuple
-			      :keyword (what "*")
+			      :key (what "*")
 			      where sort-by
 			      :rest args)
   (let-optionals* args
