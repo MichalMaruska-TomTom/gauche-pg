@@ -19,8 +19,6 @@
 
   (export
    <pg-type>
-   pg-init-types
-   pg-type-hash
 
    ;; obsolete?
    pg:isodate-parser
@@ -71,17 +69,9 @@
 
 ;; how to add later new <pg-type>s?
 
-;; lookup standard types, and associate the oid w/ our <pg-type> objects
-;; fixme: should be shared by connections?
-;; This is probably useless f.  the low leve pg-conn cannot keep this alist, so
-(define (pg-init-types pgconn)
-  (let1 alist (pg-result->alist
-               (pg-exec-internal pgconn "SELECT oid, typname FROM pg_type"))
-    (for-each
-        (lambda (i)
-          (set-car! i (string->number (car i))))
-      alist)
-    alist))
+
+;; todo: this needs dynamic update.  notifies about new types.
+
 
 ;; pg is low level! No. This function is obsolete!
 #;
@@ -92,28 +82,6 @@
         (hash-table-get h oid)
       (errorf "pg-type-name: unknown type, its oid is: ~d" oid))))
 ;; pg-find-type
-
-
-
-;;; Bootstrap types for a <pg>
-;;  create & return hash:  oid -> <pg-type>
-(define (pg-type-hash pgconn)          ;<pg>
-  (let ((result (pg-exec-internal pgconn "SELECT oid, typname FROM pg_type;"))
-        (hash (make-hash-table 'eqv?)))
-    (pg-foreach-result
-        result
-        '("oid" "typname")
-      (lambda (oid typname)
-        (set! oid (string->number oid))
-        (let* ((type
-                (make <pg-type>
-                  :oid oid
-                  :name typname
-                  :printer (aget pg:type-printers typname)
-                  :parser (aget pg:type-parsers typname))))
-          (hash-table-put! hash oid type))))
-    hash))
-
 
 ;;;  `standard' parsers:
 (define (pg:bool-parser str)

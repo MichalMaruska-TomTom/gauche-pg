@@ -94,6 +94,7 @@
   (use mmc.log)
   (use adt.alist)                       ; ->>hash
   (use pg.types)
+  (use pg.caching)
 
   ;; for for-each implementation!
   (use gauche.collection)
