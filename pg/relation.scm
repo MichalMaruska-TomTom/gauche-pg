@@ -198,10 +198,9 @@
 (define (load-p-key pgh rel)
   (receive (name p-key)			;name is `conname' ...constraint name ?
       (let1 result (pg-exec pgh
-		     (sql:select
+		     (sql:select-u
 		      '(conkey conname)
-		      :from
-		      "pg_constraint"
+		      :from "pg_constraint"
 		      :where
 		      (s+
 		       "conrelid = " (number->string (ref rel 'oid))
