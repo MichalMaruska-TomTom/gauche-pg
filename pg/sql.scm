@@ -1,26 +1,19 @@
 ;;  from `mdb' ??
 
+;; todo:  relname could be <pg-relation>
+
+;; todo: drop the sql: prefix.
+;;
+;; transformations:
+;;  scheme -> string
+;;  alist -> conditions
+;;  and or
+;; so for now...not done implicitely!
+;; todo:  -q version which quotes.
 (define-module pg.sql
   (export
-   sql:get-tuples-alist
-   sql:select-function
-   ;;
-   ; sql-delete-alist-tuple
-   ;; insert:
-   ; insert-or-retrieve insert-overwrite ; insert-and-return
+
    sql:where
-
-   sql:update   sql:update-old
-   ;;
-   sql:select sql:select-k
-   ;;
-   sql:insert
-   sql:insert-alist                     ;(sql-insert-alist relname alist)
-   sql:insert-into
-   ;;
-   sql:delete
-   sql:uniquefy-by-attnames-where
-
    ;; Conditions:
    sql-and:
    sql-or:
@@ -28,100 +21,77 @@
    sql:between
    sql-condition:one-of
    sql-condition:char-in-string
+
+   ;; Queries:
+   sql:update
+   ;; sql:update-old
+   sql:delete
+
+   sql:select-function
+   sql:select-full
+   sql:select sql:select-k
+
+   sql:insert
+   sql:insert-alist
+
+   sql:insert-select
+   ;; obsolete:
+   sql:insert-into
+
+
+   ;; hi-level:
+   sql:get-tuples-alist
+   sql:uniquefy-by-attnames-where
    )
   (use adt.string)
   (use adt.list)
   (use pg)
   (use pg-hi)
   (use pg.types)
-                                        ;quoting!!!
   (use mmc.log)
   )
 (select-module pg.sql)
 
 
+(define (wrap-in-parens s)
+  (s+ "( " s ")"))
 
-;; fixme! I could use  fast-path ...to call a function inside the pg server!
+;; fixme! I could use `fast-path' C-functionality.
 (define (sql:select-function fname . args)
-  (s+ "SELECT " fname
-      "("
-      (string-join args ",")
-      ");"))
+  (s+ "SELECT "
+      fname "(" (string-join args ",") ");"))
 
 
 ;;; SELECTION
-;; find tuples, which have certain FIXED attributes, and THEN test some other condition from SCHEME
+;; find tuples, which have certain FIXED attributes, and
+;; THEN test some other condition from SCHEME
 ;; project on constant attnames (alist)
 
-
-;; fixme: a hack    obsoleted by pg-escape-string or pg:text-printer !
-(define (sql:quote object)
-  (cond
-   ((number? object)
-    (number->string object))
-   ((string? object)
-    (pg:text-printer object))
-   (else
-    (error "sql:quote cannot quote object: " object))))
-
-
+;; So, this function does not take care of the value formatting.
+;; the @alist:  cdrs are taken literally, not even quoted!
+;; so I can update  attr1 = attr2!
 (define (sql:update relname values-alist where)
   (s+ "UPDATE " relname
       " SET\n"
       (string-join
           (map
               (lambda (item)
-                ;; mmc: So, this function does not take care of the value formatting.
-                ;; This must be solved elsewhere!
-                ;; fixme:  (sql:quote )
-                (s+ (car item) " = " (cdr item) ""))
+                (s+ (car item) " = " (cdr item)))
             values-alist)
-          ",\n")                        ;fixme?
+          ",\n")
       "\n WHERE " where))
 
 
-;; move to adt.strings?
-(define (string-join-2 strings separator addends separator2)
-  ;; empty?
-  (let step
-      ;; make a list  (s1 sep a1 sep2 s2 ..... aN)
-      ((total-list ())
-       (rest strings)
-       (resta addends))
-
-    (cond
-     ((null? rest)
-      (apply s+
-             (reverse total-list)))
-     (else
-
-      (step
-       (append!
-        (if (null? (cdr rest))
-            (list (car resta) (car rest))
-
-          (list separator2 (car resta)
-                separator (car rest)))
-        total-list)
-
-       (cdr rest)
-       (cdr resta)
-       ))
-     )))
-
-;; (string-join-2 '("strings" "a") "," '("-- a" "--b") "\n")
-
-
+;; obsolete:  (att value . "-- comment")
+#;
 (define (sql:update-old relname values-alist where)
   (s+ "UPDATE " relname
       " SET\n"
       (string-join-2
-
        (map
            (lambda (item)
              ;; mmc: So, this function does not take care of the value formatting.
              ;; This must be solved elsewhere!
-             ;; fixme:  (sql:quote )
              (s+ (car item) " = " (cadr item) ""))
          values-alist)
        ","
@@ -131,31 +101,26 @@
        "\n"
        )
 
-
-
       "\n WHERE " where))
-
-
-
 
 (define (and-where where)
   (if where (s+ " AND " where) ""))
 
-
 ;; a semi-tuple as alist constants !!!
-(define (sql:get-tuples-alist relname tuple . args)
-                                        ; verbose ?
+(define (sql:get-tuples-alist relname tuple
+			      :keyword (what "*")
+			      where sort-by
+			      :rest args)
   (let-optionals* args
-      ((what "*")
-       (and-where-condition #f)
-       (sort-by #f))
+      ((what-2 "*")
+       (and-where-condition-2 #f)
+       (sort-by-2 #f))
+    ;; fixme:  
     (s+ "SELECT " what " FROM " relname
-                   " WHERE ( " (sql:alist->where tuple) " )"
-                   (and-where and-where-condition)
-                   (if sort-by (format #f " ORDER BY ~a" sort-by) "")
-                   ";")))
-
-
+	" WHERE ( " (sql:alist->where tuple) " )"
+	(and-where and-where-condition)
+	(if sort-by (format #f " ORDER BY ~a" sort-by) "")
+	";")))
 
 
 
@@ -174,7 +139,6 @@
    (else
     (x->string name))))
 
-;(sql:quote-name
 
 (define (sql:string-or-list->string info)
   (cond
@@ -184,16 +148,6 @@
     ;; fixme:
     (string-join (map sql:quote-name  info) ", "))))
 
-
-
-(define-syntax null-unless
-  (syntax-rules ()
-    ((_ expr body ...)
-     (if (not expr)
-         ""
-       (begin
-         body ...)))))
-
 '(define (sql:where info)
   (cond
    ((string? info) info)
@@ -201,10 +155,39 @@
 
 ;; fixme:   select relation what where !!! seems better!
 
+
 ;; todo:  version with keywords:
+;; either
+;; (sql:select-k WHAT)
+;; (sql:select-k WHAT FROM)
+;; (sql:select-k WHAT FROM :where WHERE ....)
+(define (sql:select-full what from where group-by order-by limit offset)
+  (s+
+   "SELECT "
+   (sql:string-or-list->string what)
+   ;; new-line
+   ;; fixme: could be non-necessary! bug!
+   " FROM " (sql:string-or-list->string from)
+   (and-s+ " WHERE " where)
+   (and-s+ " GROUP BY " group-by)
+   (and-s+ " ORDER BY " order-by)
+   (and-s+ " LIMIT " (number->string limit))
+   (and-s+ " OFFSET " (number->string offset))))
+
+;; I think the best API:
+(define (sql:select-u what
+		      :optional relname
+		      :key from where group-by order-by limit offset
+		      :rest args)
+  ;; so args could be backup for keyword params. todo!
+  (if (and from relname) (error ""))
+  (sql:select-full what (or relname from)
+		   where group-by order-by limit))
+
 (define (sql:select-k what . rest)
   (let ((from #f)
         (k-rest ()))
+    ;; take the FROM part:
     (unless (null? rest)
       (set! from (car rest))
       (set! k-rest (cdr rest)))
@@ -214,43 +197,7 @@
          (order-by #f)
          (limit #f)
          (offset #f))
-      (let1 query
-          (s+
-           "SELECT "
-           (sql:string-or-list->string what)
-           ;; new-line
-           " FROM "
-           (sql:string-or-list->string from)
-
-           (null-unless where
-             (s+
-              ;; fixme:
-              " WHERE " where))
-
-           (null-unless group-by
-             (s+
-              ;; fixme:
-              " GROUP BY " group-by))
-
-           (null-unless order-by
-             (s+
-              ;; fixme:
-              " ORDER BY " order-by))
-
-           (null-unless limit
-             (s+
-              ;; fixme:
-              " LIMIT " (number->string limit)))
-
-           (null-unless offset
-             (s+
-              ;; fixme:
-              " OFFSET " (number->string offset))))
-        query)
-      )))
-
-
-
+      (sql:select-full what from where group-by order-by limit offset))))
 
 ;; WHAT can be a list of symbols/strings.     links ?
 ;; FROM is a list of relnames: symbols   todo:  <pg-relation> ?
@@ -262,46 +209,10 @@
        ;; (more #f)
        (limit #f)
        (offset #f)
-       (group-by #f)
-       )
-
+       (group-by #f))
     ;; (logformat "what: ~a\nfrom: ~a\nwhere: ~a\n order ~a\n" what from where order-by)
-    (let1 query
-        (s+
-         "SELECT "
-         (sql:string-or-list->string what)
-         ;; new-line
-         " FROM "
-         (sql:string-or-list->string from)
+    (sql:select-full what from where group-by order-by limit offset)))
 
-         (null-unless where
-           (s+
-            ;; fixme:
-            " WHERE " where))
-
-         (null-unless group-by
-           (s+
-            ;; fixme:
-            " GROUP BY " group-by))
-
-         (null-unless order-by
-           (s+
-            ;; fixme:
-            " ORDER BY " order-by))
-
-
-
-         (null-unless limit
-           (s+
-            ;; fixme:
-            " LIMIT " (number->string limit)))
-
-         (null-unless offset
-           (s+
-            ;; fixme:
-            " OFFSET " (number->string offset)))
-         )
-      query)))
 
 ;; user specifies WHERE, but we need to add something.
 (define (where-and where)
@@ -309,21 +220,42 @@
       (s+ where " AND ")
     ""))
 
+(define (subquery query)
+  (wrap-in-parens query))
+
+;; I want this api:
+;; (relname where)
+;; (relname :where where)
+(define (sql:delete relname where)
+  (s+ "DELETE FROM " relname " WHERE " where))
+
+
+(define (aliased relname alias)
+  (s+ relname " " alias))
+
+;;; Hi-level
+
+;; return a DELETE query, which will turn RELNAME
+;; into unique by ATTNAMES.  those with least oid survive.
+;; todo: make it generic.  not oid.
 (define (sql:uniquefy-by-attnames-where relname where attnames)
-  (let ((condition (where-and where)))
-    (s+
-     "DELETE from " relname " WHERE "
-     condition
-     "exists ( SELECT 1 from " relname " B "
-     " WHERE " condition
-     (string-join
-	 (map (lambda (attname)
-		(format #f "( B.~a = ~a.~a ) " attname relname attname))
-	      attnames) " AND ")
-     (format #f "AND B.oid> ~a.oid" relname)
-     ") ;")))
-
-
+  (let ((condition-and (where-and where)))
+    (sql:delete
+     relname
+     :where
+     (s+
+      condition-and "exists "
+      (subquery
+       (sql:select "1"
+		   :from (aliased relname "B")
+		   :where
+		   (s+
+		    condition-and
+		    (string-join
+			(map (lambda (attname)
+			       (format #f "( B.~a = ~a.~a ) " attname relname attname))
+			  attnames) " AND ")
+		    (format #f "AND B.oid> ~a.oid" relname))))))))
 
 ;;; `Insert'
 (define (list->comma-string list)
@@ -338,21 +270,19 @@
     (s+ "INSERT INTO " (pg:name-printer relname)
 	;;`pg:text-printer'
 	(if (not attnames) ""           ;null?
-	  (s+ "(" (list->comma-string
-			      (map pg:name-printer attnames))
-			 ")"))
+	  (wrap-in-parens (list->comma-string
+			   (map pg:name-printer attnames))))
 	"\n VALUES (\n"
 	(string-join values
 	    ",\n")
 	"\n)")))
-      ;;(ignore-errors ;(display query)				;return #f ??
+
+;; I'd say
+(define sql:insert-values sql:insert)
 
 
-(define (sql:delete relname where)
-  (s+ "DELETE FROM " relname " WHERE " where))
-
-; values given as ALIST:
-; separate alist -> list  list
+;; values given as ALIST:
+;; separate alist -> list  list
 (define (sql:insert-alist relname alist)
   (sql:insert
    relname
@@ -362,46 +292,39 @@
    (map car alist)))
 
 
-(define (sql:insert-into relname select-query)
+;; @relname can be pair:  (relname . "(attrib1, attrib2)")
+(define (sql:insert-select relname select-query)
   (s+
    "INSERT INTO "
    (cond
     ((string? relname)
+     ;; fixme: counter the agreement here!
      (pg:name-printer relname))
     ((pair? relname)
      (s+
-      ;; symbol?
-					;(pg:name-printer (car relname))
-      ;; fixme:   namespace.relname -> "namespace"."relname"
       (car relname)
-      (cdr relname)
-      )))
+      (cdr relname))))
    select-query))
 
+(define sql:insert-into sql:insert-select)
 
 
+;;; WHERE -- Conditions:
 
-
-
-
-;;; (where) Conditions:
-
-;; fixme: This needs strings as the values.
+;; The conversion (scheme -> pg values-as-strings must be done before)
 (define (sql:alist->where alist)
-  (string-join (map
-                   (lambda (item)
-                     (s+ "(" (car item) "= " (cdr item) ")")) ;fixme:  (sql:quote )
-                 alist)
+  (string-join
+      (map (^i (s+ "(" (car i) " = " (cdr i) ")"))
+	alist)
       " AND "))
 
 (define sql:where sql:alist->where)
 
 
 ;;; Conditions:
-
 (define (join-by l j)
   ;; note: was  `string-join'
-  (s+ "(" (string-join-non-f l j) ")"))
+  (wrap-in-parens (string-join-non-f l j)))
 
 
 (define (sql-and: . rest)
@@ -410,32 +333,30 @@
 (define (sql-or: . rest)
   (join-by rest " OR "))
 
-
-
+;; fixme: between works with non-numbers, doesn't it?
+;; fixme: is the convention to create the conditions inside parens?
 (define (sql:between attname min max)
   (s+
    attname ;; (pg:name-printer attname)
    " BETWEEN "
-   ;; fixme:
    (number->string min)
    " AND "
    (number->string max)))
 
-
-;; make an SQL condition:  ATTRIBUTE is/= one of POSSIBILITIES
+;; returns SQL condition: ATTRIBUTE is/= one of POSSIBILITIES
 ;; Note: attribute (name) is quoted, and possibilities as well
 (define (sql-condition:one-of attribute possibilities)
-  ;(logformat "sql-one-of: ~a\n" attribute)
-  (s+
-   "( "
-   (string-join
-       ;; todo: optimize as string tree + 1 composition!
-       (map (lambda (possible)
-              (s+ "(" (pg:name-printer attribute) " = " (pg:text-printer (x->string possible)) ")")
-                                        ;(format #f "(~a = ~a)" attribute possible)
-              )
-         possibilities) " OR ")
-   ")"))
+  ;;(logformat "sql-one-of: ~a\n" attribute)
+  ;; (set! attribute (pg:name-printer attribute)
+  (let1 attname-quoted (pg:name-printer attname)
+    (wrap-in-parens
+     (string-join
+	 ;; todo: optimize as string tree + 1 composition!
+	 (map (lambda (possible)
+		;;(format #f "(~a = ~a)" attribute possible)
+		(wrap-in-parens
+		 (s+ attname-quoted " = " (pg:text-printer (x->string possible)))))
+	   possibilities) " OR "))))
 
 
 
@@ -464,26 +385,26 @@
   (let1 attname-quoted (pg:name-printer attname)
     (cond
      ((not set)
+      ;; no test/condition needed.
       #f)
+
      ;; Optimization:  special set: only 1 string, better use = instead of `text_contains'
      ((singleton? set)
-      (s+ attname " = '" (car set) "'")) ;
+      (s+ attname " = "  (pg:char-printer (car set))))
 
-     ((or (and (pair? set)
-               (null? set))
-          (and (string? set)
-               (string=? set "")))
+     ((or (equal? set ())
+          (equal? set ""))
       #f)
 
      (else
       (s+
        "text_contains(\'"
-       (if (string? set)
-           set
-         (apply s+ set))     ;list->string
-       "\', "
-       attname-quoted ")"
-       )))))
+       (pg:text-printer
+	(if (string? set)
+	    set
+	  (apply s+ set)))
+       ", "
+       attname-quoted ")")))))
 
 
 (provide "pg/sql")
