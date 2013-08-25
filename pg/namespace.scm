@@ -81,6 +81,8 @@
 
 ;; `by-name'
 (define (pg:find-namespace db :optional (namespace "public"))
+  (if (undefined? namespace)
+      (set! namespace "public"))
   (normalize-namespace db namespace))
 (define pg:extract-namespace pg:find-namespace)
 
