@@ -20,6 +20,7 @@
 (select-module pg-low)
 
 
+(define debug #f)
 ;; necessary for modules imported by pg-hi.
 
 ;; apply to the whole RELATION!
@@ -70,6 +71,7 @@
 
 ;; fixme: this should use pg-foreach-result
 (define (pg-map-result result attributes function)
+  (DB "pg-map-result:\n")
   (let ((numbers (map (cut pg-fnumber result <>) attributes)))
     (map-numbers 0 (pg-ntuples result)
       (lambda (row)
