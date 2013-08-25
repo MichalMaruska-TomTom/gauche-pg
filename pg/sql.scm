@@ -29,7 +29,7 @@
 
    sql:select-function
    sql:select-full
-   sql:select sql:select-k
+   sql:select sql:select-k sql:select-u
 
    sql:insert
    sql:insert-alist
@@ -181,13 +181,18 @@
 
 ;; I think the best API:
 (define (sql:select-u what
-		      :optional relname
+		      ;; :optional relname
+		      ;; this is impossible.  :key value will be taken
+		      ;;  as :key the relname.
 		      :key from where group-by order-by limit offset
 		      :rest args)
   ;; so args could be backup for keyword params. todo!
-  (if (and from relname) (error ""))
-  (sql:select-full what (or relname from)
-		   where group-by order-by limit))
+  ;; relname
+  (DB "sql:select-u ~s ~s\n" what  from)
+  ;(if (and from relname) (error ""))
+  (sql:select-full what from ;(if (undefined? relname)
+			    ;from relname)
+		   where group-by order-by limit offset))
 
 (define (sql:select-k what . rest)
   (let ((from #f)
