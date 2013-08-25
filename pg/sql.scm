@@ -163,7 +163,7 @@
 ;; (sql:select-k WHAT FROM)
 ;; (sql:select-k WHAT FROM :where WHERE ....)
 (define (sql:select-full what from where group-by order-by limit offset)
-  (DB "sql:select-full: what ~a\n\tfrom: ~a\n" what from)
+  (DB "sql:select-full:\n\twhat ~a\n\tfrom: ~a\n\tWHERE ~a\n" what from where)
   (string-join-non-f
    (list
     "SELECT "
@@ -215,7 +215,7 @@
        (limit #f)
        (offset #f)
        (group-by #f))
-    ;; (logformat "what: ~a\nfrom: ~a\nwhere: ~a\n order ~a\n" what from where order-by)
+    (DB "what: ~a\nfrom: ~a\nwhere: ~a\n order ~a\n" what from where order-by)
     (sql:select-full what from where group-by order-by limit offset)))
 
 
@@ -318,6 +318,7 @@
 
 ;; The conversion (scheme -> pg values-as-strings must be done before)
 (define (sql:alist->where alist)
+  (DB "sql:alist->where ~s\n" alist )
   (string-join
       (map (^i (s+ "(" (car i) " = " (cdr i) ")"))
 	alist)
