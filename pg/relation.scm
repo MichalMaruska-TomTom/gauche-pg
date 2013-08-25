@@ -58,6 +58,7 @@
   (use mmc.common-generics)
 
   (use srfi-1)
+  (use srfi-11)
   (use gauche.threads)
   (use mmc.threads)
 
@@ -476,24 +477,22 @@
                     "  AND NOT attisdropped " ;fixme!
                     "ORDER BY attnum;")))
          (count (pg-ntuples result))
-         (offset (- (slot-ref rel 'attribute-min))))
+         (offset (- (slot-ref relation 'attribute-min))))
 
-    ;; Fixme: I should check, that `attnum's are 0,1 .... !!
-    (receive (info-vector attributes-hash)
-        (if (slot-bound? rel 'attributes)
-            (values
-             (slot-ref rel 'attributes)
-             (slot-ref rel 'attributes-hash))
-
-          (values
-           (make-vector (+ (max to (- from to))
-                           ;; (pg-get-value result (- count 1) 0)
-                           1)   #f)     ; bug: count
-           (make-hash-table 'string=?)))
-
-
-
-                                        ;(logformat "count is ~d\n" count)
+    ;; Fixme: I should check, that `attnum's are 0,1,
+    ;         otherwise I reserve more than needed?
+    (let-values (((info-vector attributes-hash)
+		  (if (slot-bound? relation 'attributes)
+		      (values
+		       (slot-ref relation 'attributes)
+		       (slot-ref relation 'attributes-hash))
+		    (values
+		     (make-vector (+ (max to (- from to))
+				     ;; (pg-get-value result (- count 1) 0)
+				     1)   #f) ; bug: count
+		     (make-hash-table 'string=?))))
+		 )
+      (DB "count is ~d\n" count)
 
       ;; fixme: This should be a method!
       (pg-foreach-result result
