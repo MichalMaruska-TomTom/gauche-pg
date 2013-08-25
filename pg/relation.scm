@@ -192,6 +192,50 @@
   (pg:refresh-relation-info rel))
 
 
+;; populate the p-key related slots:
+(define (load-p-key pgh rel)
+  (receive (name p-key)			;name is `conname' ...constraint name ?
+      (let1 result (pg-exec pgh
+		     (sql:select
+		      '(conkey conname)
+		      :from
+		      "pg_constraint"
+		      :where
+		      (s+
+		       "conrelid = " (number->string (ref rel 'oid))
+		       ;;(relname->relid handle relname)) ;I don't like this!
+		       " AND "
+		       "contype = 'p' ")
+		      ;;" conname='" relname "_pkey'"
+		      ))
+	(if (zero? (pg-ntuples result))
+	    (values #f #f)
+
+	  ;; First check the minimum:
+	  (values
+	   (pg-get-value result 0 1)
+	   (let1 value (pg-get-value result 0 0)
+
+	     ;; Bug:  This is a list of `attnum's !
+	     (let1 min-attribute (apply min value)
+	       (when (< min-attribute (ref rel 'attribute-min))
+		 ;; I have to reconstruct the attributes vector!
+		 (enlarge-n-load-attributes! rel min-attribute pgh)))
+
+	     (map (lambda (attnum)
+		    ;; fixme: do we start w/ 0 ??
+		    (vector-ref (slot-ref rel 'attributes)
+				(-
+				 attnum
+				 (slot-ref rel 'attribute-min)))) ; huh?
+	       value))
+	   )))
+    ;; fixme: the p-key should be sorted !
+    (slot-set! rel 'p-key p-key)
+    (slot-set! rel 'p-key-name name)
+    ;;(pg:attribute-indexes->names rel p-key)
+    ))
+
 
 ;; fixme: When necessary?  When someone adds columns to a relation
 ;; fixme: This might create a new one, compare them.
@@ -252,44 +296,8 @@
                                         ;  (slot-set! rel 'p-key
         ;; decompose the pg-array into a `list' of attributes.
         (unless (slot-bound? rel 'p-key)
-          (receive (name p-key)         ;name is `conname' ...constraint name ?
-              (let1 result (pg-exec pgh
-                             (sql:select
-                              '(conkey conname)
-                              "pg_constraint"
-                              (s+
-                               "conrelid = " (number->string (ref rel 'oid)) ;(relname->relid handle relname)) ;i don't like this!
-                               " AND "
-                               "contype = 'p' ")
-                              ;;" conname='" relname "_pkey'"
-                              ))
-                (if (zero? (pg-ntuples result))
-                    (values #f #f)
-
-                  ;; First check the minimum:
-                  (values
-                   (pg-get-value result 0 1)
-                   (let1 value (pg-get-value result 0 0)
-
-                     ;; Bug:  This is a list of `attnum's !
-                     (let1 min-attribute (apply min value)
-                       (when (< min-attribute (ref rel 'attribute-min))
-                         ;; I have to reconstruct the attributes vector!
-                         (enlarge-n-load-attributes! rel min-attribute pgh)))
-
-                     (map (lambda (attnum)
-                            ;; fixme: do we start w/ 0 ??
-                            (vector-ref (slot-ref rel 'attributes)
-                                        (-
-                                         attnum
-                                         (slot-ref rel 'attribute-min)))) ; huh?
-                       value))
-                   )))
-            ;; fixme: the p-key should be sorted !
-            (slot-set! rel 'p-key p-key)
-            (slot-set! rel 'p-key-name name)
-                                        ;(pg:attribute-indexes->names rel p-key)
-            )))))
+	  (load-p-key pgh rel)
+          ))))
   (DB "p-key: ~a\n" (ref rel 'p-key)))
 
 
