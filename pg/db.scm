@@ -443,9 +443,13 @@
 	      ;;   "New DB, `pg:load-namespaces' should be lazy!\n"))
 
               ;; Run all hooks:
+	      (DB "running hooks\n")
               (for-each
-                  (cute <> db)
-                (map cdr new-db-hooks))
+		  (lambda (a)
+		    (DB "~s\n" (car a))
+		    ((cdr a) db))
+		new-db-hooks)
+	      (DB "finished running hooks\n")
               db)))
          (else
           (error "")))))))
