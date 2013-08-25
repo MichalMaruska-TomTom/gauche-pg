@@ -1,9 +1,16 @@
 
 ;; hard-wired  conversions between Scheme & Pg types.
+;; all generic, no `state' (about pg connection) is kept. See caching.scm
+;; for that.
+
+;; Assumption:
+;;  all pg connections have the same type NAMES mean the same.
+;;  not the oid, but the type NAME.
 
 (define-module pg.types
   (use pg)
   (use pg-low)
+
   (use adt.alist)
   (use adt.string)
   (use srfi-19)
@@ -18,19 +25,23 @@
    ;; obsolete?
    pg:isodate-parser
    pg:timestamptz-parser
-   pg:text-printer pg:char-printer  pg:number-printer
+   pg:text-printer
+   pg:char-printer
+   pg:number-printer
    pg:name-printer
    pg:bool-printer
+   pg:date-printer
+   pg:isodate-printer
    pg:array-printer
-
-   pg:date-printer pg:isodate-printer
    ;;
    pg-array->list
    pg-type-array?
-   pg-numeric-type? pg-date-type? pg-char-type?
-   ;; non-automatic conversions:
-   ; pg:parse
-   ; scheme->pg
+
+   pg-numeric-type?
+   pg-date-type?
+   pg-char-type?
+
+   ;; Hi-level
    scheme->pg
    )
   )
@@ -38,7 +49,7 @@
 
 (define debug #f)
 
-;; So i want the <pg-result> to have a vector of these:
+;; So I want the resolve a <pg-result> into a vector of these:
 (define-class <pg-type> ()
   ((oid :init-keyword :oid)
    (name :init-keyword :name)
@@ -50,11 +61,7 @@
 (define-method write-object ((type <pg-type>) port)
   (format port "<pg-type: ~a/~d>"
           (ref type 'name)
-          (ref type 'oid)
-          ;(length (ref result 'types)
-          ))
-
-
+          (ref type 'oid)))
 
 ; pg-type-name
 ; pg-result-prepare
@@ -114,14 +121,13 @@
         ((string=? "f" str) #f)
         (else (error "Badly formed boolean from backend" str))))
 
-
 (define (pg:text-parser str) str)
 
 (define (pg:character-parser str)
   (string-ref str 0))
 
-
-(define (pg:number-parser str) (string->number str))
+(define (pg:number-parser str)
+  (string->number str))
 
 (define (pg:isodate-parser str)
   (let ((year    (string->number (substring str 0 4)))
@@ -130,9 +136,7 @@
         (hours   (string->number (substring str 11 13)))
         (minutes (string->number (substring str 14 16)))
         (seconds (string->number (substring str 17 19)))
-
 ;;  "2004-10-11 13:00:57.558093+02"
-
         ;; has occured: 1901-12-13 20:45:52
         (tz      (string->number (substring str 19 22))))
     ;; gauche wants  nanosec
@@ -140,7 +144,6 @@
     ;; (string->date   str "~Y-~m-~d ~k:~M:~S~z")
     (make-date 0 seconds minutes hours day month year (* 3600 tz))))
 					;; mmc: (- year 1900) (- month 1)
-
 
 (define (pg:timestamptz-parser str)
   ;(logformat "pg:timestamptz-parser\n")
@@ -162,8 +165,6 @@
       (make-date 0 (string->number seconds)
                  minutes hours day month year (* 3600 (string->number tz))))))
 
-
-
 (define (pg:date-parser str)
   (let ((year    (string->number (substring str 0 4)))
         (month   (string->number (substring str 5 7)))
@@ -171,14 +172,16 @@
     (make-date 0 0 0 0  day month year 0))) ;mmc: (- year 1900) (- month 1)
 
 
+
+
+;;; Arrays
 ;; numbers
 (define (pg-array->list-number string-value)
-    ;;(use srfi-
-         ; string-tokenize
+  ;; string-tokenize
   (map string->number
     (pg-array->list string-value)))
 
-
+;; Strings:
 (define (skip-over-comma s)
   (if (string=? s "")
       s
@@ -259,12 +262,10 @@
 ;; (pg-array->list "{\"RU Mosca\"}")
 
 ;;; `TABLE'
-
 (define pg:type-parsers
   `(("bool"      . ,pg:bool-parser)
 
     ("char"      . ,pg:character-parser)     ;fixme!
-
     ("bpchar"      . ,pg:character-parser) ;fixme! pg:text-parser
     ;("char2"     . ,pg:text-parser)
     ;("char4"     . ,pg:text-parser)
@@ -273,7 +274,9 @@
     ("text"      . ,pg:text-parser)
     ("varchar"   . ,pg:text-parser)     ;??
     ("name"   . ,pg:text-parser)
+    ("varbit"      . ,pg:text-parser)
 
+    ;; numbers:
     ("int2"      . ,pg:number-parser)
     ;("int28"     . ,pg:number-parser)
     ("int4"      . ,pg:number-parser)
@@ -284,6 +287,7 @@
     ("float8"    . ,pg:number-parser)
     ("money"     . ,pg:number-parser)
 
+    ;; time
     ("abstime"   . ,pg:isodate-parser)
     ("date"      . ,pg:date-parser)
     ("timestamp" . ,pg:isodate-parser)
@@ -294,14 +298,10 @@
     ("timespan"  . ,pg:text-parser)
     ("tinterval" . ,pg:text-parser)
 
-
-    ;("_text"      . ,pg:text-parser)
+    ;; Arrays:
     ("_text"      . ,pg-array->list)
-    ;("_int2"      . ,pg:text-parser)
     ("_int2"      . ,pg-array->list-number)
     ("_int"      . ,pg-array->list-number)
-
-    ("varbit"      . ,pg:text-parser)
     ))
 
 
@@ -310,14 +310,12 @@
   (if value "'true'"
     "'false'"))
 
-
 (define (pg:text-printer obj)           ;; pg gives  "i'm" ->
   (string-append
    "'"
    ;; (string-join (string-split obj  #\') "''")
    (pg-escape-string obj)
    "'"))
-
 
 (define (pg:name-printer name)
   (rxmatch-if
@@ -326,13 +324,11 @@
     name
 
     (string-append "\"" (pg-escape-string name)
-                   "\"")
-    ))
+                   "\"")))
 
 ;; (pg:text-printer (pg:text-printer ""))
 
 ;;  (string-append "'" (string-replace "'" "''" obj) "'"))
-
 
 (define (pg:char-printer value)
   (string #\' value #\'))
@@ -350,7 +346,6 @@
 ;; same
 (define (pg:date-printer value)
   (string-append "'" (date->string value) "'"))
-
 
 (define (pg:array-printer value-list)
   ;; strings!
@@ -373,13 +368,6 @@
 ;(pg:name-printer "ua, centro")
 ;(pg:array-printer '("ua, centro"))
 ;;(pg:array-printer '("1 b" "a,b"))
-
-
-
-;; Fixme:  Just a hack
-(define (pg-type-array? type)
-  (string-prefix? "_" (ref type 'name)))
-
 
 ;;; The table:
 (define pg:type-printers
@@ -419,6 +407,7 @@
     ("timespan"  . ,pg:text-printer)
     ("tinterval" . ,pg:text-printer)))
 
+
 ;;;  `hi-level:'
 
 ;; for the low-level  pgconn ?
@@ -426,7 +415,8 @@
 (define (pg-converter pgconn oid)       ;fixme: Unused!
   ;(logformat "pg-printer: searching for ~d\n" oid)
   ;; fixme: and-let
-  (let* ((name (pg-type-name pgconn oid)) ;fixme: This is available for the High <pg> ! Which has an hash of <pg-type> !
+  (let* ((name (pg-type-name pgconn oid))
+	 ;; fixme: This is available for the High <pg> ! Which has an hash of <pg-type> !
          (info (assoc oid name pg:type-parsers)))
     ;; oid (slot-ref pgconn 'converters))
     (if info
@@ -434,8 +424,6 @@
       (if name
           (error "pg-converter: cannot find for" name)
         (error "pg-converter: cannot find for" oid)))))
-
-
 
 ;; scheme object -> string
 (define (pg-printer pgconn oid)
@@ -449,7 +437,6 @@
 
 
 ;;; What is the gauche-type (going to be)
-
 ;; fixme!
 (define (pg-numeric-type? pgtype)
   (if debug (logformat "numeric? ~a\n" (ref pgtype 'name)))
@@ -458,8 +445,6 @@
        '("int4" "int"
          "bigint" "int8"
          "smallint" "int2"))))
-
-
 
 (define (pg-char-type? pgtype)
   (if debug (logformat "numeric? ~a\n" (ref pgtype 'name)))
@@ -485,6 +470,9 @@
          "tinterval"
          ))))
 
+;; Fixme:  Just a hack
+(define (pg-type-array? type)
+  (string-prefix? "_" (ref type 'name)))
 
 ;;; Actual conversion:
 
@@ -524,6 +512,8 @@
     ;(logformat "fallback to x->string\n")
     (x->string value))))
 
+;;; top-level
 
 
 (provide "pg/types")
+
