@@ -222,9 +222,8 @@
     (if debug (logformat "pg-open: ~a\n" conninfo))
     (slot-set! handle 'conn conn)
 
-    ;; New:
-    (slot-set! handle 'types (pg-type-hash conn)) ;hash oid -> <pg-type>
-
+    ;; New:  not a hash, just alist!
+    (slot-set! handle 'types (pg-init-types-hash conn)) ;hash oid -> <pg-type>
     ;; old:
     '(let1 h (make-hash-table)
       (alist->>table! h (pg-init-types conn))
