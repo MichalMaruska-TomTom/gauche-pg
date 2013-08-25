@@ -83,6 +83,7 @@
 (define (pg:find-namespace db :optional (namespace "public"))
   (if (undefined? namespace)
       (set! namespace "public"))
+  (DB "pg:find-namespace ~a\n" namespace)
   (normalize-namespace db namespace))
 (define pg:extract-namespace pg:find-namespace)
 
@@ -134,6 +135,7 @@
     (lambda (h)
       ;; This waits for Readers to finish:
       (with-locking-mutex* (ref db 'namespaces-mutex)
+	;;(DB "pg:load-namespaces! query: ~s\n" (sql:select '(nspname oid) "pg_namespace"))
         (slot-set! db 'namespaces
           (pg-map-result (pg-exec h
                            (sql:select '(nspname oid) "pg_namespace"))
