@@ -229,8 +229,7 @@
 				(-
 				 attnum
 				 (slot-ref rel 'attribute-min)))) ; huh?
-	       value))
-	   )))
+	       value)))))
     ;; fixme: the p-key should be sorted !
     (slot-set! rel 'p-key p-key)
     (slot-set! rel 'p-key-name name)
@@ -374,7 +373,8 @@
              h
              namespace
              (sql:select
-              '(oid relname relkind relhaspkey relhasoids relnatts relfilenode relnamespace) ;oid! ;reltuples relpages relhasindex
+              '(oid relname relkind relhaspkey relhasoids relnatts relfilenode relnamespace)
+	      ;; oid! ;reltuples relpages relhasindex
               "pg_class"
               (s+ condition-for-relation-or-view
                   " AND relname = " (pg:text-printer relname)
