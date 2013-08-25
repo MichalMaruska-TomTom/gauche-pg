@@ -1,7 +1,7 @@
 
 (define-module pg.caching
   (export
-   pg-init-types
+   ;; pg-init-types
    pg-init-types-hash
    ;; should be in pg-hi!
    pg-type-name
@@ -15,6 +15,8 @@
 
 ;; Caching types: mapping  oid -> typename.
 
+
+;; now obsolete? 
 ;; lookup standard types, and associate the oid w/ our <pg-type> objects
 ;; fixme: should be shared by connections?
 ;; This is probably useless f.  the low leve pg-conn cannot keep this alist, so
