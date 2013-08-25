@@ -1,3 +1,6 @@
+
+
+;; the basic tools:
 (define-module pg-low
   (export
    pg-dump-explain
@@ -8,6 +11,7 @@
    pg-foreach-result
    pg-map-table
 
+   pg-result->alist
    with-db-transaction
    with-db-transaction*
    )
