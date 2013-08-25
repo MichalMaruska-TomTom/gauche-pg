@@ -335,6 +335,7 @@
          ;(v (make-vector fields #f))
          (types (make-vector fields #f)) ;
          (pg (slot-ref result 'handle)))
+    (DB "pg-result-prepare! ... doing ...\n")
     ;; types ->  parsers
     (for-numbers<* i 0 fields
       ;; the type should be an object!  (name, parser, printer)
@@ -392,7 +393,7 @@
 (define-method pg-exec ((handle <pg>) query)
   ;; this returns a higher lever <pgresult>1
   ;; (slot-ref handle 'debug)
-  (if debug (logformat "pg-exec: ~a\n" query))
+  (DB "pg-exec: ~a\n" query)
   (let* ((real-handle (slot-ref handle 'conn))
          ;; pg-exec--internal
          (result (pg-exec real-handle query)))
