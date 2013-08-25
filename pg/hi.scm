@@ -18,6 +18,7 @@
   (use macros.assert)
   (use adt.string)
   (use pg.sql)
+  (use mmc.check)
   )
 (select-module pg.hi)
 
@@ -92,7 +93,8 @@
 
 ;; todo: `pg:->attribute'
 (define (pg:normalize-attribute relation att)
-  (assert (is-a? relation <pg-relation>))
+  (DB "pg:normalize-attribute ~a ~a\n" relation att)
+  (check-parameter-type relation <pg-relation>)
 
   (cond
    ((is-a? att <pg-attribute>)
