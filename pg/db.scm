@@ -18,11 +18,8 @@
    pg:database-set! pg:database-ref
    pg:add-database-hook
 
-
-
    ;; todo: How to use these?
    pg:add-listener pg:check-for-notifies
-
    )
   (use pg)
   (use pg-hi)
@@ -420,11 +417,12 @@
          (user (sys-getenv "PGUSER"))
          (port (sys-getenv "PGPORT")))
       (let1 p (keep-unique host port database) ;fixme:  USER!
-        (cond
+	(cond
          ((is-a? p <pg-database>)
           p)
          ((is-a? p <pg>)
           ;; New one:
+
           (let1 pgc (ref p 'conn)
             (let* ((db (make <pg-database>
                          :name (pg-db pgc)
@@ -436,7 +434,8 @@
                          :dictionary (make-hash-table 'eq?)
                          :conn-pool ()  ;(list p)
                          :admin-handle p)))
-              (push! *databases* db)
+	      (push! *databases* db)
+
 
               ;; -fixme: lazily!
               ;;(if debug (logformat
