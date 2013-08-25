@@ -23,8 +23,6 @@
    ;; todo: How to use these?
    pg:add-listener pg:check-for-notifies
 
-   ;; should be in pg-hi!
-   pg-type-name
    )
   (use pg)
   (use pg-hi)
@@ -126,6 +124,7 @@
 ;; The handle is either taken from a pool of
 ;; already connected handles, or freshly opened.  the handle can be
 ;; private ....  not private is useful for 1 (independent) query only.
+;; todo: pg:pool-handle
 (define (pg:new-handle database . rest)
   ;; Check args:
   (unless (is-a? database <pg-database>)
@@ -464,26 +463,5 @@
       (function (ref db 'admin-handle))
       ;; todo: Check notifies?
       )))
-
-
-
-;; fixme: should be a method?
-;; See `pg-type-name' in pg.types
-;; return the name of the pg type (given by oid)
-(define (pg-type-name db type-oid)         ; here??
-  ;; fixme: the connections might share that table?
-  ;; -fixme: use the (ref db 'admin-handle)
-  (pg:with-admin-handle db
-    (lambda (handle)
-      (ref
-       (pg-find-type handle type-oid)
-       'name)
-      ;;(pg-exec-internal pgconn "SELECT oid, typname FROM pg_type")
-
-      ;; (hash-table-get
-      ;;        (ref handle 'oid->type)
-      ;;        type-oid)
-      )))
-
 
 (provide "pg/db")

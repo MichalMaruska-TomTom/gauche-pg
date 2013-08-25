@@ -137,16 +137,16 @@
 
 ;; return <pg-attribute>s in the relation of the tuple:
 (define (pg:attributes-in-tuple tuple)
-  ;; Fixme: (fixed-attributes)
-  (map cdr (ref tuple 'attribute-index-alist)))
+  ;; Fixme: and (fixed-attributes)?
+  (alist->list-values (ref tuple 'attribute-index-alist)))
 
 
-;;;; New:
 
-
-(define (pg:nth-tuple ts n)
+;;; Selecting one tuple out of the set:
+(define (pg:nth-tuple tuple-set n)
   ;; or maybe (aget ts n)  !!!
-  (cdr (list-ref ts n)))
+  (cdr (list-ref tuple-set n)))
+
 ;; `Ugly_hack:' Given `pg-tuples' (of some pg-result), find the first one
 ;; which comes from RELNAME.
 ;; mmc: see `rs-get-tuple' in recordset.scm
@@ -187,124 +187,144 @@
 
 ;; Given a TUPLE (from result to RELATION), and a list of ATTRIBUTES of relation
 ;; return list of the (column) indices in the result (whose pg-relcolumn are ATTRIBUTES).
-(define (pg:solve-tuple tuple attributes)
-  (map  (lambda (attribute)
-             (car (rassq attribute (ref tuple 'attribute-index-alist)))
-             ;;(aget (ref tuple 'attribute-index-alist) att)
-             )
+(define (pg:tuple-2-result tuple attributes)
+  (map (lambda (attribute)
+	 ;; r(a)get
+	 (car (rassq attribute (ref tuple 'attribute-index-alist))))
     attributes))
 
+(define pg:solve-tuple pg:tuple-2-result)
 
-;; Todo: This is inverse of  ... and I should remove both ... thus the numbering in views would be by colnums, not
-;;                               attnums!       i.e.  ((0 . <pg-attribute>) ...)  would be ((1 . <pg-attribute>)...)
-;;                     So the view would be a reseult with Holes for missing (Dropped) attributes! + zero.
-;;                     btw. what is attribute w/ attnum ZERO?  todo!
+
+;; Todo: This is inverse of ... and I should remove both ... thus the numbering
+;; in views would be by colnums, not
+
+;;   attnums!  i.e.  ((0 . <pg-attribute>) ...)  would be ((1 . <pg-attribute>)...)
+;;
+
+;; tower is a list of tuples. Immagine Views -- one base on the following one.
+;; colnums is the initial list of indices.
+;; returns the indices in the last tuple, which would map to the (initial) colnums.
+
+;; So the view would be a result with Holes for missing (Dropped) attributes! + zero.
+;; btw. what is attribute w/ attnum ZERO?  todo!
 ;; works with ATTNUMS! returns `COLNUMS'
 (define (pg:solve-tuple-tower tower colnums)
-  (if debug (logformat "pg:solve-tuple-tower: ~a\n" colnums))
+  (DB "pg:solve-tuple-tower: ~a\n" colnums)
   ;; project by alist (and iterate)
-  (fold
-   (lambda (tuple colnums)
-     ;; map atts through ... to numbers!
-     ;; Now map the number to atts?
-     (let1 attributes (map
-                          ;; Bug: This is again buggy!     colnum != attnum
-                          (lambda (colnum)
-                            (let1 relation (ref tuple 'relation)
-                              ;; fixme: Maybe this should be done?
-                              (pg:nth-attribute
-                               relation
-                               (pg:real-nth-attribute
-                                ;; (pg:attnum->attribute
-                                relation colnum))))
-                        colnums)
-       (map (lambda (attribute)
-               (car (rassq attribute (ref tuple 'attribute-index-alist)))
-               ;;(aget (ref tuple 'attribute-index-alist) att)
-               )
-         attributes)))
+  (fold (lambda (tuple colnums)
+	  ;; map atts through ... to numbers!
+	  ;; Now map the number to atts?
+	  (let1 attributes (map-reverse colnums
+
+			     ;; Bug: This is again buggy!     colnum != attnum
+			     (lambda (colnum)
+			       (let1 relation (ref tuple 'relation)
+				 ;; fixme: Maybe this should be done?
+				 (pg:nth-attribute
+				  relation
+				  (pg:real-nth-attribute
+				   ;; (pg:attnum->attribute
+				   relation colnum)))))
+	    ;; fixme: this is  !
+	    (pg:tuple-2-result tuple attributes)))
    colnums
    tower))
 
+(define (same-relation-attribute< a b)
+  (< (slot-ref a 'attnum)
+     (slot-ref b 'attnum)))
 
-
+(define (same-relation-attribute= a b)
+  (= (slot-ref a 'attnum)
+     (slot-ref b 'attnum)))
 
 
 ;; fixme: not efficient. When needed, prepare the indices and then use them in bulk!
+;; attributes is either N for N-th attribute in the tuple
+;; or <pg-attribute>, then ....
 (define (pg-tuple:solve-value tuple row-index attribute)
-  ;; attribute is <pg-attribute> (must be in tuple!)
-  (let1 column-index
-      (if (number? attribute)
-          (pg-tuple:->result-column tuple attribute)
-        ;; rassoc ?
-        ;; aget
-        (let1 info (rassq attribute (ref tuple 'attribute-index-alist))
-          (unless info
-            (let1 guess (cdr (find
-                              (lambda (i)
-                                (= (ref (cdr i) 'attnum)
-                                   (ref attribute 'attnum)))
-                              (ref tuple 'attribute-index-alist)))
-
-              (logformat "Could not find: ~a in ~a\n Only ~a\n" attribute (ref tuple 'attribute-index-alist)
-                         (eq? guess attribute))))
-          (car info)))
-    (if debug
-        (logformat "pg-tuple:solve-value: ~a ~a/~a ->~a\n"
-          row-index column-index
-          (pg-fname (ref tuple 'result) column-index)
-          (pg-get-value
-           (ref tuple 'result)
-           row-index
-           column-index
-           ;; fixme:  or tuple->result-map ?
-           )))
-    (pg-get-value
-     (ref tuple 'result)
-     row-index
-     column-index
-     ;; fixme:  or tuple->result-map ?
-     )))
+  ;; attribute is <pg-attribute> (& must be in the tuple!)
+  (let* ((tuple-attributes (ref tuple 'attribute-index-alist))
+	 (column-index
+	  (if (number? attribute)
+	      (pg-tuple:->result-column tuple attribute)
+	    ;; rassoc ?
+	    (let1 info (rassq attribute tuple-attributes)
+	      (unless info
+		;; not found. so 2 different object and rassq is using eq?...
+		(let1 guess (cdr (find
+				  (lambda (i)
+				    (same-relation-attribute= (cdr i) attribute))
+				  tuple-attributes))
+		  (errorf "Could not find: ~a in ~a\n Only ~a\n"
+			  attribute
+			  tuple-attributes (eq? guess attribute))))
+	      (car info))))
+	 (value (pg-get-value
+		 (ref tuple 'result)
+		 row-index
+		 ;; fixme: or tuple->result-map ?
+		 column-index)))
+    (DB "pg-tuple:solve-value: ~a ~a/~a ->~a\n"
+	row-index column-index (pg-fname (ref tuple 'result) column-index)
+	value)
+    value))
 
 
 ;;; Constructing the `<pg-tuple>:'
-
 
 ;;; Sometimes/always? we need to quickly get the column index of a given (tuple) attribute.
 ;;  pg-attributes can be thought as ordered ... by `attnum'
 ;;; So construct a vector, which maps:
 ;;  attribute -> index in pg-result columns.
 
+;; Given a <pg-tuple> (relation & indices) order the indices.
+;;
+;; They are (index-in-result . atribute) .... unordered-- well, they might be
+;; in descending order.
+;;
+;; so, we want, these mapping quick:
+;;  index -> attribute
+;; the `reverse' mapping:
+;; pg-attribute -> result column
+;;
 ;; todo: This might be optimized:
-;; the pg-attributes have the same relation, the order function does not need to check that coordinate!
+;; the pg-attributes have the same relation, the order function does not need
+;; to check that coordinate!
+
+
 ;; Also, the order might be re-used by other functions!?
 (define (pg-result->tuple-order! result tuple) ;fixme: (eq tuple 'result)
+  (define get-result-index car)
+  (define get-attribute cdr)
+
   (if (slot-bound? tuple 'tuple->result-map)
       (logformat "pg-result->tuple-order called another time! Useless!"))
   ;; attribute -> position in the RESULT
-  (let* ((attribute-alist (ref tuple 'attribute-index-alist)) ;  ((index . attribute) ....)   [index as the column in the result]
+  (let* ((attribute-alist (ref tuple 'attribute-index-alist))
+	 ;;  ((index . attribute) ....)   [index as the column in the result]
+	 (rev-mapping (make-vector (length attribute-alist) #f))
          (ordered (sort
                    attribute-alist
                    (lambda (a b)
-		     ;; (pg-attribute< ;todo: optimize! (< (slot-ref (cdr a) 'attnum) (slot-ref (cdr b) 'attnum))
-;; 		      (cdr a)
-;; 		      (cdr b))
-
-                     ;; mmc: a pair, and cdr is <pg-attribute> !
-                     (< (slot-ref (cdr a) 'attnum)
-                        (slot-ref (cdr b) 'attnum)))))
-         (rev-mapping (make-vector (length attribute-alist) #f)))
+		     ;; same relation, so no point in using the generic pg-attribute<.
+		     (same-relation-attribute<
+		      (get-attribute a)
+		      (get-attribute b))))))
     ;; in this `rev-mapping':
     ;; N-th attributes  is  ({index in the result} . <pg-attribute>)
     ;; So, i put in the vector at N the {index...}
     ;; So, now I can just get the formula in terms of Ns, the ordering of pg-attributes
-    ;; why is this `useful'?   1st attribute of the tuple is at the position rev-mapping[1] in the result
-    ;;                      but what is the 1st attribute!? it's by the ordering of <pg-attributes> of the relation.
+
+    ;; why is this `useful'?  1st attribute of the tuple is at the position
+    ;; rev-mapping[1] in the result but what is the 1st attribute!? it's by the
+    ;; ordering of <pg-attributes> of the relation.
     (fold
      (lambda (next index)
        (vector-set! rev-mapping
                     index
-                    (car next))
+                    (get-result-index next))
        (+ 1 index))
      0
      ordered)
@@ -317,7 +337,8 @@
 ;; ((1 tuple) ....)
 (define (split-result-into-tuples database result)
   ;; handy function used during the first scan.
-  ;; Add into TUPLE, the fact, that column number INDEX (in `result'), is attnum (of the relation of the TUPLE).
+  ;; Add into TUPLE, the fact, that column number INDEX (in `result'),
+  ;; is attnum (of the relation of the TUPLE).
   ;; of course, tuple has a `back-link' to the <pg-result> ???
   (define (tuple-add-index tuple index attnum)
     ;; if twice? cannot happen!
@@ -328,26 +349,29 @@
     ;; fold!!
     (DB "extract (keyed) tuples: ~a\n" result)
     (for-numbers<* i 0 (pg-nfields result)
-      ;; pg-fsource not implemented ...  fixme: ?????
-      (let1 class (pg-fsource result i) ;mmc: This is the magick!
+      ;; if pg-fsource not implemented?
 
-        (if debug
-            (let1 relation (if (zero? (pg-ftable result i))
-                               "-UNKNOWN RELATION-"
-                             (pg:get-relation-by-oid
-                              database
-                              (pg-ftable result i)))
-              (logformat-color 227
-                  "column ~d is source ~d: ~a ~a\n" i class
-                  relation
-                  (if (is-a? relation <pg-relation>)
-                      (pg:nth-attribute relation (pg-ftablecol result i))
-                    "---"))))
+      (let1 class (pg-fsource result i)
+
+	(when debug
+	  (let1 relation (if (zero? (pg-ftable result i))
+			     "-UNKNOWN RELATION-"
+			   (pg:get-relation-by-oid
+			    database
+			    (pg-ftable result i)))
+	    (logformat-color 227
+		"column ~d is source ~d: ~a ~a\n" i class
+		relation
+		(if (is-a? relation <pg-relation>)
+		    (pg:nth-attribute relation (pg-ftablecol result i))
+		  "---"))))
+
         (when (> class 0)
           (let1 tuple (aget tuples class) ; could be a vector?
 
             ;; we have attributes!
-            ;; Also, we want to know if some other (non-selected) attributes are Fixed, hence of known value!
+            ;; Also, we want to know if some other (non-selected) attributes are Fixed,
+	    ;; hence of known value!
             ;; we keep:   (fsource  (index . attname-in-the-table) ....)
             ;;
             (let1 relation (if tuple
@@ -358,44 +382,45 @@
 
               ;; fixme: <pg-view> fits too!
               (if (not (is-a? relation <pg-relation>))
-                  (if debug (logformat "result: ~d is not from a relation, it is from: ~a\n" i relation))
+                  (DB "result: ~d is not from a relation, it is from: ~a\n" i relation)
                 ;;
-                (let1 attribute (pg:nth-attribute relation (pg-ftablecol result i))
-                  (if debug (logformat "\t~a -> tuple ~d (reliod ~d): ~a\n"
-                              (pg-fname result i)
-                              (pg-fsource result i)
-                              (pg-ftable result i)
-                              tuple))
+		(begin
+		  (let1 attribute (pg:nth-attribute relation (pg-ftablecol result i))
+		    (unless tuple
+		      (let1 new-tuple (make <pg-tuple>
+					:result result ; link back!  fixme: needed?
+					:index class   ;; pg-fsource number
+					:relation relation
+					;; I'll add it below:
+					:attribute-index-alist ())
+			(DB "pushing new tuple! ~a ~a\n" class new-tuple)
+			(push! tuples (cons class new-tuple))
+			(set! tuple new-tuple)))
 
-                  (unless tuple
-                    (let1 new-tuple (make <pg-tuple>
-                                      :result result ; link back!  fixme: needed?
-                                      :index class   ;; pg-fsource number
-                                      :relation relation
-                                      :attribute-index-alist ())
-                      (if debug (logformat "pushing new tuple! ~a ~a\n" class new-tuple))
-                      (push! tuples (cons class new-tuple))
-                      (set! tuple new-tuple)))
+		    ;; add the index to that tuple
+		    (DB "result: ~d is from ~a\n" i attribute)
+		    ;; fixme:  So we provide *i* rather than ????
+		    (tuple-add-index tuple i attribute))
 
-                  ;; add the index to that tuple
-                  (if debug (logformat "result: ~d is from ~a\n" i attribute))
-                  ;; fixme:  So we provide *i* rather than ????
-                  (tuple-add-index tuple i attribute))))))))
+		  (DB "\t~a -> tuple ~d (reliod ~d): ~a\n"
+		      (pg-fname result i)
+		      (pg-fsource result i)
+		      (pg-ftable result i)
+		      tuple))))))))
     tuples))
 
-
+;; Find the relation & `pkey'-ness.
 (define (analyze-tuple! tuple)
-  ;; now we have the list:   find the relation & `pkey'
-  (set! tuple (cdr tuple))
-                                        ;(logformat "processing tuple number ~d, looking for the p-key:\n" (car tuple))
-                                        ;(logformat "taking its first attribute ~d -> \n" (cdar (ref tuple 'attribute-index-alist)))
+  ;;(logformat "processing tuple number ~d, looking for the p-key:\n" (car tuple))
+  ;;(logformat "taking its first attribute ~d -> \n"
+  ;;    (cdar (ref tuple 'attribute-index-alist)))
   (let* ((relation (slot-ref tuple 'relation))
-                                        ;(rel-oid (pg-ftable result (caar (ref tuple 'attribute-index-alist)))) ;fixme!
-                                        ;(relation (pg:get-relation-by-oid database rel-oid))
+	 ;;(rel-oid (pg-ftable result (caar (ref tuple 'attribute-index-alist)))) ;fixme!
+	 ;;(relation (pg:get-relation-by-oid database rel-oid))
          )
-                                        ;(logformat "-> ~d\n" (ref relation 'name))
+    ;;(logformat "-> ~d\n" (ref relation 'name))
     ;; find the primary key. and the relation!
-                                        ;(tuple-set-relation tuple relation)
+    ;;(tuple-set-relation tuple relation)
     ;; is the p-key among he attributes?
     (let ((p-key (ref relation 'p-key)))
       (DB "Testing p-key presence! ~a\n" p-key)
@@ -406,12 +431,12 @@
         (DB "tuple has primary key!\n")))))
 
 
-;; returns a list of tuples
+;; returns an alist of tuples:
 ;;  ((tuple-index  .  <pg-tuple>) ...)
-;;  `tuple-index' comes from the interval   1 ... number of participating tables in the projection
-;;                that is the `pg-fsource'
-;;  `<pg-tuple>'  has a list of indexes in the result
-(define (pg:query-extract-tuples database result) ;fixme: isn't database provided by result?
+;;  `tuple-index' comes from the interval   1 ... number of participating tables
+;;  in the projection that is the `pg-fsource'
+(define (pg:query-extract-tuples database result)
+  ;;fixme: isn't database provided by result?
 
   ;; get a list of tuples, and a list of non-assigned attributes.
   ;; Should a column be an object?

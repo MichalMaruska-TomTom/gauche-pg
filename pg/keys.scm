@@ -1,3 +1,7 @@
+
+;;; caching the foreign key relationship:
+
+
 (define-module pg.keys
   (export 
    pg:pkey-of
@@ -24,12 +28,12 @@
   (use adt.string)
   )
 (select-module pg.keys)
-;;; Keys
 
+;;; Keys
 (define (pg:pkey-of relation)
   (ref relation 'p-key))
 
-
+;;; F. keys
 (define-class <db-f-key> ()
   ((name :init-keyword :name)
    (master :init-keyword :master)
@@ -46,20 +50,20 @@
     (ref fkey 'master)
     (ref fkey 'm-fields)))
 
-;; fixme:  memoize!
+;; todo: memoize!
 ;; list!
-(define (pg:load-foreign-keys namespace)       ;namespace
-  ;;(warn "fixme! pg:load-foreign-keys should consider connamespace\n")
+(define (pg:load-foreign-keys namespace)
   (pg:with-admin-handle (ref namespace 'database)
-    ;(pg:with-handle-of* namespace h
     (lambda (h)
       (let1 result (pg-exec h
-                     (sql:select
+                     (sql:select-k
                       '(conname "a.relname as slave" "b.relname as master" conkey confkey)
-
-                      "pg_constraint join pg_class A on (conrelid = A.oid)   join pg_class B on (confrelid = B.oid)"
-
-                      (s+ "contype = 'f' AND connamespace = " (pg:number-printer (ref namespace 'oid)))))
+		      ;; :where
+                      :from (s+ "pg_constraint join pg_class A on (conrelid = A.oid) "
+				" join pg_class B on (confrelid = B.oid)")
+		      :where
+                      (s+ "contype = 'f' AND connamespace = "
+			  (pg:number-printer (ref namespace 'oid)))))
         ;; fold !
         (let1 f-keys '()
           (pg-foreach-result result #f
@@ -67,21 +71,28 @@
               (push! f-keys
                      (make <db-f-key>
                        :name name
-                       :master (pg:get-relation namespace master) ; pg:get-relation db
-                       :slave (pg:get-relation namespace slave)   ;pg:get-relation db
+                       :master (pg:get-relation namespace master)
+                       :slave (pg:get-relation namespace slave)
                        ;; fixme:  These should be converted from attnum to  <pg-attribute> !?
                        :m-fields ma-key
                        :s-fields sl-key))
-                                        ;(logformat "~a ~a\n" name sl-key)
-                                        ;attributes function
-              ))
+	      (DB "~a ~a\n" name sl-key)))
+	  ;; fixme: oh, so it's limited to 1 namespace! bug!
           (slot-set! (ref namespace 'database) 'foreign-keys f-keys)
           f-keys)))))
 
+(define (get-fkeys-which namespace predicate) ;should be db
+  (filter
+      predicate
+    (pg:load-foreign-keys)))
+
+;; Why the hell only inside 1 namespace?
+;; is that correct?
 (define (pg:fkey-between master slave)
-  (let ((db (ref master 'database))     ;fixme!
-        (oid (ref master 'oid))
-        (oid1 (ref slave 'oid)))
+  (let ((db (ref master 'database))
+        ;(oid (ref master 'oid))
+        ;(oid1 (ref slave 'oid))
+	)
 
     (assert (eq? (ref master 'namespace)
                  (ref slave 'namespace)))
@@ -90,7 +101,7 @@
             (lambda (fkey)
               (and (eq? (ref fkey 'master) master)
                    (eq? (ref fkey 'slave) slave)))
-          (pg:load-foreign-keys (ref master 'namespace))) ;fixme!(pg:get-namespace db "public")
+          (pg:load-foreign-keys (ref master 'namespace)))
 
       (cond
        ((null? fkeys)
@@ -99,26 +110,20 @@
         ;; fixme: if more than 1?
         (car fkeys))
        (else
-        (errorf "pg:fkey-between: more fkeys between relations ~a ~a, dunno which select" master slave))))))
+        (errorf
+	 "pg:fkey-between: more fkeys between relations ~a ~a, dunno which select"
+	 master slave))))))
 
-(define (pg:fkey-under master)
-  (let ((db (ref master 'database))     ;fixme!
-        (oid (ref master 'oid)))
 
-    (filter
-        (lambda (fkey)
-          (and (eq? (ref fkey 'master) master)))
-      (pg:load-foreign-keys (ref master 'namespace)))))
+(define (pg:fkey-under relation)
+  (get-fkeys-which (ref relation 'namespace)
+		   (lambda (fkey)
+		     (and (eq? (ref fkey 'master) relation)))))
 
 
 (define (pg:fkey-above relation)
-  (let ((db (ref relation 'database))     ;fixme!
-        (oid (ref relation 'oid)))
-    (filter
-        (lambda (fkey)
-          (and (eq? (ref fkey 'slave) relation)))
-      (pg:load-foreign-keys (ref relation 'namespace)))))
-
-
+  (get-fkeys-which (ref relation 'namespace)
+		   (lambda (fkey)
+		     (and (eq? (ref fkey 'slave) relation)))))
 
 (provide "pg/keys")

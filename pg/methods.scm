@@ -1,7 +1,8 @@
 ;; `methods' on the `<pgresult>'
 
 
-;; having an abstract object (`pg-result' here), we want to extract (uniform) sub-objects, and run
+;; having an abstract object (`pg-result' here), we want to extract
+;; (uniform) sub-objects, and run
 ;; through the interface of `for-each' a function on each sub-object.
 
 ;; This module is all to provide this method (for-each) ....
@@ -23,9 +24,10 @@
    for-each                             ;                     ....  used here
    ;next                                 ; ???
    )
+  (use pg-hi)
+
   (use macros.types)
   (use mmc.log)
-  (use pg-hi)
   (use srfi-1)
   (use mmc.exit)
                                         ;(use pg.types)

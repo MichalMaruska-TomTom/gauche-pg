@@ -1,4 +1,6 @@
+
 ;; hierarchical model!
+
 (define-module pg.recordset
   (export
    <recordset>
@@ -6,7 +8,9 @@
    rs-for-each
    rs-map
    rs-compose-query
-   rs-force                             ;fixme!  remove this?
+
+   ;;fixme!  remove this?
+   rs-force
    rs->result
    ;;
    <rs-row>                             ;data ?
@@ -20,15 +24,10 @@
    ;;
    pg:link+row->rs
    pg:get-fk-linked-rs
-
    ;;
    get-linked-rs get-linked-rs-1
    ;;
    ;; recordset-get
-
-
-   ;;
-
    pg:row+tuple->key
    )
 
@@ -54,31 +53,21 @@
 
 (define debug #f)
 
-(define (possibly-join v)
-  (if (pair? v)
-      (string-join
-          v
-          ", ")
-    v))
-
 
 ;; Getting the data:
-
 ;;(get p "nome")
 
 (define-class <recordset> (<collection>)
   (
-   ;; when we search for a value, it might have been fixed in the parent, hence somewhat available!?
+   ;; when we search for a value, it might have been fixed in the parent,
+   ;; hence somewhat available! (in the parent)
    (parent :init-keyword :parent)
 
-   ;;
    (database :init-keyword :database)
-
 
    ;;; These form the `query:'
    (query)
    ;; either list or alist ?  aliases is just a complication! I want numbers?
-   ;;
    (relations :init-keyword :relations)
 
    ;; mmc: Useful?
@@ -86,10 +75,12 @@
 
    ;; SELECT  `what'
    (select :init-keyword :select)                               ; general expression
-   (attributes :init-keyword :attributes) ;list of (relid . attnum) or attnames, or A.attname, or ?
-   ;;
-   ;;
-   (qbe :init-keyword :qbe)             ; ((attnum  . value) ...)
+   (attributes :init-keyword :attributes)
+   ;;list of (relid . attnum) or attnames, or A.attname, or ?
+
+
+   ;; Query-by-Example:  ((attnum  . value) ...)
+   (qbe :init-keyword :qbe)
    (where :init-keyword :where)
    ;;
    (order :init-keyword :order)
@@ -97,8 +88,6 @@
    ;;
    (limit :init-keyword :limit)
    (offset :init-keyword :offset)
-
-
 
    ;;; These keep the `result' and calculations on it:
    ;; post-query-execution:
@@ -120,7 +109,7 @@
   (unless (and (slot-bound? rs 'result)
                (null? really?))
     (let1 query (rs-compose-query rs)
-      (if debug (logformat "rs-foce: query = ~a\n" query))
+      (DB "rs-foce: query = ~a\n" query)
       (pg:with-handle-of* (ref rs 'database) handle
         (slot-set! rs 'result (pg-exec handle query)))
       ;; Analyze
@@ -129,134 +118,119 @@
 
 
 
-;; fixme: Why here?
-(define (qbe->where relations qbe)
-  (if debug (logformat "qbe->where: ~a\n" qbe))
-  (string-join
-      (map
-          (lambda (i)
-            (let ((attnum (car i))
-                  (value (cdr i)))
-              (let ((attribute (pg:nth-attribute relations attnum)))
-                (s+
-                 (pg:name-printer (pg:attribute-name attribute))
-                 " = "
-                 (scheme->pg (pg:attribute-type attribute) value)))))
-        qbe)
-      " AND "))
+;; @relation
+;; qbe is   ((index . value) ....)
+;;    where index is of the attribute in @relation
+(define (qbe->where relation qbe)
+  (DB "qbe->where: ~a\n" qbe)
+  (sql:alist->where
+   (map (lambda (i)
+	  (let ((attnum (car i))
+		(value (cdr i)))
+	    (let ((attribute (pg:nth-attribute relation attnum)))
+	      (cons
+	       (pg:name-printer (pg:attribute-name attribute))
+	       (scheme->pg (pg:attribute-type attribute) value)))))
+     qbe)))
 
 
+;; symbols/string/<pg-relation> ->
+;; list of ^^^
+(define (get-relations rs)
+  (cond
+   ((slot-bound? rs 'relations)
+    (let1 rel (slot-ref rs 'relations)
+      (cond
+       ((string? rel)
+	rel)
+       ((is-a? rel <pg-relation>)
+	(slot-ref rel 'name))
+       ((pair? rel)
+	(string-join rel ", "))
 
+       (else
+	;; not a list:
+	'(map
+	     (lambda (r)
+	       (ref r 'name))
+	   (slot-ref rs 'relations))
+	(error "what relation?")
+	))))
+   ;; 'join ?
+   (else
+    #f)))
 
-
-(define (ref-valid rs slot default)
-  (if (and (slot-bound? rs slot)
-           (slot-ref rs slot))
-      (slot-ref rs slot)
-    default))
-
-;;; The Search
+;;; return the query, also set 'query to it.
 (define (rs-compose-query rs)
-  (if (slot-bound? rs 'query)
-      (slot-ref rs 'query)
-    ;; (if 'where bound but also some other .... error?
+  (or (slot-value-or rs 'query #f)
+      ;; (if 'where bound but also some other .... error?
+      (begin
+	(DB "rs-compose-query: ~a\n" rs)
+	(let ((relations (get-relations rs))
+	      (where
+	       (cond
+		((slot-bound? rs 'where)
+		 (possibly-join
+		  (slot-ref rs 'where) ", "))
+		;;
+		;; query-by-example
+		;; ((numero 1309) ....)
+		((slot-bound? rs 'qbe)
+		 ;; list of constraint on
+		 ;;(logformat "qbe: ~a\n" (slot-ref rs 'qbe))
+		 ;;(logformat "is:\n ~a\n"
+		 ;;   (qbe->where (slot-ref rs 'relations)
+		 ;;               (slot-ref rs 'qbe)))
+		 (qbe->where
+		  (slot-ref rs 'relations)
+		  (slot-ref rs 'qbe)))
+		;; scheme QL ?
+		(else
+		 #f)))
 
-    (begin
-      (if debug (logformat "rs-compose-query: ~a\n" rs))
-      (let ( ;; Get the select part:
-	    (select
-	     (cond
-	      ((slot-bound? rs 'select)
-	       ;;
-	       (possibly-join (slot-ref rs 'select)))
-	      ((slot-bound? rs 'attributes)
-	       (possibly-join (slot-ref rs 'attributes)))
+	      (select ;; Get the select part:
+	       (cond
+		((slot-bound? rs 'select)
+		 (possibly-join (slot-ref rs 'select) ", "))
+		((slot-bound? rs 'attributes)
+		 (possibly-join (slot-ref rs 'attributes) ", "))
+		;; fixme!  This should remove Fixed attributes! And somehow I
+		;; should add them to the hash of
+		(else "*")))
 
-	      ;; fixme!  This should remove Fixed attributes! And somehow i should add them
-	      ;;  to the hash of
-	      (else "*")))
-	    ;; Get the relations
-	    (relations
-	     (cond
-	      ((slot-bound? rs 'relations)
-	       (let1 rel (slot-ref rs 'relations)
-		 (cond
-		  ((string? rel)
-		   rel)
-		  ((is-a? rel <pg-relation>)
-		   (slot-ref rel 'name))
-		  ((pair? rel)
-		   (string-join rel ", "))
+	      ;; order!
+	      (order (and (slot-bound? rs 'order)
+			  (slot-ref rs 'order)))
 
-		  (else
-		   ;; not a list:
-		   '(map
-			(lambda (r)
-			  (ref r 'name))
-		      (slot-ref rs 'relations))
-                                        ;(slot-ref rs 'relations)
-		   (error "what relation?")
-		   ))))
-	      ;; 'join ?
-	      (else
-	       #f)))
-
-	    ;; Get the Where
-	    (where
-	     (cond
-	      ((slot-bound? rs 'where)
-	       (possibly-join
-		(slot-ref rs 'where)))
-	      ;;
-	      ;; query-by-example
-	      ;; ((numero 1309) ....)
-	      ((slot-bound? rs 'qbe)	; list of constraint on
-                                        ;(logformat "qbe: ~a\n" (slot-ref rs 'qbe))
-                                        ;(logformat "is:\n ~a\n"(qbe->where (slot-ref rs 'relations) (slot-ref rs 'qbe)))
-	       (qbe->where
-		(slot-ref rs 'relations)
-		(slot-ref rs 'qbe))
-                                        ;(sql:alist->where
-                                        ;(slot-ref rs 'qbe))        ; attnums? or attnames?
-	       )
-	      ;; scheme QL ?
-	      (else
-	       #f)))
-	    ;; order!
-	    (order (and (slot-bound? rs 'order)
-			(slot-ref rs 'order)))
-
-	    (group-by
-	     (and (slot-bound? rs 'group-by)
-		  (slot-ref rs 'group-by))))
-	;; simple:
-	(let1 query (sql:select
-		     select
-		     ;;
-		     relations
-		     where
-		     order
-		     (ref-valid rs 'limit #f)
-		     (ref-valid rs 'offset #f)
-		     group-by)
-	  (slot-set! rs 'query query)
-	  query)))))
+	      (group-by
+	       (and (slot-bound? rs 'group-by)
+		    (slot-ref rs 'group-by))))
+	  ;; simple:
+	  (let1 query (sql:select-full
+		       select
+		       relations
+		       where
+		       group-by
+		       order
+		       (slot-ref-non-f rs 'limit #f)
+		       (slot-ref-non-f rs 'offset #f))
+	    (slot-set! rs 'query query)
+	    query)))))
 
 
 ;;; Processing the result:
-
 (define (rs->result rs)
   (rs-force rs)
-  (if debug (logformat  "rs->result ~a\n"
-              (pg-status-status
-               (pg-result-status (ref (ref rs 'result) 'result)))))
+  (DB  "rs->result ~a\n"
+       (pg-status-status
+	(pg-result-status (ref (ref rs 'result) 'result))))
   (ref rs 'result))
+
 
 ;;; The  <collection> API implementation:
 (define-method call-with-iterator ((rs <recordset>) proc . args)
-  ;;
   (rs-force rs)
-  (if debug (logformat "call-with-iterator on ~a! ~d tuples\n" rs (pg-ntuples (ref rs 'result))))
+  (DB "call-with-iterator on ~a! ~d tuples\n" rs (pg-ntuples (ref rs 'result)))
   (let ((max-row (pg-ntuples (ref rs 'result)))
         (i 0))
     (proc
@@ -264,15 +238,16 @@
      (cut >= i max-row)
      ;; get
      (lambda ()
-       (if debug (logformat "call-with-iterator tuple ~d\n" i))
+       (DB "call-with-iterator tuple ~d\n" i)
        (begin0
         (rs-get-row rs i)
         (inc! i))))))
 
 
-;; run   (function row)
+;; run   (function row index)
 ;; fixme: This should be  (for-each-with-index function rs) !!!  But the args are reversed!
 (define (rs-for-each rs function)
+  ;; check that rs is <recordset>...
   (if #t
       (for-each-with-index
           (lambda (index row)
@@ -284,8 +259,8 @@
         (function
          (rs-get-row rs i))))))
 
-
 ;; collect (function row)
+;; fixme: why is this needed??
 (define (rs-map rs function)
   (if #t
       (map
@@ -299,27 +274,21 @@
 ;; fixme:  Can i collect into a collection?
 
 
-
-
-
-
-
 ;;; hacks:
-
 (define(rs-row-inserted? row)
   #f)
 
-
-
-
 ;;; Row
-(define-class <rs-row> ()
-  (
-   (convert-eof-to-empty-string :init-value #t)
-   (recordset :init-keyword :recordset)
-   (index :init-keyword :index)
-   ))
+;; The recordset -- which is just picking data off a pg-result,
+;; can be extended with inline stored data ??
+;;
 
+(define-class <rs-row> ()
+  ((convert-eof-to-empty-string :init-value #t)
+   (recordset :init-keyword :recordset)
+   (index :init-keyword :index)))
+
+;; The access is 2 stage:
 (define (rs-get-row rs i)
   ;; should force the search!
   (rs-force rs)
@@ -329,31 +298,34 @@
       :recordset rs
       :index i)))
 
-
 ;;; Row:
-(define (rs-row-get row colname)        ;colname !
-  (if debug (logformat "rs-row-get: ~a\n" colname))
+;; mmc: but this does not work with <rs-row>. it uses  pg-get-value !
+(define (rs-row-get row colname)
+  (DB "rs-row-get: ~a\n" colname)
   (let1 result (ref (ref row 'recordset) 'result)
     (pg-get-value result (ref row 'index) (pg-fnumber result colname))))
 
-
 (define-generic attribute-present?)
+
+
+(define (attribute-number name result)
+  (if (number? name)
+      name
+    ;; good idea to convert?
+    (pg-fnumber result (x->string name))))
 
 ;; is the attribute name "Not NULL" ?
 (define-method attribute-present? (name (row <rs-row>))
   (let* ((result (ref (ref row 'recordset) 'result))
-         (index (pg-fnumber result name)))
+         (index (attribute-number name result)))
+    ;; does this return -1 for unknown? it should throw exception! fixme!
     (and (not (= index -1))
          (not (pg-get-isnull result (ref row 'index) index)))))
 
-
-
-
-(define-method object-apply ((row <rs-row>) name . strict?) ; #f -> strict ? #t -> push ""
+(define-method object-apply ((row <rs-row>) name . strict?)
+  ;; #f -> strict ? #t -> push ""
   (let* ((result (ref (ref row 'recordset) 'result))
-         (index (if (number? name)
-                    name
-                  (pg-fnumber result (x->string name)))))
+         (index (attribute-number name result)))
     (if (not (= index -1))
         (let1 val (pg-get-value result (ref row 'index) index)
           ;; fixme: do it only if some row attribute, or some parameter requests it.
@@ -361,21 +333,22 @@
               (if (if (null? strict?)
                       (slot-ref row 'convert-eof-to-empty-string)
                     (car strict?))
-                  ;; [21 mag 06]    When I ask for numbers, there is no difference between testing for EOF and "".
+                  ;; [21 mag 06]    When I ask for numbers, there is no difference
+		  ;;   between testing for EOF and "".
                   ;; This trick helps only for string, which is not worth it!
                   ""
                 val)
             val))
       (errorf "the <rs-row> does not have column ~a" name)
-                                        ;(rs-get-link row relation fattribute attribute)
+      ;;(rs-get-link row relation fattribute attribute)
       ;; link ->
       )))
 
 
 
 ;; out-of-the result .... get the value of relation/attnum.
-;; why is this useful?  fixme!  todo: I should use an index rather than relation. Think about
-;;     2 same relations joined!!
+;; why is this useful?  fixme!  todo: I should use an index rather than relation.
+;; Think about 2 same relations joined!!
 
 ;; fixme: should the result have a hashtable?
 ;; we need tuple!
@@ -560,8 +533,6 @@
                 )) ;fixme!
   (pg:get-fk-linked-rs row tuple link-relation)))
 
-
-
 ;; attributes ->  query (recordset)
 '(define (define-link name . keywords)
   ;;add-to-list
@@ -569,9 +540,6 @@
         (make
             )
         ))
-
-
-
 
 ;;   val1#val2#val3
 (define (pg:row+tuple->key tuple row)       ;row is from recordset!
@@ -589,9 +557,6 @@
                 pg-attribute)))
           pkey)
         "#")))
-
-
-
 
 
 (provide "pg/recordset")

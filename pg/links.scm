@@ -4,7 +4,6 @@
 
 ;; Todo: This modules creates some data types, which might be isolated
 ;; from the code which invokes `adt.hypergraph' ... which I might avoid using!
-;; 
 
 ;; fixme:  this part is obsolete?
 ;; Some attributes are special, and have some info attached.
@@ -12,27 +11,26 @@
 ;;  -  all the information reachable
 ;;  -  the paths. i.e the functions of the f. dependencies.
 ;;
-;; Since the set of rules can be enormous (think that every primary key is a "key -> attribute" rule)
+;; Since the set of rules can be enormous
+;;   (think that every primary key is a "key -> attribute" rule)
 ;; I want to keep the hypergraph limited to relevant nodes /directions.
 ;; That means only directions which bring us to some information attached.
-;; 
+
 ;; So, I should keep separate hypergraphs for different domains of information!
 
 
 ;; This file is (now) `only' about Foreign-keys!
-
-
 
 ;; todo:  Change the data from (relid . attnum)  to (<pg-relation> attnum) !
 
 
 ;; points  should not be a list. just 1 element!
 
-;; `Functional-dependency': 
+;; `Functional-dependency':
 
 (define-module pg.links
   (export
-   pg:record-link                       ; (pg:record-link db '(("person" "numero")) contatti-di)
+   pg:record-link	     ;; (pg:record-link db '(("person" "numero")) contatti-di)
    pg:find-links
    ;; obsolete: pg:find-reached
    ;;
@@ -60,7 +58,10 @@
 
 (define debug #f)
 
-;; `Directions' are 
+(define-generic function-of)
+
+
+;; `Directions' are
 ;; NODES are  (relid attnum)   fixme: why not <pg-relation> <pg-attribute> ??
 ;; this means, we are prone to renaming which is an easy op.
 ;; Changing attnum to data is difficult.
@@ -78,7 +79,7 @@
 ;; SPEC is a list of:
 ;; -  <pg-attribute>  ..
 ;; - (relation/relname attname/attnum ....)
-(define (pg:convert-to-attributes db spec) 
+(define (pg:convert-to-attributes db spec)
   (append-map
    (lambda (dep)
      (if (is-a? dep <pg-attribute>)
@@ -97,14 +98,14 @@
    ;; ordering
    pg-attribute<
    ;; Equality:
-   ;; fixme: 
+   ;; fixme:
    eq?
    ;; Test ?
    (cute is-a? <> <pg-attribute>)))
 
 
 ;; What kind of links? between recordsets?
-;; todo: make it a local variable 
+;; todo: make it a local variable
 
 ;;; The most generic
 (define-class <pg-link> (<hypergraph-rule>)
@@ -126,7 +127,7 @@
     (unless (slot-bound? db 'dependency-hypergraph)
       (slot-set! db 'dependency-hypergraph
         (pg-make-hypergraph-on-attributes)))
-    
+
   (let1 directions (pg:convert-to-attributes db dependency)
     (if debug (logformat "pg:record-link: ~a  ---- > ~a   (~a)\n" directions points info))
     (let1 rule (make <hypergraph-rule>
@@ -142,7 +143,7 @@
         rule))))
 
 
-;; This is about our standard hypergraph: which contains just FK and 
+;; This is about our standard hypergraph: which contains just FK and
 (define (pg:find-links db attributes)
   (if (slot-bound? db 'dependency-hypergraph)
       (receive (atts links)
@@ -191,9 +192,6 @@
   (display (slot-ref hr 'fkey) port)
   (display ">" port))
 
-
-(define-generic function-of)
-
 (define-method function-of ((link <pg-link-fkey>))
   (if (= 1 (length (ref (ref link 'fkey) 's-fields)))
       identity
@@ -216,7 +214,7 @@
   (logformat "pg:prepare-fk-links: using only the PUBLIC namespace!\n")
   ;; f-key:  slave -> foreign/master
   ;;         foreign/master -> recordset  names {relname}-of
-  (for-each-reverse 
+  (for-each-reverse
       (pg:load-foreign-keys (pg:get-namespace db "public"))
     (lambda (fkey)
       ;; fixme: this should be a link
@@ -252,7 +250,7 @@
           (cons
            (ref fkey 'slave)
            s-fields))
-         
+
          (if (singleton? m-fields)
              (list
               (pg:lookup-attribute db
@@ -270,7 +268,5 @@
 ;; Is it ok? it might be run more times!
 (pg:add-database-hook "links"
     pg:prepare-fk-links)
-
-
 
 (provide "pg/links")

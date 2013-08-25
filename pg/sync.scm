@@ -1,7 +1,7 @@
 ;; Synchronize a table in 2 DBs.
 ;; Requirement: order on the table.
 ;; Result: relation in DB2 is equal to relation in DB1
-;;         + a diff-relation in DB2 is updated (by inserting new records-differences)
+;;         + a `diff-relation' in DB2 is updated (by inserting new records-differences)
 
 
 (define-module pg.sync
@@ -56,66 +56,66 @@
 (define (pg:sync-cursors c1 c2 relname compare-function update delete insert . rest)
   (let-optionals* rest
       ((cursor-step 100))
-  (logformat "pg:sync-cursors: ~d\n"  (pg-backend-pid (ref (ref c2 'handle) 'conn)))
+    (logformat "pg:sync-cursors: ~d\n"  (pg-backend-pid (ref (ref c2 'handle) 'conn)))
 
-  (receive (r1 i1) (pg:fetch-from-cursor c1 cursor-step)
-    (receive (r2 i2) (pg:fetch-from-cursor c2 cursor-step)
-      (let step ((r1 r1)
-                 (i1 i1)
-                 (r2 r2)
-                 (i2 i2))
-        (cond
-         ((not i1) ;; no more rows in c1
-          (if i2
-              (begin
-                (logformat "delete the rest of r2 !\n")
-                (let final-step-delete ((r r2)
-                                        (i i2))
-                  (if i
-                      (begin
-                        ;; fixme!
-                        (delete r i)
-                        (receive (r i) (pg:fetch-from-cursor c2 cursor-step)
-                          (final-step-delete r i)))))))
-          1)
-         ((not i2)
-          (logformat "Insert the rest of r1 !\n")
-          (let final-step-insert ((r r1)
-                                  (i i1))
-            (if i
-                (begin
-                  (insert r i relname)
-                  (receive (r i) (pg:fetch-from-cursor c1 cursor-step)
-                    (final-step-insert r i)))))
-          2)
-         (else
-          (let1 relation (compare-function r1 i1 r2 i2)
-            ;; (compare 0 1)
-            ;; The order is given by a list of (attname . CMP) functions?
+    (receive (r1 i1) (pg:fetch-from-cursor c1 cursor-step)
+      (receive (r2 i2) (pg:fetch-from-cursor c2 cursor-step)
+	(let step ((r1 r1)
+		   (i1 i1)
+		   (r2 r2)
+		   (i2 i2))
+	  (cond
+	   ((not i1) ;; no more rows in c1
+	    (if i2
+		(begin
+		  (logformat "delete the rest of r2 !\n")
+		  (let final-step-delete ((r r2)
+					  (i i2))
+		    (if i
+			(begin
+			  ;; fixme!
+			  (delete r i)
+			  (receive (r i) (pg:fetch-from-cursor c2 cursor-step)
+			    (final-step-delete r i)))))))
+	    1)
+	   ((not i2)
+	    (logformat "Insert the rest of r1 !\n")
+	    (let final-step-insert ((r r1)
+				    (i i1))
+	      (if i
+		  (begin
+		    (insert r i relname)
+		    (receive (r i) (pg:fetch-from-cursor c1 cursor-step)
+		      (final-step-insert r i)))))
+	    2)
+	   (else
+	    (let1 relation (compare-function r1 i1 r2 i2)
+	      ;; (compare 0 1)
+	      ;; The order is given by a list of (attname . CMP) functions?
 
-            (cond
-             ;; Different keys  < >
-             ((zero? relation)
-              ;; Check & find what differs
-              ;; update & step ahead
-              (update r1 i1 r2 i2)
-              ;; ok, step ahead
-              (receive (r1 i1) (pg:fetch-from-cursor c1 cursor-step)
-                (receive (r2 i2) (pg:fetch-from-cursor c2 cursor-step)
-                  (step r1 i1 r2 i2))))
+	      (cond
+	       ;; Different keys  < >
+	       ((zero? relation)
+		;; Check & find what differs
+		;; update & step ahead
+		(update r1 i1 r2 i2)
+		;; ok, step ahead
+		(receive (r1 i1) (pg:fetch-from-cursor c1 cursor-step)
+		  (receive (r2 i2) (pg:fetch-from-cursor c2 cursor-step)
+		    (step r1 i1 r2 i2))))
 
-             ((< relation 0)
-              ;; Insert & step ahead
-              (insert r1 i1 relname)
+	       ((< relation 0)
+		;; Insert & step ahead
+		(insert r1 i1 relname)
 
-              (receive (r1 i1) (pg:fetch-from-cursor c1 cursor-step)
-                (step r1 i1 r2 i2)))
+		(receive (r1 i1) (pg:fetch-from-cursor c1 cursor-step)
+		  (step r1 i1 r2 i2)))
 
-             (else
-              (delete r2 i2)
-              ;; Delete & step ahead
-              (receive (r2 i2) (pg:fetch-from-cursor c2 cursor-step)
-                (step r1 i1 r2 i2))))))))))))
+	       (else
+		(delete r2 i2)
+		;; Delete & step ahead
+		(receive (r2 i2) (pg:fetch-from-cursor c2 cursor-step)
+		  (step r1 i1 r2 i2))))))))))))
 
 
 ;; pg-ftable
@@ -127,9 +127,9 @@
 
 ;; fixme `-and-update'
 (define (pg:process-changes-in-rows r1 i1
-                        r2 i2
-                        ;relname1 relname2 ; key ;port1 port2
-                        ignore updater) ;-attributes
+				    r2 i2
+					;relname1 relname2 ; key ;port1 port2
+				    ignore updater) ;-attributes
   ;;(logformat "comparing\n")
   (let1 changed-atts ()
     ;; Find what differs:
@@ -176,8 +176,8 @@
      ((null? rest1)
       ;; Indistinguishable:
       0)
-     ;((null? functions)
-     ; (error "dunno how to compare " (car rest)))
+					;((null? functions)
+					; (error "dunno how to compare " (car rest)))
      (else
       (let* ((v1 (pg-get-value r1 i1 (car rest1))) ; (pg-fnumber r1 (car rest))
              (v2 (pg-get-value r2 i2 (car rest2))) ; pg-fnumber r2 (car rest))))
@@ -401,24 +401,24 @@
 
             ;; fixme: Only  non-null values!
             #;(port2 #\u
-            (s+
-            (sql:update-old
-            relname1
+		   (s+
+		    (sql:update-old
+		     relname1
 
-            (map cons
-            (map (cute pg-fname r1 <>)
-            interesting-changes)
+		     (map cons
+		       (map (cute pg-fname r1 <>)
+			 interesting-changes)
 
-            (map cons
-            (map
-            (cute pg-get-value-string-null r2 i2 <>)
-            interesting-changes)
-            (map
-            (lambda (i)
-            (string-append "-- " (pg-get-value-string-null r1 i1 i)))
-            interesting-changes)))
-            where)
-            ";\n\n"))
+		       (map cons
+			 (map
+			     (cute pg-get-value-string-null r2 i2 <>)
+			   interesting-changes)
+			 (map
+			     (lambda (i)
+			       (string-append "-- " (pg-get-value-string-null r1 i1 i)))
+			   interesting-changes)))
+		     where)
+		    ";\n\n"))
 
 
             ;; intersection  `different' with `delta-fields'

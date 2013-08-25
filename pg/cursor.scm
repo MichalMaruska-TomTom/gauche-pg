@@ -38,7 +38,7 @@
 (define (pg:declare-cursor h name query)
   (DB "pg:declare-cursor: ~d\n")
   (pg-exec h
-    (s+ "DECLARE " name
+    (s+ "DECLARE " (pg-escape-string name)
         " CURSOR FOR " query))
   (make <pg-cursor>
     :handle h

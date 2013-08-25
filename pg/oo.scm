@@ -12,7 +12,8 @@
 ;; fixme:  should be    db.objects
 (define-module pg.oo
   (export
-   <db-stored-class>                    ;mixin:   some slots go to the DB. methods: save. update. where ?
+   <db-stored-class>
+   ;; mixin:   some slots go to the DB. methods: save. update. where ?
    <db-stored-class-info>
    slots-of-mapping
 
