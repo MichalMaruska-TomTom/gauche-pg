@@ -20,6 +20,10 @@
   (export
    <pg-type>
 
+   ;; for caching:
+   pg:type-printers
+   pg:type-parsers
+
    ;; obsolete?
    pg:isodate-parser
    pg:timestamptz-parser
