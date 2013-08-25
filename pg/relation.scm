@@ -1,9 +1,17 @@
+
+;; Caching -- representing pg_class info + related.
+;;
+
 (define-module pg.relation
   (export
    ;; pg.hi needs is-a?
-   <pg-relation>                        ;fixme:  This should not be exported. otherwise
-                                        ;we have to check in the initialize method
-                                        ;if we have all necessary data/slots!
+   <pg-relation>
+   ;; fixme: This should not be exported. Otherwise
+   ;; we have to check in the initialize method
+   ;; if we have all necessary data/slots!
+   ;;  (i.e. user is not allowed to do:  (make <pg-relation>)
+
+   ;; User can associate data -- useful?
    pg:relation-put!
    pg:relation-get
 
@@ -26,8 +34,8 @@
 
    pg:attname->attnum
 
-
-   pg:attname->attribute  pg:get-attribute                     ;fixme: This should be a new standard!
+   pg:attname->attribute  pg:get-attribute
+					;fixme: This should be a new standard!
    pg:nth-attribute    pg:attnum->attribute
 
    pg:real-nth-attribute pg:attribute-colnum
@@ -37,14 +45,14 @@
 
    ;;
    pg:for-namespace
-   pg:for-each-relation                 ; alias!
+   ;; old:
+   pg:for-each-relation
 
    ;;
    <pg-view>
    pg:is-view?
-
-
    )
+
   (use pg)
   (use pg-hi)
   (use pg.types)
@@ -75,64 +83,61 @@
 (select-module pg.relation)
 
 (define debug #f)
+
 ;;; info on a `relation' (TABLE) in the DB server
 (define-class <pg-relation>  ()
   (;; type <pg>  ?? or <pg-handle> ??
    (database :init-keyword :database)
+   ;;(db-handle :init-keyword :db-handle); :init-keyword #f
    ;; fixme:  do i need database then ?  virtual?
-   ;; schema !
    (namespace :init-keyword :namespace)
 
    ;; When we refresh the info:
    (relation-mutex :init-form (make-mutex))
 
    (oid :init-keyword :oid)
-   ;oid relhaspkey relhasoids relnatts relfilenode
-   ;(db-handle :init-keyword :db-handle); :init-keyword #f
+   ;; oid relhaspkey relhasoids relnatts relfilenode
 
    ;; relid ???
-   ;; mmc: shouldn't i use name ??!!!
+   ;; mmc: shouldn't I use name ??!!!
    (name :init-keyword :name
          :getter name-of
          ;:accessor relname-of
          )
+   ;; list of attributes: indexes or names?
    (p-key :init-keyword :p-key
-          :getter pg:primary-key-of)         ; list of attributes: indexes or names?
+          :getter pg:primary-key-of)
 
-   ;; fixme:
    (p-key-name :init-keyword :p-key-name)
 
-
-   ;; type is oid ?
-    ; hash name -> index (see get-types-of)
+   ;; name -> index
    (attributes-hash)
-   (attribute-min :init-value 0)                                ; normally 0, but could be -2 if -2 is the attnum of
-                                        ; `oid' and oid is the primary-key !
-   ;; This is a vector: i -> `<pg-attribute
+   (attribute-min :init-value 0)
+   ;; normally 0, but could be -2 if -2 is the attnum of
+   ;; `oid' and oid is the primary-key !
 
+   ;; This is a vector: i -> `<pg-attribute
    ;; a vector of cons (attribute-name attnum)>'
    (attributes)
 
+   ;; User associated data:
    (data :init-value ())
-   ;; make an alias  attributes?
+   ;; make an alias attributes?
    ))
 
 (define (pg:relation-put! rel tag data)
   (slot-set! rel 'data
     (aput (slot-ref rel 'data)
-          tag
+	  tag
           data)))
 
 (define (pg:relation-get rel tag . default)
-  ;; fixme: !!!
-  (aget
-   ;; apply
-   ;; assq-ref-car (slot-ref rel 'data)
+  (apply assoc-ref-car
    (slot-ref rel 'data)
    tag
+   ;; fixme: !!!
    ;; eof-object
-   ;;default
-
+   default
    ))
 
 
@@ -181,12 +186,8 @@
     (ref o 'name)))
 
 
-
-
-
 ;; isn't this too complicated?
-(define-method initialize ((rel <pg-relation>) . initiags)
-  ;; <next-method>
+(define-method initialize ((rel <pg-relation>) . initargs)
   (next-method)                         ;initiags)
   ;; fixme: i should enforce the namespace!  if not present, get it from DB !
   (DB "initialize: ~a (in ~a)\n" (ref rel 'name) (ref rel 'namespace))
@@ -245,21 +246,23 @@
 (define (pg:refresh-relation-info rel)
   ;; fixme: Careful to use this!
   (pg:with-admin-handle (ref rel 'database)
-    ;; (pg:with-handle-of* rel pgh ;; (pgh (->db rel))
+    ;; (pg:with-handle-of* rel pgh
     (lambda (pgh)
-
       (let ((relname (slot-ref rel 'name)))
 
         ;; GEt the basic info:    fixme: we already have it!
-        (let1 rel-result (pg-exec pgh
-                           (sql:select
-                            ;; todo:  fixme: pg:get-relation  already could get this data!
-                            '(oid relhasindex relkind relnatts relchecks relhassubclass relhaspkey relhasoids)
-                            "pg_class"
-                            (sql:alist->where
-                             `(("relname" . ,(pg:text-printer relname))
-                               ("relnamespace" . ,(pg:number-printer (ref (ref rel 'namespace) 'oid)))
-                               ))))
+        (let1 rel-result
+	    (pg-exec pgh
+	      (sql:select
+	       ;; todo:
+	       ;;  fixme: pg:get-relation  already could get this data!
+	       '(oid relhasindex relkind relnatts relchecks
+		     relhassubclass relhaspkey relhasoids)
+	       "pg_class"
+	       (sql:alist->where
+		`(("relname" . ,(pg:text-printer relname))
+		  ("relnamespace" . ,(pg:number-printer (ref (ref rel 'namespace) 'oid)))))))
+
           (unless (= (pg-ntuples rel-result) 1)
             (errorf "pg:refresh-relation-info: more objects with the same relname: ~a" relname))
 
@@ -354,6 +357,7 @@
            ((and (null? reload?)
                  current)
             current)
+
            (else
             ;; BUG: this query could conflict w/
             ;; (aif relation (catch 'found
@@ -376,18 +380,17 @@
               (s+ condition-for-relation-or-view
                   " AND relname = " (pg:text-printer relname)
                   ;; AND rel
-                  " AND relnamespace = " (pg:number-printer (ref namespace 'oid)))))))))))) ;)
+                  " AND relnamespace = " (pg:number-printer (ref namespace 'oid))))))))))))
 
 
 
 ;; todo:  namespace search path
 ;; fixme: if I have namespace, i don't need DB!
-(define (pg:find-relation db relname . namespace?) ; fixme reload!
-  (let1 namespace (pg:extract-namespace db namespace?)
+(define (pg:find-relation db relname :optional namespace) ; fixme: reload!
+  (let1 namespace (pg:extract-namespace db namespace)
     ;; todo: look at the list of relnames ... if member !?
     (pg:get-relation namespace relname)
-                                        ;(let1 hash (ref db 'relations)
-
+    ;;(let1 hash (ref db 'relations)
     ;; todo: I should be able to refresh!
     ;;(if (hash-table-exists? hash relname)
     ;; (hash-table-get hash relname)
@@ -438,7 +441,8 @@
                       ;; AND rel
                       " AND relnamespace = " (pg:number-printer (ref namespace 'oid))))))))))))
 
-
+;;;
+;;;  __Attributes__
 ;;; Keeping the attributes list:
 (define (enlarge-n-load-attributes! relation min-attribute pg)
   (let (;(new-attributes (shift-vector-by (slot-ref relation 'attributes) (- min-attribute)))
@@ -454,16 +458,15 @@
     (get-attributes-of! relation pg min-attribute (- old-minimum 1))))
 
 
-;;
 ;; internal function:
 ;; returns 2 values:
-;; hash  attname->index
-;; vector
-(define (get-attributes-of! rel handle from to) ;handle is <pg> !!
+;; @hash  (attname->index mapping)
+;; @vector
+(define (get-attributes-of! relation handle from to) ;handle is <pg> !!
   (unless (eq? (class-of handle) <pg>)
-    (error "get-attributes-of!: wrong-type for handle, should be <pg>" handle (class-of handle)))
-
-  (assert (slot-bound? rel 'attribute-min))
+    (error "get-attributes-of!: wrong-type for handle, should be <pg>"
+	   handle (class-of handle)))
+  (assert (slot-bound? relation 'attribute-min))
   (let* ((result (pg-exec handle
                    ;;  (column  attname  type)
                    (s+
@@ -473,7 +476,7 @@
                     "WHERE attnum between "
                     (number->string from) " and " (number->string to)
                     " AND  relname = "
-                    (pg:text-printer (slot-ref rel 'name))
+                    (pg:text-printer (slot-ref relation 'name))
                     "  AND NOT attisdropped " ;fixme!
                     "ORDER BY attnum;")))
          (count (pg-ntuples result))
@@ -498,33 +501,18 @@
       (pg-foreach-result result
           (list "attnum" "attname" "atttypid")
         (lambda (num name type-oid)
-
+	  (hash-table-put! attributes-hash
+			   name num)
           (let* ((type (pg-find-type handle type-oid))
-                 (attribute
-                  (make <pg-attribute>
-                    :relation rel
-                    :attnum num
-                    :attname name
-                    :atttyp type
-                    )))
-
-                                        ;(for-numbers<* row 0 count           ;???
-
-            (vector-set! info-vector
-                         (+ offset
-                            num)        ;(pg-get-value result row 0)
-                         attribute)
-            ;; fixme: this should get
-
-            (hash-table-put! attributes-hash
-                             name         ;(pg-get-value result row 1)
-                             num          ; (pg-get-value result row 0)  ;; this is bug?
-                                        ;row
-                             ))))
+                 (attribute (make <pg-attribute>
+			      :relation relation
+			      :attnum num
+			      :attname name
+			      :atttyp type)))
+            (vector-set! info-vector (+ offset num)
+                         attribute))))
 
       (values attributes-hash info-vector))))
-
-
 
 
 
@@ -551,9 +539,8 @@
 (define (pg:real-nth-attribute relation n)
   (let* ((att-vector (ref relation 'attributes))
          (limit (vector-length att-vector)))
-    ;; between
     (unless (< -1 n limit)
-      (error "This cannot be found!"))
+      (error "Attribute index out of bounds."))
 
     (let step ((j (ref relation 'attribute-min))
                (k 0))
@@ -593,7 +580,12 @@
 
 (define pg:attnum->attribute pg:nth-attribute)
 
-;;; utility combination:
+;; The real `attnum', not the position!
+(define (pg:attname->attnum relation attname)
+  (aif a (pg:attname->attribute relation attname)
+       (ref a 'attnum)
+    #f))
+
 (define (pg:attname->attribute relation attname)
   (let1 hash (ref relation 'attributes-hash)
     ;; fixme:
@@ -601,70 +593,52 @@
          (pg:nth-attribute relation num)
       #f)))
 
-
-
+;; legacy api?
 (define pg:get-attribute pg:attname->attribute)
 
-
-;; The real `attnum', not the position!
-(define (pg:attname->attnum relation attname)
-  (aif a (pg:attname->attribute relation attname)
-       (ref a 'attnum)
-    #f))
-
-(define (pg:find-attribute-type relation attname) ;ribute
-  ;; find in the vector.  i could make a
-  ;(slot-ref  _ 'type)
+;; composite:
+(define (pg:find-attribute-type relation attname)
   (pg:attribute-type
    (pg:attname->attribute relation attname)))
 
-
-
-;;; `Collection' of relations
+;;; `Collection' of relations   __namespace__
 
 ;; This is wrong!
-;; fixme: if 2 nsp have the same relname !!!??
-(define (pg:for-namespace db nspname function)
+(define (pg:for-namespace db namespace function)
   ;; fixme: mutex! bug!
-  (logformat "pg:for-namespace is buggy: needs a mutex!\n")
-  (let1 namespace nspname
-    (for-each
-        (lambda (relname)
-          (function
-           (pg:get-relation namespace relname)))
-      (pg:namespace-relnames namespace))))
+  (DB "pg:for-namespace is buggy: needs a mutex!\n")
+  (for-each
+      (lambda (relname)
+	(function (pg:get-relation namespace relname)))
+    (pg:namespace-relnames namespace)))
 
 
 (define pg:for-each-relation pg:for-namespace)
 
-;; todo: i should keep all these objects somewhere ! in a hash?  oid -> <pg-relation> ?
+;; todo: I should keep all these objects somewhere!
+;; in a hash?  oid -> <pg-relation> ?
 (define (pg:namespace-relations namespace)
   (map (cute pg:get-relation namespace <>)
     (pg:namespace-relnames namespace)))
 
 
 
-;; (pg:database-relations db 1)
+;; return the list of relations in @db
 (define (pg:database-relations db . refresh?)
-    ;; This is run in a hook
+  ;; This is run in a hook
   ;; (pg:load-namespaces! db)
   ;; Make sure (ref db 'relations)
-  (unless (null? refresh?)
-    (for-each
-        (lambda (ns)
-          (pg:namespace-relations ns))
-      (ref db 'namespaces)))
+  (let1 namespaces (ref db 'namespaces)
+    (unless (null? refresh?)
+      (for-each
+	  (lambda (ns)
+	    (pg:namespace-relations ns))
+	namespaces))
 
-  ;; pg:namespace-relations
-
-  (append-map
-   (lambda (namespace)
-     (hash-table-values (ref namespace 'relations)))
-   (ref db 'namespaces)))
-
-
-
-
+    (append-map
+     (lambda (namespace)
+       ;; pg:namespace-relations
+       (hash-table-values (ref namespace 'relations)))
+     namespaces)))
 
 (provide "pg/relation")
-
