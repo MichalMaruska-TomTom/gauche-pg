@@ -5,7 +5,7 @@
 (define-module pg.db
   (export
    <pg-database>
-   pg:connect-to-database ; (pg:connect-to-database "linux10" "maruska")
+   pg:connect-to-database
 
    pg:new-handle pg:dispose-handle
 
@@ -451,7 +451,7 @@
 	      (DB "finished running hooks\n")
               db)))
          (else
-          (error "")))))))
+          (error "wrong object as PG handle")))))))
 
 
 ;; Everytime we will (possibly) need the admin handle,
