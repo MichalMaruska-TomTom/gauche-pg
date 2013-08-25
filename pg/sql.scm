@@ -174,8 +174,10 @@
     (and-s+ " WHERE " where)
     (and-s+ " GROUP BY " group-by)
     (and-s+ " ORDER BY " order-by)
-    (and-s+ " LIMIT " (and limit (number->string limit)))
-    (and-s+ " OFFSET " (and offset (number->string offset)))) ""))
+    (and-s+ " LIMIT " (and limit (not (undefined? limit))
+				     (number->string limit)))
+    (and-s+ " OFFSET " (and offset (not (undefined? offset)) (number->string offset))))
+   ""))
 
 ;; I think the best API:
 (define (sql:select-u what
