@@ -194,20 +194,29 @@
 			    ;from relname)
 		   where group-by order-by limit offset))
 
+;; This is the same API, done more laboriously, but permits
+;; having the optional from-o -- inteligent recovery of :keywords.
+;; It relies on the knowledge/assumption, that from-o is not a :keyword.
 (define (sql:select-k what . rest)
-  (let ((from #f)
+  (let ((from-o #f)
         (k-rest ()))
     ;; take the FROM part:
-    (unless (null? rest)
-      (set! from (car rest))
+    (unless (or (null? rest)
+		(keyword? (car rest)))
+      (set! from-o (car rest))
       (set! k-rest (cdr rest)))
+    (DB "sql:select-k keywords ~s\n" rest)
     (let-keywords* k-rest
-        ((where #f)
+        ((from #f)
+	 (where #f)
          (group-by #f)
          (order-by #f)
          (limit #f)
          (offset #f))
-      (sql:select-full what from where group-by order-by limit offset))))
+      (if (and from-o from)
+	  (error "overspecification of :from\n" from-o from))
+      (sql:select-full what (or from-o from)
+		       where group-by order-by limit offset))))
 
 ;; WHAT can be a list of symbols/strings.     links ?
 ;; FROM is a list of relnames: symbols   todo:  <pg-relation> ?
