@@ -19,9 +19,11 @@
   (use adt.string)
   (use pg.sql)
   (use mmc.check)
+  (use mmc.log)
   )
 (select-module pg.hi)
 
+(define debug #t)
 ;; @values is alist ((attribute value) ...)
 ;; @where-values same
 ;; pg is ... <pg-database> ?
@@ -113,6 +115,7 @@
 ;; return <pg-attribute>
 (define (pg:lookup-attribute db relation attribute)
   (let1 relation (pg:normalize-relation db relation)
+    (DB "pg:lookup-attribute ~a , ~a\n" relation attribute)
     (pg:normalize-attribute relation attribute)))
 
 (provide "pg/hi")
