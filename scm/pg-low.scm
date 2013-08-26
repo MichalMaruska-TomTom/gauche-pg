@@ -116,8 +116,9 @@
         (next e))
 
     (pg-exec db "BEGIN;")
-    (thunk)
-    (pg-exec db "COMMIT;")))
+    (begin0
+     (thunk)
+     (pg-exec db "COMMIT;"))))
 
 (define-syntax with-db-transaction*
   (syntax-rules ()
