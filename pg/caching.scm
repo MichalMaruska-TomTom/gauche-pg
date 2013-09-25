@@ -1,7 +1,6 @@
 
 (define-module pg.caching
   (export
-   ;; pg-init-types
    pg-init-types-hash
    ;; should be in pg-hi!
    pg-type-name
@@ -14,22 +13,6 @@
 (select-module pg.caching)
 
 ;; Caching types: mapping  oid -> typename.
-
-
-;; now obsolete? 
-;; lookup standard types, and associate the oid w/ our <pg-type> objects
-;; fixme: should be shared by connections?
-;; This is probably useless f.  the low leve pg-conn cannot keep this alist, so
-(define (pg-init-types pgconn)
-  (let1 alist (pg-result->alist
-               (pg-exec-internal pgconn "SELECT oid, typname FROM pg_type"))
-    (for-each
-        (lambda (i)
-          (set-car! i (string->number (car i))))
-      alist)
-    alist))
-
-
 
 ;; fixme: should be a method?
 ;; See `pg-type-name' in pg.types
