@@ -2,7 +2,7 @@
 
 debian/control:
 	# fix the Package name
-	replace-pg-gauche-string  debian/control.in > $@
+	./replace-pg-gauche-string  debian/control.in > $@
 
 %:
 	dh $@
