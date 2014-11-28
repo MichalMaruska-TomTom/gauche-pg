@@ -5,16 +5,9 @@ Maintainer: Michal Maruska <mmaruska@gmail.com>
 Build-Depends: debhelper (>= 7), autotools-dev, libpq-dev, gauche-dev
 Standards-Version: 3.7.2
 
-Package: gauche-@GAUCHE_VERSION@-pg-@PG_VERSION@
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, gauche-@GAUCHE_VERSION@, libpq5
-Description: libpq binding for Gauche scheme interpreter
-Conflicts: gauche-pg (<=1.15)
-Provides: gauche-pg, gauche-@GAUCHE_VERSION@-pg
-
 Package: gauche-pg
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, gauche-@GAUCHE_VERSION@-pg
+Depends: ${shlibs:Depends}, ${misc:Depends}, gauche, libpq5
+Description: libpq binding for Gauche scheme interpreter
+Conflicts: gauche-pg (<=1.15)
 Provides: gauche-pg
-Description: Package to provide one candidate of multi-api-version pacæge.
-

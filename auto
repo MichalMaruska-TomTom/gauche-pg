@@ -1,17 +1,11 @@
 #! /bin/sh
 
 ## Multi-version-api packaging:
-# debian/control
-#sed -e "s/@PG_VERSION@/$PG_VERSION/" debian/control.in > debian/control
-make -f debian/rules  debian/control
+PG_VERSION=$(pg_config --version |sed -e 's/^PostgreSQL //;s/\.[[:digit:]]\+$//')
 
-GAUCHE_VERSION=$(gauche-config -V|sed -e 's/_/-/');
+replace-gauche-string.pl --api=pg --version=$PG_VERSION debian/control.in > debian/control
 
-PG_VERSION=$(pg_config --version |sed -e 's/^PostgreSQL //;s/\.[[:digit:]]\+$//');
-
-make -f debian/rules  debian/control
-mv debian/gauche-pg.install debian/gauche-$GAUCHE_VERSION-pg-$PG_VERSION.install
-
+# make -f debian/rules debian/control
 
 
 # provide the   Automake related files ... install-sh
