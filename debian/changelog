@@ -1,3 +1,90 @@
+gauche-pg (3.0) unstable; urgency=medium
+
+  * spaces
+  * spaces
+  * spaces
+  * spaces
+  * spaces
+  * spaces
+  * spaces
+  * spaces
+  * DB
+  * debug
+  * debug -> DB
+  * debug
+  * format
+  * format
+  * format
+  * format
+  * comments
+  * clean up pg/namespace
+  * clean-up
+  * comments, clean-up
+  * comment
+  * drop pg:attribute-indexes->names -- returns attnames of primary key.
+  * scheme->pg  moving into types.scm.
+  * Clean simplify  sql
+  * drop   pg-date->date from util.scm, it belongs to types.scm
+  * Use check-parameter-type to check argument type.
+  * document a bit date-parser which replaces the pg-date->date
+  * Use :optional arguments
+  * use more sql:* functions to ask for View definition.
+  * comments / explanation of fake (results)
+  * use the let-create-fill-vectors macro
+  * comments & format -- types + pg-type-hash removed from types
+  * new module pg.caching. Move pg-init-types pg-type-hash there
+  * pg:find-namespace  obsoletes pg:extract-namespace
+  * relation: separate load-p-key
+  * separate pg:update-tuple functionality
+  * move a bit:  complete & deduce
+  * comments in view
+  * remove commented out pg:view-definition dfn
+  * spaces
+  * Stop exporting:  pg-result->tuple-order!
+  * clean up (still incomplete) pg:find-relation-tuple
+  * DB, error, reformat
+  * DB
+  * format
+  * document/comment  result.scm
+  * comment, var-rename, db
+  * rest
+  * use check-parameter-type in hi.scm
+  * use let-values
+  * rest in relation.scm
+  * it's :key not :keyword
+  * more careful with #f: to numbers, and concat
+  * introduce debug in sql
+  * DB in pg-log
+  * export pg-result->alist from pg-low!
+  * invoke the correct pg-init-types-hash
+  * (more) debug in pg-hi
+  * export more from types for caching.scm
+  * sql:select-full handle #undefined values
+  * debug in sql
+  * sql:select-u  cannot use :optional before :key
+  * sql:select-k: proper implementation of the optional & keyword.
+  * start using sql:select-u
+  * format
+  * pg:find-namespace  handle #undefined values
+  * debug
+  * debug in pg.hi
+  * verbosity on running pg db hooks
+  * format
+  * clean ... comments
+  * so, pg-init-types  is obsolete!?
+  * with-db-transaction: return the thunk result.
+  * Unit test for:  pg.stub & pg-log
+  * drop pg-init-types: now only a hash is kept, not alist.
+  * Provide virtual package to deliver the versioned one.
+  * replace- is now a global tool (in gauche-mmc-2)
+  * Reverting "replace- is now a global tool (in gauche-mmc-2)" Revert "replace- is now a global tool (in gauche-mmc-2)"
+  * fixme: dh_install
+  * .install files in conflict when only 1 bin package.
+  * .install files in conflict when only 1 bin package.
+  * use replace-gauche-string.pl in the new version
+
+ -- Michal Maruska <mmaruska@gmail.com>  Tue, 30 Dec 2014 02:49:44 +0100
+
 gauche-pg (2.1.1) stable; urgency=low
 
   * declare C function
