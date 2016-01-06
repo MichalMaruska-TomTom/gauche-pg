@@ -22,7 +22,6 @@
   (pg-exec handle
     (format "SET client_encoding TO ~a;" coding)))
 
-
 ;;; hook:
 (define (pg-prepare-handle handle)
   (if debug (logformat "pg-prepare-handle\n"))
@@ -33,6 +32,7 @@
   ;(pg-exec handle "set debug_print_plan to on")
   )
 
+;;
 (unless (member pg-prepare-handle pg-handle-hook)
   (push! pg-handle-hook pg-prepare-handle))
 

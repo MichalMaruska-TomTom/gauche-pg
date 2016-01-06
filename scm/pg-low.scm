@@ -10,8 +10,8 @@
    pg-map-result
    pg-foreach-result
    pg-map-table
-
    pg-result->alist
+
    with-db-transaction
    with-db-transaction*
    )
@@ -30,7 +30,8 @@
 ;; apply to the whole RELATION!
 (define (pg-map-table conn relname function)
   (let* ((result (pg-exec conn
-		   (string-append "SELECT * from " (pg:name-printer relname) ";")))
+		   (string-append "SELECT * from "
+				  (pg:name-printer relname) ";")))
 	 ;;(nrows (pg-ntuples result))
          (nfields (pg-nfields result)))
     (for-numbers<* row 0 (pg-ntuples result)

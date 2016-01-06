@@ -81,6 +81,7 @@
 
 ;; `by-name'
 (define (pg:find-namespace db :optional (namespace "public"))
+  ;; mmc:necessary?
   (if (undefined? namespace)
       (set! namespace "public"))
   (DB "pg:find-namespace ~a\n" namespace)

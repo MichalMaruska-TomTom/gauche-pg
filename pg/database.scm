@@ -15,14 +15,13 @@
           pg.actions
           pg.keys)
 
-  (export
-   ;;; Tree of data:
+  (export  ;; in addition to extend-ed apis
 
+   ;;; Tree of data:
    ;;  p-key   list of indexes
    ;;  attributes hash   name -> index
    ;;  types   vector/index ->  name & type
-   ;;
-   ;; type-oid-of-attribute
+
    pg:find-attribute
 
    ;; `<db-index>'

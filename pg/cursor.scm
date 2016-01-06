@@ -12,7 +12,6 @@
    pg:with-cursor
    )
 
-
   (use pg-hi)
   (use pg-low)
   (use adt.string)
@@ -22,7 +21,6 @@
   (use gauche.collection))
 
 (select-module pg.cursor)
-
 
 (define debug #f)
 

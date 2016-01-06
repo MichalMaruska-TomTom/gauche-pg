@@ -102,20 +102,22 @@
 (select-module pg-hi)
 
 
+(define debug #f)
+
 ;; fixme: move in pg ?
 (define pg-default-separator "")
 
 
 ;;; Status processing
 
-;; how many tuples were deleted:
+;; @result is simple C proxy.
+;; How many tuples were deleted:
 (define (pg-deleted result)
   ;; fixme:  throw error if the result is not suitable!
   (rxmatch-let
       (rxmatch #/DELETE ([[:digit:]]+)$/ (pg-cmd-status result))
       (all number)
     (string->number number)))
-
 
 
 ;;; connection / handle
@@ -160,17 +162,14 @@
   (slot-ref pg 'conn))
 
 
-
+;; should be generics & method.
 (define (pg-backend-pid1 pg-handle)
   (pg-backend-pid (if (is-a? pg-handle <pg>)
                       (pg-conn-of pg-handle)
                     pg-handle)))
 
-;; example:  (pg-open :host "/tmp" :user "mmc" )
 
 (define pg-open-accepted-keywords '(:user :port :dbname :host))
-
-(define debug #f)
 
 
 ;; filter known :keywords (+ value) from args.
@@ -219,27 +218,12 @@
          (conn (pg-connect conninfo))   ;fixme:  pg-connectdb ?
          (handle (make <pg>)))
 
-    (if debug (logformat "pg-open: ~a\n" conninfo))
+    (DB "pg-open: ~a\n" conninfo)
     (slot-set! handle 'conn conn)
-
-    ;; New:  not a hash, just alist!
-    (slot-set! handle 'types (pg-init-types-hash conn)) ;hash oid -> <pg-type>
-    ;; old:
-    '(let1 h (make-hash-table)
-      (alist->>table! h (pg-init-types conn))
-      (slot-set! handle 'oid->type h))
-
-    ;; (slot-set! oid->type 'converters pg:*parsers*)
-    ;; (pg:initialize-parsers handle)
+    (slot-set! handle 'types (pg-init-types-hash conn))
     handle))
 
-
-
-
-
-
-
-
+;;; so,   pg keeps the hash.
 (define (pg-find-type pg oid)
   ;; (assert (is-a? pg <pg>))
   (let1 hash (ref pg 'types)
@@ -250,7 +234,7 @@
 '(define (pg-su connection user)
   (pg-exec " SET [ SESSION | LOCAL ] SESSION AUTHORIZATION username"))
 
-;;; `pgresult'
+;;; `pgresult' -- as a collection.
 (define-class <pgresult> (<collection>)  ;mmc! <pg-result>
   (
    ;; fixme:
@@ -327,21 +311,19 @@
 	 row)))))
 
 
+;;; Accessing columns/fields
 ;; find the type converters (C type -> scheme type)
 (define (pg-result-prepare! result)
   (let* ((presult (slot-ref result 'result))
          (fields (pg-nfields presult))
-
-         ;(v (make-vector fields #f))
-         (types (make-vector fields #f)) ;
+         (types (make-vector fields #f))
          (pg (slot-ref result 'handle)))
-    (DB "pg-result-prepare! ... doing ...\n")
-    ;; types ->  parsers
+    (DB "pg-result-prepare! ... type information lookup ...\n")
+
     (for-numbers<* i 0 fields
-      ;; the type should be an object!  (name, parser, printer)
-      ;;
       (let1 type (pg-find-type pg (pg-ftype presult i))
-        ;; (pg-type-name conn (pg-ftype presult i)) ;fixme:  pg-ftype is a generic: it returns type-name!
+        ;; (pg-type-name conn (pg-ftype presult i))
+	;;fixme:  pg-ftype is a generic: it returns type-name!
 
         (vector-set! types i type)
         ;(vector-set! v i (pg-converter pg (pg-ftype presult i)))   ;pg-type-->parsers
