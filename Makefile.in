@@ -55,8 +55,14 @@ pg.c : pg.stub pg-lib.h
 	$(GOSH) genstub pg.stub
 
 test : all
-	@rm -f test.log
-	$(GOSH) -I. test/test.scm > test.log || true
+	# debian can run all under pg_virtualenv
+	# pg_isready
+	for test in test/pg-low.scm test/pg-hi.scm test/types.scm  ; do \
+	gosh -ftest $$test; \
+	done
+
+#	@rm -f test.log
+#	$(GOSH) -I. test/test.scm > test.log || true
 
 install : all
 	$(INSTALL) -d $(HEADER_INSTALL_DIR)
