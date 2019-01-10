@@ -30,10 +30,10 @@ HEADERS = pg-lib.h
 # pg.h
 
 TARGET = pg.so
-OBJS = pg_head.o pg.o pg_tail.o pg-lib.o
+OBJS =  pg.o pg-lib.o
 # pgib.o
 CONFIG_GENERATED = Makefile config.cache config.log config.status\
-		   autom4te*.cache pg_head.c pg_tail.c
+		   autom4te*.cache
 # pgib.c
 
 INSTALL_TYPE = @INSTALL_TYPE@
