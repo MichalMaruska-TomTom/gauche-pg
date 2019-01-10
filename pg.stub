@@ -43,9 +43,8 @@
 ;;; fixme:  this could have the slot   notice_monitor !!
 (define-cclass <pg-handle> "ScmPg*"
   "ScmPg_class"
-  ()					;cpa
+  () ;cpa
   (
-
 ;;  no more needed
 ;    (converters :type <pair>
 ;     :getter "return (((ScmPg*) OBJARG)->converters);"
@@ -474,11 +473,7 @@ return SCM_UNDEFINED;
 #endif
 ")
 
-
-
-
 ;; PGresult* PQmakeEmptyPGresult(PGconn *conn, ExecStatusType status);
-
 
 (define-cproc pg-escape-string (from::<const-cstring>)
   ;"PQresultErrorMessage"))
