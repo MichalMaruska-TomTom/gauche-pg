@@ -12,9 +12,9 @@
 ;# /* class tag, is the pointer at itself !!! */
 ; now define some macros:
 
+(declcode (.include "pg-lib.h"))
+(declcode "#include <alloca.h>")
 
-"#include \"pg-lib.h\""
-"#include <alloca.h>"
 "#define UNUSED(obj) (void)obj"
 
 
