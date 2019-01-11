@@ -31,7 +31,6 @@
 ;(define-type <pg-copy-buffer> "pg_copy_buffer" #f)
 
 
-
 ;;; `Classes'
 
 ;;   define-cclass scheme-name [qualifier] c-typename c-class-name cpa
@@ -50,8 +49,8 @@
 ;     :getter "return (((ScmPg*) OBJARG)->converters);"
 ;     :setter "(((ScmPg*) OBJARG)->converters) = value;"
 ;     )
-   )					;(conn :type <pg-handle>)
-;  ()					;fields  conninfo ...
+   )                                    ;(conn :type <pg-handle>)
+;  ()                                   ;fields  conninfo ...
 ;  (allocator (c "new_pg_handle"))
   (printer (c "pg_print"))
   ;()
@@ -61,7 +60,6 @@
 
 
 ;;;   `Result'
-
 (define-type <pg-result> "PGresult*"  #f ;"box for the postgresql result"
   "SCM_PG_RESULT_P" "SCM_PG_RESULT" "new_pg_result")
 
@@ -70,7 +68,7 @@
   ;; c-typename c-typename
   ;"ScmPgR*"  "ScmPgR_class"
   "PGresult*" "ScmPgR_class"
-  ()					;cpa
+  ()                                    ;cpa
   (
    (handle :type <pg-handle>
     :getter "
@@ -80,13 +78,10 @@ return (ScmObj) ((((ScmPgR*) OBJARG)->handle));"
     :setter "UNUSED(obj);
 Scm_Error(\"handle read-only\");"  ;(((ScmPgR*) OBJARG)->handle) = value;"
     )
-   )					;fields   query, ...
+   )                                    ;fields   query, ...
   ;(allocator (c "new_pg_result"))
   (printer   (c "pg_result_print"))
   )
-
-
-; (initcode "Scm_GtkRegisterClass(GDK_TYPE_GL_CONFIG, SCM_CLASS_GDK_GL_CONFIG);")
 
 
 ;; #define CHECK_PG(g)    if (!g->conn) Scm_Error(\"gdbm file already closed: %S\", g)
@@ -94,7 +89,6 @@ Scm_Error(\"handle read-only\");"  ;(((ScmPgR*) OBJARG)->handle) = value;"
 ;;; finalization
 
 ;"ScmObj pg_notice_processor;"
-
 
 
 ;; obsolete `hopefully'
@@ -121,10 +115,11 @@ return SCM_UNDEFINED;")
 (define-enum CONNECTION_BAD)
 
 (define-cproc pg-connect (&optional (conninfo::<const-cstring> ""))
-			  ;&optional (size::<fixnum> 0)
-			  ;(rwmode::<fixnum> (c "SCM_MAKE_INT(PG_READER)"))
-			  ;(fmode::<fixnum> (c "SCM_MAKE_INT(0666)"))
-  ;(return <pg-handle> "PQconnectdb")
+  ;; &optional (size::<fixnum> 0)
+  ;; (rwmode::<fixnum> (c "SCM_MAKE_INT(PG_READER)"))
+  ;; (fmode::<fixnum> (c "SCM_MAKE_INT(0666)"))
+  ;; (return <pg-handle> "PQconnectdb")
+  
   "PGconn* conn = PQconnectdb(conninfo);
 ConnStatusType status = PQstatus(conn);
 if  (status != CONNECTION_OK) {
@@ -144,13 +139,13 @@ if  (status != CONNECTION_OK) {
   ;; ScmPGnotify
                                         ;"ScmPgR*"  "ScmPgR_class"
   "PGnotify*" "Scm_PGnotify_Class"
-  ()					;cpa
+  ()                                    ;cpa
   (
    (relname :type <const-cstring>
-	    :setter #f)
+            :setter #f)
    (be_pid :type <int>)
                                         ;(extra :type <const-*char>)
-   )					;fields   query, ...
+   )                                    ;fields   query, ...
                                         ;(allocator (c "new_pg_result"))
   ;; (printer   (c "pg_result_print"))
   )
@@ -280,7 +275,7 @@ else
 ; // pg_exception  !!!
 ;     Scm_Error(\"consume_failed\");
 ;   } else {
-;     return(SCM_TRUE);				/*S48_UNSPECIFIC*/
+;     return(SCM_TRUE);                         /*S48_UNSPECIFIC*/
 ;   }")
 
 
@@ -572,7 +567,7 @@ int PQfsource(PGresult* a, int b)
   "
   CHECK_COLUMN(result, index, \"pg-ftype\");
   SCM_RETURN (Scm_MakeInteger(PQftype(result, index)));"
-  )		;oid
+  )             ;oid
 
 
 
@@ -647,9 +642,9 @@ return SCM_MAKE_BOOL(PQgetisnull(result, tuple, index));")
 
 ;;;  `COPY'
 (define-cproc pg-get-line (pg::<pg-handle> v::<uvector>
-					   &optional
-					   (start::<fixnum> 0)
-					   (end::<fixnum> -1))
+                                           &optional
+                                           (start::<fixnum> 0)
+                                           (end::<fixnum> -1))
 "int len = SCM_UVECTOR_SIZE(v);
 int eltsize, r;
   SCM_CHECK_START_END(start, end, len);      /* > 1  ?*/
@@ -788,9 +783,9 @@ if ((buffer->elements)
 SCM_RETURN(SCM_UNDEFINED);")
 
 
-(define-constant PGRES_PUT_OK 0)		;0
-(define-constant PGRES_PUT_CONTINUE 1)	; 1
-;(define-constant PGRES_PUT_EOF eof)	; EOF ???
+(define-constant PGRES_PUT_OK 0) ;0
+(define-constant PGRES_PUT_CONTINUE 1)  ; 1
+;(define-constant PGRES_PUT_EOF eof)    ; EOF ???
 
 ;;; Ending Copy:
 
@@ -815,9 +810,8 @@ return SCM_FALSE;")
 
 ;; `new:'
 (define-cproc pg-put-copy-end (pg::<pg-handle>
-			       error-message::<const-char*-or-false>) ::<int>
-			       PQputCopyEnd)
-
+                               error-message::<const-char*-or-false>) ::<int>
+                               PQputCopyEnd)
 
 ;; fixme:  to  gauche-strings !
 ; '(define-cproc emacs-mule->cyrillic (string::<const-cstring>)
