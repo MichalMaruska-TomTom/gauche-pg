@@ -390,37 +390,10 @@ return  new_pg_result (res, (ScmPg*) pg_conn_scm);"
 ;  (return <pg-result> PQexec))
 )
 
-#|
-PGresult *PQexecParams(PGconn *conn,
-                        const char *command,
-                        int nParams,
-                        const Oid *paramTypes,
-                        const char * const *paramValues,
-                        const int *paramLengths,
-                        const int *paramFormats,
-                        int resultFormat);
-
-
-
-PGresult *PQexecPrepared(PGconn *conn,
-                          const char *stmtName,
-                          int nParams,
-                          const char * const *paramValues,
-                          const int *paramLengths,
-                          const int *paramFormats,
-                          int resultFormat);
-|#
-
-
 
 ;; status:   not a method !
 (define-cproc pg-result-status (result::<pg-result>)  ::<int>
   PQresultStatus)
-
-
-
-
-
 
 ;;  ExecStatusType
 (define-enum PGRES_BAD_RESPONSE)
