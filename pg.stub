@@ -119,7 +119,17 @@ return SCM_UNDEFINED;")
   ;; (rwmode::<fixnum> (c "SCM_MAKE_INT(PG_READER)"))
   ;; (fmode::<fixnum> (c "SCM_MAKE_INT(0666)"))
   ;; (return <pg-handle> "PQconnectdb")
-  
+
+  (let* ((conn::PGconn* (PQconnectdb conninfo))
+         (status::ConnStatusType (PQstatus conn))
+         )
+    (if (!= status CONNECTION_OK)
+      (begin
+        (Scm_Error "pg-connect failed: %s (conninfo was: %s)" (PQerrorMessage conn) conninfo)
+        (return SCM_UNDEFINED))
+      (return (new_pg_handle conn)))))
+
+(define-cproc pg-connect1 (&optional (conninfo::<const-cstring> ""))
   "PGconn* conn = PQconnectdb(conninfo);
 ConnStatusType status = PQstatus(conn);
 if  (status != CONNECTION_OK) {
