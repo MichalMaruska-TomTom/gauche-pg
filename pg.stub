@@ -194,10 +194,8 @@ SCM_RETURN(Scm_Make_PGnotify(n));")
 
 
 (define-cgeneric pg-status "pg_status_generic")
-(define-cmethod pg-status (pg_conn::<pg-handle>)
-  ;; fixme: not full int ConnStatusType
-  "SCM_RETURN (Scm_MakeInteger(PQstatus(pg_conn)));")
-
+(define-cmethod pg-status (pg_conn::<pg-handle>) ::<int>
+  PQstatus)
 
 
 (define-cproc pg->port (pg_conn::<pg-handle>)
