@@ -405,10 +405,6 @@ return  new_pg_result (res, (ScmPg*) pg_conn_scm);"
 (define-enum PGRES_COMMAND_OK)
 (define-enum PGRES_EMPTY_QUERY)
 
-
-
-
-
 (define-cproc pg-status-status (code::<int>) ::<const-cstring>
   PQresStatus)
 
@@ -418,7 +414,6 @@ return  new_pg_result (res, (ScmPg*) pg_conn_scm);"
 ;; could be the finalizer !!
 (define-cproc pg-clear (result::<pg-result>) ::<void>
   PQclear)
-
 
 (define-cproc pg-copy (result::<pg-result>)
    "
@@ -465,13 +460,12 @@ return s;"
   )
 
 ;; size_t PQescapeString (char *to, const char *from, size_t length);
-
 ;; unsigned char *PQescapeBytea(unsigned char *from,size_t from_length,size_t *to_length);
 
 ;; `const-result'
 (define-cgeneric pg-ntuples "pg_ntuples_generic")
 (define-cmethod pg-ntuples (result::<pg-result>)
-;(define-cproc pg-ntuples (result::<pg-result>)
+  ;;(define-cproc pg-ntuples (result::<pg-result>)
   ;(return <int> "PQntuples"))
   "SCM_RETURN (Scm_MakeInteger(PQntuples(result)));"
   )
@@ -621,13 +615,11 @@ return SCM_MAKE_BOOL(PQgetisnull(result, tuple, index));")
 
 
 
-;;;  `COPY'
+;;; `COPY'  at an offset of the uvector.
 (define-cproc pg-get-line (pg::<pg-handle> v::<uvector>
-                                           &optional
-                                           (start::<fixnum> 0)
-                                           (end::<fixnum> -1))
+                           &optional (start::<fixnum> 0) (end::<fixnum> -1))
 "int len = SCM_UVECTOR_SIZE(v);
-int eltsize, r;
+ int eltsize, r;
   SCM_CHECK_START_END(start, end, len);      /* > 1  ?*/
   SCM_UVECTOR_CHECK_MUTABLE(v);
   eltsize = Scm_UVectorElementSize(Scm_ClassOf(SCM_OBJ(v)));
