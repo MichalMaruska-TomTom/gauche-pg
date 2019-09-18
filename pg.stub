@@ -17,7 +17,6 @@
 
 "#define UNUSED(obj) (void)obj"
 
-
 (include "types.genstub")
 
 
@@ -38,7 +37,6 @@
 ;;      property-clause ...
 
 
-;"static ScmPg* new_pg_handle();"
 ;;; fixme:  this could have the slot   notice_monitor !!
 (define-cclass <pg-handle> "ScmPg*"
   "ScmPg_class"
@@ -55,9 +53,6 @@
   (printer (c "pg_print"))
   ;()
   )
-
-
-
 
 ;;;   `Result'
 (define-type <pg-result> "PGresult*"  #f ;"box for the postgresql result"
@@ -109,7 +104,6 @@ return SCM_UNDEFINED;")
 
 
 (define-symbol pg-notice-processor-exception "pg_notice_processor_exception")
-
 
 (define-enum CONNECTION_OK)
 (define-enum CONNECTION_BAD)
@@ -318,14 +312,19 @@ else
 #if 0
 Scm_Warn(\"pg-exec: running query: %s\\n\", query);
 #endif
+
 PGresult* res = PQexec(pg_conn, query);
+
 #if 0
 Scm_Warn(\"pg-exec: success from query: %s\\n\", query);
 #endif
+
 ExecStatusType status = PQresultStatus(res);
+
 if  ((status == PGRES_FATAL_ERROR) || (status == PGRES_NONFATAL_ERROR) || (status == PGRES_BAD_RESPONSE))
 {
 // Scm_Error(\"pg-exec failed %s\\n\", PQresStatus(status));  , new_pg_result (res, (ScmPg*) pg_conn_scm)
+
    Scm_Warn(\"pg-exec failed %s\\n\", PQresStatus(status));
   Scm_Warn(\"pg-exec: the query was: %s\\n\", query);
 
