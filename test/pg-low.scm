@@ -25,7 +25,7 @@
        ;(list *PGPORT* "michal")
        (list (string->number
               (pg-port pgcon))
-	     (pg-user pgcon)))
+             (pg-user pgcon)))
 
 ;; todo:
 ;; async connection.
@@ -47,41 +47,41 @@
        ;; create
        PGRES_COMMAND_OK
        (let1 result
-	   (pg-exec pgcon
-	     "drop table gauche_test.people;")
-	 (pg-result-status result)))
+           (pg-exec pgcon
+             "drop table gauche_test.people;")
+         (pg-result-status result)))
 
 (test* "query exec"
        ;; create
        PGRES_COMMAND_OK
        (let1 result
-	   (pg-exec pgcon
-	     "drop schema gauche_test CASCADE;")
-	 (pg-result-status result)))
+           (pg-exec pgcon
+             "drop schema gauche_test CASCADE;")
+         (pg-result-status result)))
 
 
 (test* "query exec"
        ;; create
        PGRES_COMMAND_OK
        (let1 result (pg-exec pgcon "create schema gauche_test;")
-	 (pg-result-status result)))
+         (pg-result-status result)))
 
 
 (test* "query Create table"
        ;; create
        PGRES_COMMAND_OK
        (let1 result
-	   (pg-exec pgcon
-	     "create table gauche_test.people (name text, surname varchar, age int);")
-	 (pg-result-status result)))
+           (pg-exec pgcon
+             "create table gauche_test.people (name text, surname varchar, age int);")
+         (pg-result-status result)))
 
 (test* "inserting"
        (list PGRES_COMMAND_OK "0")	;why 0?
        ;; not PGRES_TUPLES_OK  why not?
        (let1 result (pg-exec pgcon
-		      "insert into gauche_test.people values ('Michal', 'Maruska');")
-	 (list (pg-result-status result)
-	       (pg-oid-status result))))
+                      "insert into gauche_test.people values ('Michal', 'Maruska');")
+         (list (pg-result-status result)
+               (pg-oid-status result))))
 
 
 (test-section "pg access result")
@@ -96,17 +96,13 @@
 (test* "result ntuples etc."
        (list 1 3 "surname" 2 1 #f)
        (list
-	(pg-ntuples result)
-	(pg-nfields result)
-	(pg-fname result 1)
-	(pg-fnumber result "age")
-	(pg-ftablecol result 0)		;fixme: 1
-	(pg-ftable result 0)		;
-	))
-
-;;
-
-
+        (pg-ntuples result)
+        (pg-nfields result)
+        (pg-fname result 1)
+        (pg-fnumber result "age")
+        (pg-ftablecol result 0)		;fixme: 1
+        (pg-ftable result 0)		;
+        ))
 
 ;; I want to see the error thrown!
 (test* "result column indices"
@@ -133,4 +129,4 @@
 (test* "during"
        PQTRANS_INTRANS
        (with-db-transaction* pgcon
-	 (pg-transaction-status pgcon)))
+         (pg-transaction-status pgcon)))
