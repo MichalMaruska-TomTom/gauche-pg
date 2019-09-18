@@ -338,7 +338,15 @@ if  ((status == PGRES_FATAL_ERROR) || (status == PGRES_NONFATAL_ERROR) || (statu
    /* Scm_MakeThreadException */
 
   /* Fixme:  You should throw a valid <exception> object. new_pg_result is NOT!, it does not have 'message slot!  */
+
+// now obsoleted:
+#if GAUCHE_API_0_95 || 1
+  Scm_VMThrowException(Scm_VM(), new_pg_result(res, (ScmPg*) pg_conn_scm), 0);
+#else
   Scm_VMThrowException(Scm_VM(), new_pg_result(res, (ScmPg*) pg_conn_scm));
+#endif
+
+
   // Scm_ReportError();
   return SCM_UNDEFINED;
 }
