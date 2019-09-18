@@ -751,14 +751,25 @@ ScmObj uv = Scm_MakeUVectorFull(SCM_CLASS_U8VECTOR, r, pg_buffer, TRUE, &pg_owne
 return uv;
      };")
 
+
+;; so, I want a different type of data -- just a buffer, and convert it when necessary, into u8vector.
+;; I cannot break (do arbitrary modifications) a regular u8vector!
+;; Scm_UVectorAlias
 (define-cproc pg-copy-data-discard (buffer::<u8vector>)
   "
+
 if ((buffer->elements)
      && (buffer->owner == &pg_owner))
 {
   PQfreemem(buffer->elements);
   buffer->elements = NULL;
-  buffer->size = 0;
+
+
+// SCM_UVECTOR_IMMUTABLE_SET(buffer,
+  // SCM_UVECTOR_SIZE
+
+  buffer->size_flags =0; // mutable & 0 elements.
+
 };
 SCM_RETURN(SCM_UNDEFINED);")
 
