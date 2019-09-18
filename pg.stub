@@ -23,7 +23,7 @@
 
 ;;; `Types' / structs
 
-(define-type <pg-handle> "PGconn*" #f; "box for the postgresql handle"
+(define-type <pg-handle> "PGconn*" "Box for the postgresql handle"
   "SCM_PG_HANDLE_P" "SCM_PG_HANDLE" "new_pg_handle")
 
 
