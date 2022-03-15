@@ -3,7 +3,10 @@
 ## Multi-version-api packaging:
 PG_VERSION=$(pg_config --version |sed -e 's/^PostgreSQL //;s/\.[[:digit:]]\+$//')
 
-replace-gauche-string.pl --api=pg --version=$PG_VERSION debian/control.in > debian/control
+#replace-gauche-string.pl --api=pg --version=$PG_VERSION
+
+sed -e 's/@pg@/pg-$PG_VERSION/g;s/@gauche@/gauche/g' \
+    debian/control.in > debian/control
 
 # make -f debian/rules debian/control
 
