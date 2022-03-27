@@ -57,8 +57,9 @@ pg.c : pg.stub pg-lib.h
 test : all
 	# debian can run all under pg_virtualenv
 	# pg_isready
-	for test in test/pg-low.scm test/pg-hi.scm test/types.scm  ; do \
-	gosh -ftest $$test; \
+	# test/pg-hi.scm test/types.scm
+	for test in test/pg-low.scm; do \
+	gosh -I scm/ -I .  -ftest $$test; \
 	done
 
 #	@rm -f test.log
