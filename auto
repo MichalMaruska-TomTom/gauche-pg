@@ -6,7 +6,7 @@ PG_VERSION=$(pg_config --version |sed -e 's/^PostgreSQL //;s/\.[[:digit:]]\+$//'
 LIBPQ_VERSION=5
 #replace-gauche-string.pl --api=pg --version=$PG_VERSION
 
-sed -e "s/@pg@/pg-$LIBPQ_VERSION/g;s/@gauche@/gauche/g" \
+sed -e "s/@libpq@/$LIBPQ_VERSION/g;s/@gauche@/gauche/g" \
     debian/control.in > debian/control
 
 # make -f debian/rules debian/control
