@@ -1,3 +1,40 @@
+gauche-pg (3.1) unstable; urgency=medium
+
+  * cleanup .. drop comments, spaces, empty lines
+  * run tests in my unified way -- listing all scheme files.
+  * stub: spaces
+  * drop head/tail
+  * compat 9
+  * .include
+  * spaces
+  * rely on the implitic  form
+  * rewrite pg-connect with cise
+  * drop comments
+  * format
+  * stub: reinstate the doc string?
+  * space & drop old stuff
+  * GAUCHE_API_0_95 behaviour is now the default one!
+  * fix the pg->uvector 0-transformation
+  * pg-port
+  * spaces
+  * Avoid replace-gauche-string.pl -- use SED, and @placeholders@
+  * Target the libpq version
+  * debian: compat
+  * name the package independent of the libpg version
+  * autoupdate
+  * rename to .ac
+  * stop creating control via rules
+  * don't autoreconf
+  * remove non-existing tests
+  * test (low): connect to "test" db
+  * test (low): check connection to default port
+  * test (low): delete the test schema at the end
+  * test (low): use private tables for the test only
+  * test (low): upcase the SQL keywords
+  * debian: use standard installation
+
+ -- Michal Maruska <mmaruska@gmail.com>  Mon, 28 Mar 2022 05:02:18 +0200
+
 gauche-pg (3.0) unstable; urgency=medium
 
   * spaces
