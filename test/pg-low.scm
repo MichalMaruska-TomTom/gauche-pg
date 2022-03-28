@@ -19,10 +19,11 @@
 ;;; Code:
 (define pgcon (pg-connect "dbname=test"))
 
-;(define *PGPORT* (string->number (sys-getenv "PGPORT")))
+(define *PGPORT* (string->number (or (sys-getenv "PGPORT") "5432")))
 
 (test* "connection params"
-       ;(list *PGPORT* "michal")
+       (list *PGPORT* "michal")
+
        (list (string->number
               (pg-port pgcon))
              (pg-user pgcon)))
