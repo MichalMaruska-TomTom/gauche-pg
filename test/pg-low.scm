@@ -17,7 +17,7 @@
 
 
 ;;; Code:
-(define pgcon (pg-connect "dbname=maruska"))
+(define pgcon (pg-connect "dbname=test"))
 
 ;(define *PGPORT* (string->number (sys-getenv "PGPORT")))
 
