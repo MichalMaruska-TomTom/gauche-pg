@@ -56,20 +56,20 @@
        PGRES_COMMAND_OK
        (let1 result
            (pg-exec pgcon
-             "create table gauche_test.people (name text, surname varchar, age int);")
+             "CREATE TABLE gauche_test.people (name text, surname varchar, age int);")
          (pg-result-status result)))
 
 (test* "inserting"
        (list PGRES_COMMAND_OK "0")	;why 0?
        ;; not PGRES_TUPLES_OK  why not?
        (let1 result (pg-exec pgcon
-                      "insert into gauche_test.people values ('Michal', 'Maruska');")
+                      "INSERT INTO gauche_test.people VALUES ('Michal', 'Maruska');")
          (list (pg-result-status result)
                (pg-oid-status result))))
 
 
 (test-section "pg access result")
-(define result (pg-exec pgcon "select name, surname, age from gauche_test.people;"))
+(define result (pg-exec pgcon "SELECT name, surname, age FROM gauche_test.people;"))
 
 (test* "select"
        PGRES_TUPLES_OK
