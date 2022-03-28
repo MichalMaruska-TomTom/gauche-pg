@@ -47,24 +47,7 @@
 (test* "query exec"
        ;; create
        PGRES_COMMAND_OK
-       (let1 result
-           (pg-exec pgcon
-             "drop table gauche_test.people;")
-         (pg-result-status result)))
-
-(test* "query exec"
-       ;; create
-       PGRES_COMMAND_OK
-       (let1 result
-           (pg-exec pgcon
-             "drop schema gauche_test CASCADE;")
-         (pg-result-status result)))
-
-
-(test* "query exec"
-       ;; create
-       PGRES_COMMAND_OK
-       (let1 result (pg-exec pgcon "create schema gauche_test;")
+       (let1 result (pg-exec pgcon "CREATE SCHEMA gauche_test;")
          (pg-result-status result)))
 
 
@@ -119,6 +102,22 @@
 (define res (pg-exec pgcon "explain select * from person where numero = 1309;"))
 (pg-dump-explain res)
 
+
+(test* "query exec"
+       ;; create
+       PGRES_COMMAND_OK
+       (let1 result
+           (pg-exec pgcon
+             "DROP TABLE gauche_test.people;")
+         (pg-result-status result)))
+
+(test* "query exec"
+       ;; create
+       PGRES_COMMAND_OK
+       (let1 result
+           (pg-exec pgcon
+             "drop schema gauche_test CASCADE;")
+         (pg-result-status result)))
 
 
 
