@@ -99,7 +99,7 @@
 
 
 
-(define res (pg-exec pgcon "explain select * from person where numero = 1309;"))
+(define res (pg-exec pgcon "explain select * from gauche_test.people where name = 'Michal';"))
 (pg-dump-explain res)
 
 
