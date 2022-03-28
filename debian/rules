@@ -3,7 +3,5 @@
 %:
 	dh $@
 
-override_dh_install:
-	dh_install --sourcedir=debian/tmp/
 # do nothing
 override_dh_autoreconf:
