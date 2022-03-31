@@ -73,7 +73,7 @@
 ;; Get the last (already) assigned seq value:
 (define (pg:curval pg sequence-name)
   (let1 res (pg-exec pg
-	      (sql:select-function "curval" (s+ (pg:text-printer sequence-name))))
+	      (sql:select-function "currval" (s+ (pg:text-printer sequence-name))))
     (pg-get-value res 0 0)))
 
 
