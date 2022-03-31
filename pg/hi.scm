@@ -66,14 +66,14 @@
    (pg-exec
        handle
      (sql:select-function "nextval" (s+ (pg:text-printer name)
-					;; fixme: needed?
-					"::text")))
+                                        ;; fixme: needed?
+                                        "::text")))
    0 0))
 
 ;; Get the last (already) assigned seq value:
 (define (pg:curval pg sequence-name)
   (let1 res (pg-exec pg
-	      (sql:select-function "currval" (s+ (pg:text-printer sequence-name))))
+              (sql:select-function "currval" (s+ (pg:text-printer sequence-name))))
     (pg-get-value res 0 0)))
 
 
@@ -103,7 +103,7 @@
     att)
    ((string? att)
     (or (pg:attname->attribute relation att)
-	;;(unless (hash-table-exists? (slot-ref relation 'attributes-hash) att)
+        ;;(unless (hash-table-exists? (slot-ref relation 'attributes-hash) att)
         (errorf "relation ~a does not have attribute named ~a" relation att)))
    ((number? att)
     (pg:nth-attribute relation att))
