@@ -125,12 +125,12 @@
   (DB "qbe->where: ~a\n" qbe)
   (sql:alist->where
    (map (lambda (i)
-	  (let ((attnum (car i))
-		(value (cdr i)))
-	    (let ((attribute (pg:nth-attribute relation attnum)))
-	      (cons
-	       (pg:name-printer (pg:attribute-name attribute))
-	       (scheme->pg (pg:attribute-type attribute) value)))))
+          (let ((attnum (car i))
+                (value (cdr i)))
+            (let ((attribute (pg:nth-attribute relation attnum)))
+              (cons
+               (pg:name-printer (pg:attribute-name attribute))
+               (scheme->pg (pg:attribute-type attribute) value)))))
      qbe)))
 
 
@@ -142,20 +142,20 @@
     (let1 rel (slot-ref rs 'relations)
       (cond
        ((string? rel)
-	rel)
+        rel)
        ((is-a? rel <pg-relation>)
-	(slot-ref rel 'name))
+        (slot-ref rel 'name))
        ((pair? rel)
-	(string-join rel ", "))
+        (string-join rel ", "))
 
        (else
-	;; not a list:
-	'(map
-	     (lambda (r)
-	       (ref r 'name))
-	   (slot-ref rs 'relations))
-	(error "what relation?")
-	))))
+        ;; not a list:
+        '(map
+             (lambda (r)
+               (ref r 'name))
+           (slot-ref rs 'relations))
+        (error "what relation?")
+        ))))
    ;; 'join ?
    (else
     #f)))
@@ -165,57 +165,57 @@
   (or (slot-value-or rs 'query #f)
       ;; (if 'where bound but also some other .... error?
       (begin
-	(DB "rs-compose-query: ~a\n" rs)
-	(let ((relations (get-relations rs))
-	      (where
-	       (cond
-		((slot-bound? rs 'where)
-		 (possibly-join
-		  (slot-ref rs 'where) ", "))
-		;;
-		;; query-by-example
-		;; ((numero 1309) ....)
-		((slot-bound? rs 'qbe)
-		 ;; list of constraint on
-		 ;;(logformat "qbe: ~a\n" (slot-ref rs 'qbe))
-		 ;;(logformat "is:\n ~a\n"
-		 ;;   (qbe->where (slot-ref rs 'relations)
-		 ;;               (slot-ref rs 'qbe)))
-		 (qbe->where
-		  (slot-ref rs 'relations)
-		  (slot-ref rs 'qbe)))
-		;; scheme QL ?
-		(else
-		 #f)))
+        (DB "rs-compose-query: ~a\n" rs)
+        (let ((relations (get-relations rs))
+              (where
+               (cond
+                ((slot-bound? rs 'where)
+                 (possibly-join
+                  (slot-ref rs 'where) ", "))
+                ;;
+                ;; query-by-example
+                ;; ((numero 1309) ....)
+                ((slot-bound? rs 'qbe)
+                 ;; list of constraint on
+                 ;;(logformat "qbe: ~a\n" (slot-ref rs 'qbe))
+                 ;;(logformat "is:\n ~a\n"
+                 ;;   (qbe->where (slot-ref rs 'relations)
+                 ;;               (slot-ref rs 'qbe)))
+                 (qbe->where
+                  (slot-ref rs 'relations)
+                  (slot-ref rs 'qbe)))
+                ;; scheme QL ?
+                (else
+                 #f)))
 
-	      (select ;; Get the select part:
-	       (cond
-		((slot-bound? rs 'select)
-		 (possibly-join (slot-ref rs 'select) ", "))
-		((slot-bound? rs 'attributes)
-		 (possibly-join (slot-ref rs 'attributes) ", "))
-		;; fixme!  This should remove Fixed attributes! And somehow I
-		;; should add them to the hash of
-		(else "*")))
+              (select ;; Get the select part:
+               (cond
+                ((slot-bound? rs 'select)
+                 (possibly-join (slot-ref rs 'select) ", "))
+                ((slot-bound? rs 'attributes)
+                 (possibly-join (slot-ref rs 'attributes) ", "))
+                ;; fixme!  This should remove Fixed attributes! And somehow I
+                ;; should add them to the hash of
+                (else "*")))
 
-	      ;; order!
-	      (order (and (slot-bound? rs 'order)
-			  (slot-ref rs 'order)))
+              ;; order!
+              (order (and (slot-bound? rs 'order)
+                          (slot-ref rs 'order)))
 
-	      (group-by
-	       (and (slot-bound? rs 'group-by)
-		    (slot-ref rs 'group-by))))
-	  ;; simple:
-	  (let1 query (sql:select-full
-		       select
-		       relations
-		       where
-		       group-by
-		       order
-		       (slot-ref-non-f rs 'limit #f)
-		       (slot-ref-non-f rs 'offset #f))
-	    (slot-set! rs 'query query)
-	    query)))))
+              (group-by
+               (and (slot-bound? rs 'group-by)
+                    (slot-ref rs 'group-by))))
+          ;; simple:
+          (let1 query (sql:select-full
+                       select
+                       relations
+                       where
+                       group-by
+                       order
+                       (slot-ref-non-f rs 'limit #f)
+                       (slot-ref-non-f rs 'offset #f))
+            (slot-set! rs 'query query)
+            query)))))
 
 
 ;;; Processing the result:
@@ -223,7 +223,7 @@
   (rs-force rs)
   (DB  "rs->result ~a\n"
        (pg-status-status
-	(pg-result-status (ref (ref rs 'result) 'result))))
+        (pg-result-status (ref (ref rs 'result) 'result))))
   (ref rs 'result))
 
 
@@ -334,7 +334,7 @@
                       (slot-ref row 'convert-eof-to-empty-string)
                     (car strict?))
                   ;; [21 mag 06]    When I ask for numbers, there is no difference
-		  ;;   between testing for EOF and "".
+                  ;;   between testing for EOF and "".
                   ;; This trick helps only for string, which is not worth it!
                   ""
                 val)
