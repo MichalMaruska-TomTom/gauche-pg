@@ -35,7 +35,7 @@
    pg:attname->attnum
 
    pg:attname->attribute  pg:get-attribute
-					;fixme: This should be a new standard!
+                                        ;fixme: This should be a new standard!
    pg:nth-attribute    pg:attnum->attribute
 
    pg:real-nth-attribute pg:attribute-colnum
@@ -128,7 +128,7 @@
 (define (pg:relation-put! rel tag data)
   (slot-set! rel 'data
     (aput (slot-ref rel 'data)
-	  tag
+          tag
           data)))
 
 (define (pg:relation-get rel tag . default)
@@ -198,38 +198,38 @@
 (define (load-p-key pgh rel)
   (receive (name p-key)			;name is `conname' ...constraint name ?
       (let1 result (pg-exec pgh
-		     (sql:select-u
-		      '(conkey conname)
-		      :from "pg_constraint"
-		      :where
-		      (s+
-		       "conrelid = " (number->string (ref rel 'oid))
-		       ;;(relname->relid handle relname)) ;I don't like this!
-		       " AND "
-		       "contype = 'p' ")
-		      ;;" conname='" relname "_pkey'"
-		      ))
-	(if (zero? (pg-ntuples result))
-	    (values #f #f)
+                     (sql:select-u
+                      '(conkey conname)
+                      :from "pg_constraint"
+                      :where
+                      (s+
+                       "conrelid = " (number->string (ref rel 'oid))
+                       ;;(relname->relid handle relname)) ;I don't like this!
+                       " AND "
+                       "contype = 'p' ")
+                      ;;" conname='" relname "_pkey'"
+                      ))
+        (if (zero? (pg-ntuples result))
+            (values #f #f)
 
-	  ;; First check the minimum:
-	  (values
-	   (pg-get-value result 0 1)
-	   (let1 value (pg-get-value result 0 0)
+          ;; First check the minimum:
+          (values
+           (pg-get-value result 0 1)
+           (let1 value (pg-get-value result 0 0)
 
-	     ;; Bug:  This is a list of `attnum's !
-	     (let1 min-attribute (apply min value)
-	       (when (< min-attribute (ref rel 'attribute-min))
-		 ;; I have to reconstruct the attributes vector!
-		 (enlarge-n-load-attributes! rel min-attribute pgh)))
+             ;; Bug:  This is a list of `attnum's !
+             (let1 min-attribute (apply min value)
+               (when (< min-attribute (ref rel 'attribute-min))
+                 ;; I have to reconstruct the attributes vector!
+                 (enlarge-n-load-attributes! rel min-attribute pgh)))
 
-	     (map (lambda (attnum)
-		    ;; fixme: do we start w/ 0 ??
-		    (vector-ref (slot-ref rel 'attributes)
-				(-
-				 attnum
-				 (slot-ref rel 'attribute-min)))) ; huh?
-	       value)))))
+             (map (lambda (attnum)
+                    ;; fixme: do we start w/ 0 ??
+                    (vector-ref (slot-ref rel 'attributes)
+                                (-
+                                 attnum
+                                 (slot-ref rel 'attribute-min)))) ; huh?
+               value)))))
     ;; fixme: the p-key should be sorted !
     (slot-set! rel 'p-key p-key)
     (slot-set! rel 'p-key-name name)
@@ -250,16 +250,16 @@
 
         ;; GEt the basic info:    fixme: we already have it!
         (let1 rel-result
-	    (pg-exec pgh
-	      (sql:select
-	       ;; todo:
-	       ;;  fixme: pg:get-relation  already could get this data!
-	       '(oid relhasindex relkind relnatts relchecks
-		     relhassubclass) ;; fixme: relhaspkey relhasoids
-	       "pg_class"
-	       (sql:alist->where
-		`(("relname" . ,(pg:text-printer relname))
-		  ("relnamespace" . ,(pg:number-printer (ref (ref rel 'namespace) 'oid)))))))
+            (pg-exec pgh
+              (sql:select
+               ;; todo:
+               ;;  fixme: pg:get-relation  already could get this data!
+               '(oid relhasindex relkind relnatts relchecks
+                     relhassubclass) ;; fixme: relhaspkey relhasoids
+               "pg_class"
+               (sql:alist->where
+                `(("relname" . ,(pg:text-printer relname))
+                  ("relnamespace" . ,(pg:number-printer (ref (ref rel 'namespace) 'oid)))))))
 
           (unless (= (pg-ntuples rel-result) 1)
             (errorf "pg:refresh-relation-info: more objects with the same relname: ~a" relname))
@@ -298,7 +298,7 @@
                                         ;  (slot-set! rel 'p-key
         ;; decompose the pg-array into a `list' of attributes.
         (unless (slot-bound? rel 'p-key)
-	  (load-p-key pgh rel)
+          (load-p-key pgh rel)
           ))))
   (DB "p-key: ~a\n" (ref rel 'p-key)))
 
@@ -374,7 +374,7 @@
              namespace
              (sql:select
               '(oid relname relkind relnatts relfilenode relnamespace) ;; fixme: relhaspkey relhasoids
-	      ;; oid! ;reltuples relpages relhasindex
+              ;; oid! ;reltuples relpages relhasindex
               "pg_class"
               (s+ condition-for-relation-or-view
                   " AND relname = " (pg:text-printer relname)
@@ -464,7 +464,7 @@
 (define (get-attributes-of! relation handle from to) ;handle is <pg> !!
   (unless (eq? (class-of handle) <pg>)
     (error "get-attributes-of!: wrong-type for handle, should be <pg>"
-	   handle (class-of handle)))
+           handle (class-of handle)))
   (assert (slot-bound? relation 'attribute-min))
   (let* ((result (pg-exec handle
                    ;;  (column  attname  type)
@@ -484,30 +484,30 @@
     ;; Fixme: I should check, that `attnum's are 0,1,
     ;         otherwise I reserve more than needed?
     (let-values (((info-vector attributes-hash)
-		  (if (slot-bound? relation 'attributes)
-		      (values
-		       (slot-ref relation 'attributes)
-		       (slot-ref relation 'attributes-hash))
-		    (values
-		     (make-vector (+ (max to (- from to))
-				     ;; (pg-get-value result (- count 1) 0)
-				     1)   #f) ; bug: count
-		     (make-hash-table 'string=?))))
-		 )
+                  (if (slot-bound? relation 'attributes)
+                      (values
+                       (slot-ref relation 'attributes)
+                       (slot-ref relation 'attributes-hash))
+                    (values
+                     (make-vector (+ (max to (- from to))
+                                     ;; (pg-get-value result (- count 1) 0)
+                                     1)   #f) ; bug: count
+                     (make-hash-table 'string=?))))
+                 )
       (DB "count is ~d\n" count)
 
       ;; fixme: This should be a method!
       (pg-foreach-result result
           (list "attnum" "attname" "atttypid")
         (lambda (num name type-oid)
-	  (hash-table-put! attributes-hash
-			   name num)
+          (hash-table-put! attributes-hash
+                           name num)
           (let* ((type (pg-find-type handle type-oid))
                  (attribute (make <pg-attribute>
-			      :relation relation
-			      :attnum num
-			      :attname name
-			      :atttyp type)))
+                              :relation relation
+                              :attnum num
+                              :attname name
+                              :atttyp type)))
             (vector-set! info-vector (+ offset num)
                          attribute))))
 
@@ -608,7 +608,7 @@
   (DB "pg:for-namespace is buggy: needs a mutex!\n")
   (for-each
       (lambda (relname)
-	(function (pg:get-relation namespace relname)))
+        (function (pg:get-relation namespace relname)))
     (pg:namespace-relnames namespace)))
 
 
@@ -630,9 +630,9 @@
   (let1 namespaces (ref db 'namespaces)
     (unless (null? refresh?)
       (for-each
-	  (lambda (ns)
-	    (pg:namespace-relations ns))
-	namespaces))
+          (lambda (ns)
+            (pg:namespace-relations ns))
+        namespaces))
 
     (append-map
      (lambda (namespace)
