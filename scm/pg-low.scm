@@ -30,9 +30,9 @@
 ;; apply to the whole RELATION!
 (define (pg-map-table conn relname function)
   (let* ((result (pg-exec conn
-		   (string-append "SELECT * from "
-				  (pg:name-printer relname) ";")))
-	 ;;(nrows (pg-ntuples result))
+                   (string-append "SELECT * from "
+                                  (pg:name-printer relname) ";")))
+         ;;(nrows (pg-ntuples result))
          (nfields (pg-nfields result)))
     (for-numbers<* row 0 (pg-ntuples result)
       (apply function
