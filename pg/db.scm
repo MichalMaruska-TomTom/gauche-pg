@@ -148,43 +148,43 @@
 
 
         (let1 connection
-	    (if (or (null? (ref database 'conn-pool))
-		    ;; fixme!!
-		    really-new?
-		    user)
-		;; The high level! `<pg>'
-		(let1 conn
-		    (pg-open
-		     (append (apply
-			      append
-			      (cond-list
-			       ((ref database 'host)
-				`(:host ,(ref database 'host)))
-			       (user
-				;;(ref database 'user)
-				'(:user user))))
-			     (list
-			      ;; Fixme:  port
-			      :dbname (ref database 'name)
-			      )))
+            (if (or (null? (ref database 'conn-pool))
+                    ;; fixme!!
+                    really-new?
+                    user)
+                ;; The high level! `<pg>'
+                (let1 conn
+                    (pg-open
+                     (append (apply
+                              append
+                              (cond-list
+                               ((ref database 'host)
+                                `(:host ,(ref database 'host)))
+                               (user
+                                ;;(ref database 'user)
+                                '(:user user))))
+                             (list
+                              ;; Fixme:  port
+                              :dbname (ref database 'name)
+                              )))
 
-		  (if (or user debug)
-		      (logformat "pg-open as ~a\n" user))
+                  (if (or user debug)
+                      (logformat "pg-open as ~a\n" user))
 
-		  (if debug-handles
-		      (logformat-color 'red "Another connection opened: ~d\n"
-			(pg-backend-pid (ref conn 'conn))))
+                  (if debug-handles
+                      (logformat-color 'red "Another connection opened: ~d\n"
+                        (pg-backend-pid (ref conn 'conn))))
 
-		  (slot-set! conn 'database database)
-		  ;; fixme:  slot-push! ?
-		  (slot-push! database 'conn-pool conn)
-		  ;;(slot-set! database 'conn-pool (list conn))
-		  (if debug-handles
-		      (logformat-color 'yellow "pg:new-handle: backend ~d\n"
-			(pg-backend-pid
-			 (ref conn 'conn))))
-		  conn)
-	      (car (ref database 'conn-pool)))
+                  (slot-set! conn 'database database)
+                  ;; fixme:  slot-push! ?
+                  (slot-push! database 'conn-pool conn)
+                  ;;(slot-set! database 'conn-pool (list conn))
+                  (if debug-handles
+                      (logformat-color 'yellow "pg:new-handle: backend ~d\n"
+                        (pg-backend-pid
+                         (ref conn 'conn))))
+                  conn)
+              (car (ref database 'conn-pool)))
 
           (if private
               ;; fixme: it's at the head, isn't it?
@@ -199,20 +199,20 @@
 
   (let1 h #f
     (dynamic-wind
-	(lambda ()
-	  (if debug (logformat "pg:with-private-handle get private!\n"))
-	  (set! h (apply pg:new-handle pg :private #t rest)))
+        (lambda ()
+          (if debug (logformat "pg:with-private-handle get private!\n"))
+          (set! h (apply pg:new-handle pg :private #t rest)))
 
-	(lambda ()
-	  ;; fixme: this does not work w/ continuations!
-	  ;; todo:  `wind'
-	  ;; fixme:  with more values!!!
-	  (fun h))
-	(lambda ()
-	  (if debug (logformat "pg:with-private-handle dispose!\n"))
-	  (pg:dispose-handle pg h)
-	  ;;result
-	  ))))
+        (lambda ()
+          ;; fixme: this does not work w/ continuations!
+          ;; todo:  `wind'
+          ;; fixme:  with more values!!!
+          (fun h))
+        (lambda ()
+          (if debug (logformat "pg:with-private-handle dispose!\n"))
+          (pg:dispose-handle pg h)
+          ;;result
+          ))))
 
 ;; Macros first?
 (define-syntax pg:with-private-handle*
@@ -342,10 +342,10 @@
 (define (normalize-hostname host)
   (and host
        (if (string-prefix? "/" host)	;local path!
-	   host
-	 (let1 host (sys-gethostbyname host)
-	   ;;(slot-ref host 'aliases)
-	   (ref host 'name)))))
+           host
+         (let1 host (sys-gethostbyname host)
+           ;;(slot-ref host 'aliases)
+           (ref host 'name)))))
 
 ;(normalize-hostname "/tmp")
 ;(normalize-hostname "linux10")
@@ -367,7 +367,7 @@
 (define (keep-unique host port database)
   ;; (if (and host port database)
   (if debug-handles (logformat-color 'green "keep-unique: ~a ~a ~a\n"
-		      host port database))
+                      host port database))
   ;; connect
   (let* ((pg (apply pg-open
                     (apply
@@ -376,8 +376,8 @@
                       (host `(:host ,host))
                       (database `(:dbname ,database)) ;if not given?
                       (port `(:port ,port))))))
-	 ;; <pg> keeps ... types?
-	 ;;
+         ;; <pg> keeps ... types?
+         ;;
          (pgc (ref pg 'conn))
          (hostname (normalize-hostname (pg-host pgc)))
          ;; This might be #f !
@@ -388,20 +388,20 @@
                  (lambda (db)
                    (and
                     ;; canonic hostname of HOST ?
-		    (maybe-string=? hostname (ref db 'host))
-		    ;; mmc: why ref and not (pg-hostname db)?
+                    (maybe-string=? hostname (ref db 'host))
+                    ;; mmc: why ref and not (pg-hostname db)?
 
                     (string=? port     (ref db 'port))
                     (string=? database (ref db 'name))))
                  *databases*)))
 
     (if debug (logformat "keep-unique: ~a ~a ~a: ~a\n" hostname port database
-			 (if found "FOUND" "NEW")))
+                         (if found "FOUND" "NEW")))
     (if found
         (begin
           ;; push pg into the pool of connections
           (pg:dispose-handle found pg)
-					;(push! (ref found 'conn-pool) pg)
+                                        ;(push! (ref found 'conn-pool) pg)
           found)
       pg)))
 
@@ -417,7 +417,7 @@
          (user (sys-getenv "PGUSER"))
          (port (sys-getenv "PGPORT")))
       (let1 p (keep-unique host port database) ;fixme:  USER!
-	(cond
+        (cond
          ((is-a? p <pg-database>)
           p)
          ((is-a? p <pg>)
@@ -434,21 +434,21 @@
                          :dictionary (make-hash-table 'eq?)
                          :conn-pool ()  ;(list p)
                          :admin-handle p)))
-	      (push! *databases* db)
+              (push! *databases* db)
 
 
               ;; -fixme: lazily!
               ;;(if debug (logformat
-	      ;;   "New DB, `pg:load-namespaces' should be lazy!\n"))
+              ;;   "New DB, `pg:load-namespaces' should be lazy!\n"))
 
               ;; Run all hooks:
-	      (DB "running hooks\n")
+              (DB "running hooks\n")
               (for-each
-		  (lambda (a)
-		    (DB "~s\n" (car a))
-		    ((cdr a) db))
-		new-db-hooks)
-	      (DB "finished running hooks\n")
+                  (lambda (a)
+                    (DB "~s\n" (car a))
+                    ((cdr a) db))
+                new-db-hooks)
+              (DB "finished running hooks\n")
               db)))
          (else
           (error "wrong object as PG handle")))))))

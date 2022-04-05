@@ -51,8 +51,4 @@
           (hash-table-put! hash oid type))))
     hash))
 
-
-
-
 (provide "pg.caching")
-

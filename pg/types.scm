@@ -114,7 +114,7 @@
     ;; but this needs the TZ with 00 appended:
     ;; (string->date   str "~Y-~m-~d ~k:~M:~S~z")
     (make-date 0 seconds minutes hours day month year (* 3600 tz))))
-					;; mmc: (- year 1900) (- month 1)
+                                        ;; mmc: (- year 1900) (- month 1)
 
 (define (pg:timestamptz-parser str)
   ;(logformat "pg:timestamptz-parser\n")
@@ -378,7 +378,7 @@
   ;(logformat "pg-printer: searching for ~d\n" oid)
   ;; fixme: and-let
   (let* ((name (pg-type-name pgconn oid))
-	 ;; fixme: This is available for the High <pg> ! Which has an hash of <pg-type> !
+         ;; fixme: This is available for the High <pg> ! Which has an hash of <pg-type> !
          (info (assoc oid name pg:type-parsers)))
     ;; oid (slot-ref pgconn 'converters))
     (if info
