@@ -10,7 +10,7 @@
    pg-attribute-indexes
    pg-map-result
    pg-foreach-result
-   pg-map-table
+   pg-map-whole-table
    pg-result->alist
 
    with-db-transaction
@@ -36,7 +36,7 @@
 
 
 ;; apply to the whole RELATION!
-(define (pg-map-table conn relname function)
+(define (pg-map-whole-table conn relname function)
   (let* ((result (pg-exec conn
                    (string-append "SELECT * from "
                                   (pg:name-printer relname) ";")))
