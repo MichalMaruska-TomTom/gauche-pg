@@ -6,7 +6,7 @@
    pg:update-or-insert
    ;; sequences
    pg:get-from-sequence
-   pg:curval
+   pg:currval
    ;; normalizing  Attribute
    pg:normalize-relation                ; fixme: should go into pg.database !
    pg:normalize-attribute
@@ -71,7 +71,7 @@
    0 0))
 
 ;; Get the last (already) assigned seq value:
-(define (pg:curval pg sequence-name)
+(define (pg:currval pg sequence-name)
   (let1 res (pg-exec pg
               (sql:select-function "currval" (s+ (pg:text-printer sequence-name))))
     (pg-get-value res 0 0)))
