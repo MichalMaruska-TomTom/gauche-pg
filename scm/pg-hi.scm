@@ -184,28 +184,28 @@
 
      (else
       (let1 name (car rest)
-	(if (member name pg-open-accepted-keywords) ;(keyword? name)
-	    (add-param
-	     (cons
-	      (format #f "~a=~a" (keyword->string name)
-		      (list-ref rest 1))
-	      param)
-	     (cddr rest))
-	  ;; skip...  fixme:  only 1?
-	  (add-param param (cdr rest))))))))
+        (if (member name pg-open-accepted-keywords) ;(keyword? name)
+            (add-param
+             (cons
+              (format #f "~a=~a" (keyword->string name)
+                      (list-ref rest 1))
+              param)
+             (cddr rest))
+          ;; skip...  fixme:  only 1?
+          (add-param param (cdr rest))))))))
 
 ;;; Connecting
 
 (define (handle->description handle)
   (string-join			; non empty !!
       (remove not
-	      (list
-	       (format-nonvoid "host=~a" (pg-host handle))
-	       (format-nonvoid "dbname=~a" (pg-db handle))
-	       (format-nonvoid "user=~a" (pg-user handle))
-	       (format-nonvoid "port=~a" (pg-port handle))
-	       (format-nonvoid "options=~a" (pg-options handle))
-	       (format-nonvoid "pass=~a" (pg-pass handle))))
+              (list
+               (format-nonvoid "host=~a" (pg-host handle))
+               (format-nonvoid "dbname=~a" (pg-db handle))
+               (format-nonvoid "user=~a" (pg-user handle))
+               (format-nonvoid "port=~a" (pg-port handle))
+               (format-nonvoid "options=~a" (pg-options handle))
+               (format-nonvoid "pass=~a" (pg-pass handle))))
        " "))
 
 
@@ -252,10 +252,10 @@
 
 (define-method object-apply ((res <pgresult>) row column)
   (pg-get-value (ref res 'result)
-		row
-		(if (number? column)
-		    column
-		  (pg-fnumber (ref res 'result) column))))
+                row
+                (if (number? column)
+                    column
+                  (pg-fnumber (ref res 'result) column))))
 
 (define-class <pg-row> ()
   ((result :init-keyword :result)
@@ -263,10 +263,10 @@
 
 (define-method object-apply ((row <pg-row>) index)
   (pg-get-value (ref row 'result)
-		(slot-ref row 'row)
-		(if (number? index)
-		    index
-		  (pg-fnumber (ref row 'result) index))))
+                (slot-ref row 'row)
+                (if (number? index)
+                    index
+                  (pg-fnumber (ref row 'result) index))))
 
 (define-generic pg-get-row)
 (define-method pg-get-row ((result <pgresult>) i)
@@ -294,7 +294,7 @@
 (define-method call-with-iterator ((result <pgresult>) proc . options)
   ;; todo: options:  START
   (let ((current-row 0)
-	(last (pg-ntuples result)))
+        (last (pg-ntuples result)))
     ;; return 2 lambdas
     (proc
      ;; predicate for the END:
@@ -303,12 +303,12 @@
      ;; Get the next:
      (lambda ()
        (let1 row (pg-get-row result current-row)
-	 ;; (make <pg-row>
-	 ;; 	   ;;
-	 ;; 	   :result result
-	 ;; 	   :row current-row)
-	 (inc! current-row)
-	 row)))))
+         ;; (make <pg-row>
+         ;;        ;;
+         ;;        :result result
+         ;;        :row current-row)
+         (inc! current-row)
+         row)))))
 
 
 ;;; Accessing columns/fields
@@ -323,7 +323,7 @@
     (for-numbers<* i 0 fields
       (let1 type (pg-find-type pg (pg-ftype presult i))
         ;; (pg-type-name conn (pg-ftype presult i))
-	;;fixme:  pg-ftype is a generic: it returns type-name!
+        ;;fixme:  pg-ftype is a generic: it returns type-name!
 
         (vector-set! types i type)
         ;(vector-set! v i (pg-converter pg (pg-ftype presult i)))   ;pg-type-->parsers
@@ -386,9 +386,9 @@
 
        ;; fixme:  i think there's a C api to detect it!
        ((string=? (pg-cmd-status result) "BEGIN") ; fixme: i should see ALL results...
-	(slot-set! handle 'transaction #t))
+        (slot-set! handle 'transaction #t))
        ((string=? (pg-cmd-status result) "COMMIT") ; fixme: i should see ALL results...
-	(slot-set! handle 'transaction #f))))
+        (slot-set! handle 'transaction #f))))
 
     (pg-result->hiresult result handle)))
 
@@ -473,9 +473,9 @@
       (lambda (row)
       ;; word -> abbrev
       (set! alist
-	    (aput alist
-		  (row 1)
-		  (row 0))))
+            (aput alist
+                  (row 1)
+                  (row 0))))
     (pg-exec handle query))
   alist)
 
@@ -485,8 +485,8 @@
       (lambda (row)
       ;; word -> abbrev
       (hash-table-put! hash
-		       (row 0)
-		       (row 1)))
+                       (row 0)
+                       (row 1)))
 
     (pg-exec handle query))
   hash)
@@ -627,8 +627,8 @@
   (let ((index-k (pg-fnumber result key))
         (index-v (pg-fnumber result value)))
     (map (lambda (row)
-	   (cons (row index-k)
-		 (row index-v)))
+           (cons (row index-k)
+                 (row index-v)))
       result)))
 
 
@@ -659,7 +659,7 @@
 ;; fixme:  namespace!
 (define (pg:all-relnames handle)
   (let ((result (pg-exec handle
-			 "select relname
+                         "select relname
             from   pg_class
             where  relkind ~ '[r]'
             and    relname !~ '^pg_'
