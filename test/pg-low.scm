@@ -4,36 +4,53 @@
 
 (use gauche.test)
 
-(use pg)
-(use pg-low)
-
 (test-start "pg-low API features")
-(test-section "Connection")
+
+(use pg)
+(use adt.string)
+
+(use pg-low)
+;(load "pg-low")
+
+(test-module 'pg-low)
+;(select-module pg-low)
 
 ;;; Configuration
 ;(sys-setenv "PG_MMC" "y")
 
 
-
-
-;;; Code:
-(define pgcon (pg-connect "dbname=test"))
-
 (define *PGPORT* (string->number (or (sys-getenv "PGPORT") "5432")))
 
-(test* "connection params"
-       (list *PGPORT* "michal")
+(define *db-name* "test")
+;;; Code:
+(define pgcon (pg-connect (s+ "dbname=" *db-name*)))
 
-       (list (string->number
-              (pg-port pgcon))
-             (pg-user pgcon)))
+
+
+(test* "connection params"
+       (list *PGPORT* "michal" *db-name*)
+
+       (list (string->number (pg-port pgcon))
+             (pg-user pgcon)
+             (pg-db pgcon)))
 
 ;; todo:
 ;; async connection.
+; pg-connect-start
+                                        ; pg-connect-poll
 
 ;; todo:
-;; pg-backend-pid
-(test-section "pg Exec")
+(test* "get the backend PID" #t
+       (number? (pg-backend-pid pgcon)))
+
+(test-section "PG: exec queries")
+
+(test* "simple SELECT"
+       ;; create
+       PGRES_TUPLES_OK
+       (let1 result (pg-exec pgcon "select 1;")
+         (pg-result-status result)))
+
 ;; todo:  async exec.
 
 
@@ -44,12 +61,17 @@
 ;; how to test pg-result->alist ?
 ;; I need  sql-insert-values for that!
 ;; or write the SQL here.
-(test* "query exec"
-       ;; create
+(test* "Command to drop whole schema"
+       PGRES_COMMAND_OK
+       (let1 result
+           (pg-exec pgcon
+             "drop schema gauche_test CASCADE;")
+         (pg-result-status result)))
+
+(test* "query Command Create"
        PGRES_COMMAND_OK
        (let1 result (pg-exec pgcon "CREATE SCHEMA gauche_test;")
          (pg-result-status result)))
-
 
 (test* "query Create table"
        ;; create
@@ -59,7 +81,7 @@
              "CREATE TABLE gauche_test.people (name text, surname varchar, age int);")
          (pg-result-status result)))
 
-(test* "inserting"
+(test* "INSERT"
        (list PGRES_COMMAND_OK "0")	;why 0?
        ;; not PGRES_TUPLES_OK  why not?
        (let1 result (pg-exec pgcon
@@ -67,8 +89,12 @@
          (list (pg-result-status result)
                (pg-oid-status result))))
 
+(test-section "pg: utility")
+(test* "printer" "\"a b\""
+       (pg:name-printer "a b"))
 
-(test-section "pg access result")
+(test-section "pg: access result -- low-level")
+
 (define result (pg-exec pgcon "SELECT name, surname, age FROM gauche_test.people;"))
 
 (test* "select"
@@ -77,31 +103,59 @@
 
 ; select oid from pg_class where relname="people" and namespace = ;
 
-(test* "result ntuples etc."
-       (list 1 3 "surname" 2 1 #f)
-       (list
-        (pg-ntuples result)
-        (pg-nfields result)
-        (pg-fname result 1)
-        (pg-fnumber result "age")
-        (pg-ftablecol result 0)		;fixme: 1
-        (pg-ftable result 0)		;
-        ))
+(test* "pg-ntuples"
+       1
+       (pg-ntuples result))
 
+(test* "pg-nfields"
+       3 (pg-nfields result))
+
+(test* "pg-fname"
+       "surname"
+       (pg-fname result 1))
+
+(test* "pg-fnumber"
+       2
+       (pg-fnumber result "age")
+       )
+
+(test* "pg-ftablecol"
+       1
+       (pg-ftablecol result 0)
+       )
+
+;; convert it into name!
+(test* "pg-ftable"
+       #f
+       (pg-ftable result 0)		;
+       )
+
+(test* "pg-map-result"
+       '("Maruska")
+       (pg-map-result result '("name" "surname")
+         (lambda (name surname)
+           surname)))
+
+(test-section "pg: access result -- HI-level")
 ;; I want to see the error thrown!
-(test* "result column indices"
+(test* "pg-attribute-indexes"
        '(0 1 2)
        (pg-attribute-indexes result '("name" surname 2)))
 
-(let1 result (pg-exec pgcon "select name, surname FROM gauche_test.people;")
-  '(("Michal" . "Maruska"))
-  (pg-result->alist result))
+
+(define result2 (pg-exec pgcon "select name, surname FROM gauche_test.people;"))
+
+(test* "pg-result->alist"
+       '(("Michal" . "Maruska"))
+       (pg-result->alist result2))
 
 
-
+(test-section "pg: Explain")
 (define res (pg-exec pgcon "explain select * from gauche_test.people where name = 'Michal';"))
 (pg-dump-explain res)
 
+
+(test-section "pg: other commands")
 
 (test* "query exec"
        ;; create
