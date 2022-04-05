@@ -30,7 +30,6 @@
    pg:text-printer
    pg:char-printer
    pg:number-printer
-   pg:name-printer
    pg:bool-printer
    pg:date-printer
    pg:isodate-printer
@@ -288,15 +287,6 @@
    ;; (string-join (string-split obj  #\') "''")
    (pg-escape-string obj)
    "'"))
-
-(define (pg:name-printer name)
-  (rxmatch-if
-      (rxmatch #/^[a-zA-Z_][a-zA-Z_0-9]*$/ name)
-      (all)
-    name
-
-    (string-append "\"" (pg-escape-string name)
-                   "\"")))
 
 ;; (pg:text-printer (pg:text-printer ""))
 

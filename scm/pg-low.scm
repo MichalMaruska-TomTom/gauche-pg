@@ -5,6 +5,7 @@
   (export
    pg-dump-explain
 
+   pg:name-printer
    ;; Converting pg-result into Scheme data:
    pg-attribute-indexes
    pg-map-result
@@ -26,6 +27,13 @@
 
 (define debug #f)
 ;; necessary for modules imported by pg-hi.
+
+(define (pg:name-printer name)
+  (rxmatch-if (rxmatch #/^[a-zA-Z_][a-zA-Z_0-9]*$/ name)
+      (whole-match)
+    whole-match
+    (string-append "\"" (pg-escape-string name) "\"")))
+
 
 ;; apply to the whole RELATION!
 (define (pg-map-table conn relname function)
