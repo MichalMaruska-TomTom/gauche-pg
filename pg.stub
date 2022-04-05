@@ -191,8 +191,6 @@ SCM_RETURN(Scm_Make_PGnotify(n));")
 (define-cproc pg-protocol-version (pg_conn::<pg-handle>) ::<int>
   PQprotocolVersion)
 
-
-
 (define-cproc pg-error-message (pg_conn::<pg-handle>) ::<const-cstring>
   PQerrorMessage)
 
@@ -208,10 +206,8 @@ SCM_RETURN(Scm_Make_PGnotify(n));")
 ;;  not owner:  buffering is irrelevant, right?
 
 
-
 (define-cproc pg-transaction-status (pg_conn::<pg-handle>) ::<int>
    PQtransactionStatus)
-
 
 (define-enum PQTRANS_IDLE)
 (define-enum PQTRANS_ACTIVE)
@@ -248,8 +244,6 @@ SCM_RETURN(SCM_UNDEFINED);
 
 (define-cproc pg-backend-pid (pg_conn::<pg-handle>) ::<int>
   PQbackendPID)
-
-
 
 
 
