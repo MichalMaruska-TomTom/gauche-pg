@@ -48,7 +48,7 @@
                (lambda (j)
                  (pg-get-value result row j)))))))
 
-;; names?
+;; Translate the list @attributes into indices -- a list.
 (define (pg-attribute-indexes result attributes)
   ;; symbol, string, index
   (let1 max (pg-nfields result)
