@@ -34,6 +34,7 @@
   (use mmc.log)
   (use mmc.simple)
   (use adt.string)
+  (use adt.oo)
   (use adt.alist)
   ;(use macros.reverse)
   (use pg.database)
