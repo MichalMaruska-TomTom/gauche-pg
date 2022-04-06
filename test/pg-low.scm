@@ -89,10 +89,6 @@
          (list (pg-result-status result)
                (pg-oid-status result))))
 
-(test-section "pg: utility")
-(test* "printer" "\"a b\""
-       (pg:name-printer "a b"))
-
 (test-section "pg: access result -- low-level")
 
 (define result (pg-exec pgcon "SELECT name, surname, age FROM gauche_test.people;"))

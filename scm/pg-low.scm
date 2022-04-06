@@ -3,7 +3,6 @@
   (export
    pg-dump-explain
 
-   pg:name-printer
    ;; Converting pg-result into Scheme data:
    pg-attribute-indexes
    pg-map-result
@@ -17,6 +16,7 @@
   (use mmc.log)
   (use mmc.exit)
   (use pg)
+  (use pg.types)
   (use mmc.simple)
   (use srfi-1)
   )
@@ -25,12 +25,6 @@
 
 (define debug #f)
 ;; necessary for modules imported by pg-hi.
-
-(define (pg:name-printer name)
-  (rxmatch-if (rxmatch #/^[a-zA-Z_][a-zA-Z_0-9]*$/ name)
-      (whole-match)
-    whole-match
-    (string-append "\"" (pg-escape-string name) "\"")))
 
 
 ;; apply to the whole RELATION!

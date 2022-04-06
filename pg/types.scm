@@ -8,8 +8,8 @@
 ;;  not the oid, but the type NAME.
 
 (define-module pg.types
-  (use pg)
-  (use pg-low)
+  (use pg) ;; pg-escape-string
+  (use mmc.log)
 
   (use adt.alist)
   (use adt.string)
@@ -20,7 +20,18 @@
   (export
    <pg-type>
 
-   ;; for caching:
+   pg:printer-for
+   pg:parser-for
+   ;; Hi-level
+   scheme->pg
+   ;;
+   pg:name-printer
+   pg-array->list
+   pg-type-array?
+
+
+   ;; Deprecated:
+   ;; alists for caching:
    pg:type-printers
    pg:type-parsers
 
@@ -34,16 +45,10 @@
    pg:date-printer
    pg:isodate-printer
    pg:array-printer
-   ;;
-   pg-array->list
-   pg-type-array?
 
    pg-numeric-type?
    pg-date-type?
    pg-char-type?
-
-   ;; Hi-level
-   scheme->pg
    )
   )
 (select-module pg.types)
@@ -64,27 +69,9 @@
           (ref type 'name)
           (ref type 'oid)))
 
-; pg-type-name
-; pg-result-prepare
-; pg-printer
-; pg-converter
-
-
 ;; how to add later new <pg-type>s?
 
-
 ;; todo: this needs dynamic update.  notifies about new types.
-
-
-;; pg is low level! No. This function is obsolete!
-#;
-(define (pg-type-name pg oid)
-  ;(logformat "pg-type-name: ~d\n" oid)
-  (let1 h (slot-ref pg 'oid->type)
-    (if (hash-table-exists? h oid)
-        (hash-table-get h oid)
-      (errorf "pg-type-name: unknown type, its oid is: ~d" oid))))
-;; pg-find-type
 
 ;;;  `standard' parsers:
 (define (pg:bool-parser str)
@@ -276,11 +263,25 @@
     ))
 
 
+(define (find-or-throw key alist exception)
+  (let1 info (assoc key alist)
+    (if info
+        (cdr info)
+      (raise 'pg:type-not-found))))
+
+(define (pg:printer-for type)
+  (find-or-throw type pg:type-printers 'pg:type-not-found))
+
+(define (pg:parser-for type)
+  (find-or-throw type pg:type-parsers 'pg:type-not-found))
+
+
 ;;; `printers'
 (define (pg:bool-printer value)
   (if value "'true'"
     "'false'"))
 
+;; this is in C!
 (define (pg:text-printer obj)           ;; pg gives  "i'm" ->
   (string-append
    "'"
@@ -309,6 +310,12 @@
 (define (pg:date-printer value)
   (string-append "'" (date->string value) "'"))
 
+(define (pg:name-printer name)
+  (rxmatch-if (rxmatch #/^[a-zA-Z_][a-zA-Z_0-9]*$/ name)
+      (whole-match)
+    whole-match
+    (string-append "\"" (pg-escape-string name) "\"")))
+
 (define (pg:array-printer value-list)
   ;; strings!
   (if (or (null? value-list)
@@ -326,10 +333,6 @@
               value-list)
             ",")
         "}'")))
-
-;(pg:name-printer "ua, centro")
-;(pg:array-printer '("ua, centro"))
-;;(pg:array-printer '("1 b" "a,b"))
 
 ;;; The table:
 (define pg:type-printers
@@ -368,35 +371,6 @@
     ("reltime"   . ,pg:text-printer)     ; don't know how to parse these
     ("timespan"  . ,pg:text-printer)
     ("tinterval" . ,pg:text-printer)))
-
-
-;;;  `hi-level:'
-
-;; for the low-level  pgconn ?
-;; scheme object -> string
-(define (pg-converter pgconn oid)       ;fixme: Unused!
-  ;(logformat "pg-printer: searching for ~d\n" oid)
-  ;; fixme: and-let
-  (let* ((name (pg-type-name pgconn oid))
-         ;; fixme: This is available for the High <pg> ! Which has an hash of <pg-type> !
-         (info (assoc oid name pg:type-parsers)))
-    ;; oid (slot-ref pgconn 'converters))
-    (if info
-        (cdr info)
-      (if name
-          (error "pg-converter: cannot find for" name)
-        (error "pg-converter: cannot find for" oid)))))
-
-;; scheme object -> string
-(define (pg-printer pgconn oid)
-  ;(logformat "pg-printer: searching for ~d\n" oid)
-  (let* ((h (slot-ref pgconn 'oid->type))
-         (info (assoc (hash-table-get h oid) pg:type-printers)))
-    ;; oid (slot-ref pgconn 'converters))
-    (if info
-        (cdr info)
-      (error "pg-printer: cannot find for " oid))))
-
 
 ;;; What is the gauche-type (going to be)
 ;; fixme!
@@ -442,8 +416,10 @@
 ;; OID is the associated oid returned with the metadata. If we find a
 ;; parser for this type, we apply it, otherwise just return the
 ;; unparsed value.
-(define (pg:parse str oid)              ;mmc: oid is number.   assq should be faster
-  (let ((parser (assoc oid pg:*parsers*)))
+
+;; todo:
+#;(define (pg:parse str oid)              ;mmc: oid is number.   assq should be faster
+  (let ((parser (assoc oid pg:type-parsers)))
     (if (pair? parser)
         ((cadr parser) str)
         str)))
@@ -475,7 +451,4 @@
     (x->string value))))
 
 ;;; top-level
-
-
 (provide "pg/types")
-
