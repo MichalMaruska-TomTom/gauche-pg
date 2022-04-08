@@ -5,11 +5,11 @@
 
 (test-start "pg.links API features")
 
-(use pg)
+(use mmc.env)
+(use pg.db)
 (use pg.links)
-(use pg-hi)
 
-(test-module 'pg.db)
+(test-module 'pg.links)
 
 (test-section "Prepare")
 
@@ -17,7 +17,8 @@
   (with-env* "PGDATABASE" "test"
     (pg:connect-to-database)))
 
-(test* "pg:connect-to-database"
+
+(test* "pg:prepare-fk-links"
        #t
        (and
         (pg:prepare-fk-links pg-database)
