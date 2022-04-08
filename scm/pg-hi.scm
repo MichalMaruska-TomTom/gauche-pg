@@ -37,8 +37,6 @@
    ;; hi-level
    pg-collect-result pg-collect-single-result pg-collect-result-alist
 
-   pg:load-alist pg:load-hash
-
    pg:all-relnames
    pg-truncate
 
@@ -448,32 +446,6 @@
   (if (pg-get-isnull r i j)
       "NULL"
     (pg:text-printer (pg-get-value-string r i j))))
-
-;;; methods:  on <pgresult>
-
-;; the query should produce 2 columns
-(define (pg:load-alist alist handle query)
-  (for-each
-      (lambda (row)
-      ;; word -> abbrev
-      (set! alist
-            (aput alist
-                  (row 1)
-                  (row 0))))
-    (pg-exec handle query))
-  alist)
-
-
-(define (pg:load-hash hash handle query)
-  (for-each
-      (lambda (row)
-      ;; word -> abbrev
-      (hash-table-put! hash
-                       (row 0)
-                       (row 1)))
-
-    (pg-exec handle query))
-  hash)
 
 (define-method pg-fname ((result <pgresult>) index)
   (pg-fname (slot-ref result 'result) index))
