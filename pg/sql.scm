@@ -55,7 +55,8 @@
 (define debug #t)
 
 (define (wrap-in-parens s)
-  (s+ "( " s ")"))
+  ;; should be "( "  ??
+  (s+ "(" s ")"))
 
 ;; fixme! I could use `fast-path' C-functionality.
 (define (sql:select-function fname . args)
@@ -114,7 +115,7 @@
                               :rest args)
   (let-optionals* args
       ((what-2 "*")
-       (and-where-condition-2 #f)
+       (and-where-condition #f)
        (sort-by-2 #f))
     ;; fixme:
     (s+ "SELECT " what " FROM " relname
@@ -201,10 +202,13 @@
   (let ((from-o #f)
         (k-rest ()))
     ;; take the FROM part:
-    (unless (or (null? rest)
-                (keyword? (car rest)))
-      (set! from-o (car rest))
-      (set! k-rest (cdr rest)))
+    (if (or (null? rest)
+            (keyword? (car rest)))
+        (set! k-rest rest)
+      (begin
+        (set! from-o (car rest))
+        (set! k-rest (cdr rest))))
+
     (DB "sql:select-k keywords ~s\n" rest)
     (let-keywords* k-rest
         ((from #f)
@@ -261,7 +265,7 @@
   (let ((condition-and (where-and where)))
     (sql:delete
      relname
-     :where
+     ;; :where
      (s+
       condition-and "exists "
       (subquery
@@ -368,7 +372,7 @@
 (define (sql-condition:one-of attribute possibilities)
   ;;(logformat "sql-one-of: ~a\n" attribute)
   ;; (set! attribute (pg:name-printer attribute)
-  (let1 attname-quoted (pg:name-printer attname)
+  (let1 attname-quoted (pg:name-printer attribute)
     (wrap-in-parens
      (string-join
          ;; todo: optimize as string tree + 1 composition!
