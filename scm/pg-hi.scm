@@ -170,7 +170,6 @@
           (add-param param (cdr rest))))))))
 
 ;;; Connecting
-
 (define (handle->description handle)
   (string-join			; non empty !!
       (remove not
@@ -182,8 +181,6 @@
                (format-nonvoid "options=~a" (pg-options handle))
                (format-nonvoid "pass=~a" (pg-pass handle))))
        " "))
-
-
 
 ;; the hi level!
 (define (pg-open . args)
