@@ -20,7 +20,9 @@
 
 (test* "pg:load-foreign-keys"
        #t
-       (pg:load-foreign-keys (pg:find-namespace pg-database)))
+       (begin
+         (pg:load-foreign-keys (pg:find-namespace pg-database))
+         #t))
 
 pg:fkey-between
 
