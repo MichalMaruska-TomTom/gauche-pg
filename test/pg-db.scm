@@ -15,14 +15,14 @@
 (test-module 'pg.db)
 
 (test-section "Open connection")
-(define pg-test
+
+(define pg-database
   (with-env* "PGDATABASE" "test"
     (pg:connect-to-database)))
-
 ;(format #t "Got ~s\n" pg-test)
 (test* "pg:connect-to-database"
        #t
-       (is-a? pg-test
+       (is-a? pg-database
               <pg-database>))
 
 
