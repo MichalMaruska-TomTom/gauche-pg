@@ -59,7 +59,7 @@ test : all
 	# pg_isready
 	# test/pg-hi.scm test/types.scm
 	for test in test/pg-low.scm test/pg-types.scm test/pg-hi.scm test/caching.scm \
-		test/pg-db.scm test/pg-database.scm test/links.scm; do \
+		test/pg-db.scm test/pg-database.scm test/pg-keys.scm test/pg-sql.scm test/links.scm ; do \
 	gosh -I scm/ -I .  -ftest $$test; \
 	done
 
