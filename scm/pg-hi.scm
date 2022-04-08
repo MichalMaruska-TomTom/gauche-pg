@@ -270,7 +270,6 @@
                   (pg-fnumber result attribute))))
 
 
-
 (define-method write-object ((result <pgresult>) port)
   (format port "<pgresult: ~s/>"
           (ref result 'result)
@@ -389,8 +388,6 @@
 ;;(pg:unlock-fotos handle)
 
 
-
-
 (define-method pg-get-isnull ((result <pgresult>) tuple index)
   ;; result ->  handle ->
   (pg-get-isnull (slot-ref result 'result) tuple index))
@@ -415,8 +412,6 @@
     (string->number number)))
 
 
-
-
 (define-method pg-get-value ((result <pgresult>) tuple index)
   ;; result ->  handle ->
   ;; (pg-convert
@@ -431,16 +426,12 @@
 (define (pg-get-value-by-name result row colname)
   (pg-get-value result row (pg-fnumber result colname)))
 
-
-
 (define (pg-get-value-string result tuple index) ; <pgresult>
   ;; result ->  handle ->
   ;; (pg-convert
   (if (pg-get-isnull result tuple index)
       eof-object
     (pg-get-value (slot-ref result 'result) tuple index)))
-
-
 
 ;; Not very efficient, but works!
 ;; obsolete:  not quite!
@@ -457,11 +448,6 @@
   (if (pg-get-isnull r i j)
       "NULL"
     (pg:text-printer (pg-get-value-string r i j))))
-
-
-
-
-
 
 ;;; methods:  on <pgresult>
 
@@ -488,8 +474,6 @@
 
     (pg-exec handle query))
   hash)
-
-
 
 (define-method pg-fname ((result <pgresult>) index)
   (pg-fname (slot-ref result 'result) index))
@@ -614,7 +598,6 @@
 ;;       result)))
 
 
-
 ;; get the column (values) as a list  ... should be a <collection> !!
 (define (pg-collect-result result attribute)
   (let ((index (pg-fnumber result attribute)))
@@ -658,8 +641,6 @@
             and    relname !~ '^pg_'
             and    relname !~ '^xin[vx][0-9]+';")))
     (pg-collect-result result "relname")))
-
-
 
 ;; ??
 ;;(define (description->handle desc)
