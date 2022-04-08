@@ -10,10 +10,7 @@
 (define-module pg-hi
   (extend pg
           pg-low)
-
   (export
-   pg-deleted
-
    <pgresult> result-of
    <pg>
    pg-backend-pid1
@@ -28,6 +25,8 @@
    pg-exec ;; pg-exec-hi
 
    pg-status
+   pg-deleted
+
    ;; result:
    pg-result->hiresult
    pg-result-prepare!
@@ -106,18 +105,6 @@
 
 ;; fixme: move in pg ?
 (define pg-default-separator "")
-
-
-;;; Status processing
-
-;; @result is simple C proxy.
-;; How many tuples were deleted:
-(define (pg-deleted result)
-  ;; fixme:  throw error if the result is not suitable!
-  (rxmatch-let
-      (rxmatch #/DELETE ([[:digit:]]+)$/ (pg-cmd-status result))
-      (all number)
-    (string->number number)))
 
 
 ;;; connection / handle
@@ -413,8 +400,19 @@
   ;; result ->  handle ->
   (pg-status (pg-conn-of pg)))
 
+;;; Other commands?
+'(define (pg-su connection user)
+  (pg-exec " SET [ SESSION | LOCAL ] SESSION AUTHORIZATION username"))
 
+(define (pg-truncate handle relname)
+  (pg-exec handle (format #f "truncate \"~a\";" relname)))
 
+(define (pg-deleted result)
+  ;; fixme:  throw error if the result is not suitable!
+  (rxmatch-let
+      (rxmatch #/DELETE ([[:digit:]]+)$/ (pg-cmd-status result))
+      (all number)
+    (string->number number)))
 
 
 
@@ -650,11 +648,6 @@
 ;; result has *column*s, not attributes!
 (define (pg-result-has-attribute? pgresult attname)
   (>= (pg-fnumber pgresult attname) 0))
-
-
-(define (pg-truncate handle relname)
-  (pg-exec handle (format #f "truncate \"~a\";" relname)))
-
 
 ;; fixme:  namespace!
 (define (pg:all-relnames handle)
