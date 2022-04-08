@@ -46,18 +46,10 @@
    ;;
    ;; fixme:  referencer ref modifier
 
-   ;; backwards compatibility:
-   ;pg:isodate-parser
-   ; pg:timestamptz-parser
-   ;pg:text-printer pg:char-printer
-   ;pg:name-printer
+   ;; pg-type-name
+   pg-converter
+   pg-printer
 
-
-
-   ;pg-type-name
-   ; pg-convert
-   ; pg-converter
-   ;pg-printer
    pg-get-value-string
 
    pg-value->string
@@ -67,7 +59,7 @@
    pg-foreach-result
 
    pg-get-value-by-name
-   ;;pg:initialize-parsers
+   ;; pg:initialize-parsers
    ;; pg:type-printers
 
    pg:start-listening-on
@@ -80,8 +72,6 @@
    pg-default-separator
    ;; fixme:   if the result is null (e.g. if the handle is wrong !!),  pg-cmd-tuples  segfaults
 
-   ;; from pg.types
-   scheme->pg
    )
 
 
@@ -205,19 +195,23 @@
 
     (DB "pg-open: ~a\n" conninfo)
     (slot-set! handle 'conn conn)
-    (slot-set! handle 'types (pg-init-types-hash conn))
+    ; (slot-set! handle 'types (pg-init-types-hash conn))
+    (pg-init-types-hash conn)
     handle))
 
 ;;; so,   pg keeps the hash.
+;;; Types
 (define (pg-find-type pg oid)
-  ;; (assert (is-a? pg <pg>))
-  (let1 hash (ref pg 'types)
-    (if (hash-table-exists? hash oid)
-        (hash-table-get hash oid)
-      (errorf "type (oid ~d) unknown" oid))))
+  (pg-type-name (->db pg) oid))
 
-'(define (pg-su connection user)
-  (pg-exec " SET [ SESSION | LOCAL ] SESSION AUTHORIZATION username"))
+;; here pgconn is passed through
+(define (pg-converter pgconn oid)
+  (let1 name (pg-type-name pgconn oid)
+    (pg:parser-for name)))
+
+(define (pg-printer pgconn oid)
+  (let1 name (pg-type-name pgconn oid)
+    (pg:printer-for name)))
 
 ;;; `pgresult' -- as a collection.
 (define-class <pgresult> (<collection>)  ;mmc! <pg-result>
