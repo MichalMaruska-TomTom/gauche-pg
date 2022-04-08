@@ -24,6 +24,7 @@
   (use pg.db)
   (use pg.relation)
 
+  (use mmc.log)
   (use adt.list)
   (use adt.string)
   )
@@ -84,7 +85,7 @@
 (define (get-fkeys-which namespace predicate) ;should be db
   (filter
       predicate
-    (pg:load-foreign-keys)))
+    (pg:load-foreign-keys namespace)))
 
 ;; Why the hell only inside 1 namespace?
 ;; is that correct?
