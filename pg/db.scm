@@ -33,6 +33,7 @@
   (use gauche.threads)
   (use mmc.threads)
 
+  (use adt.string)
   (use srfi-1)
   (use util.list)                       ;cond-list
   (use srfi-13)                         ;prefix
