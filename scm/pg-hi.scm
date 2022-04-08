@@ -13,12 +13,12 @@
   (export
    <pgresult> result-of
    <pg>
-   pg-backend-pid1
    pg-open
    ->db
    pg-conn-of
    pg-find-type
-                                        ;pg-set-notice-processor
+   pg-backend-pid1
+                                        ;; pg-set-notice-processor
    ;; macros:
    with-pg-handle*
                                         ;sync & general
@@ -136,14 +136,6 @@
 (define-method ->db ((pg <pg>))
   (slot-ref pg 'conn))
 
-
-;; should be generics & method.
-(define (pg-backend-pid1 pg-handle)
-  (pg-backend-pid (if (is-a? pg-handle <pg>)
-                      (pg-conn-of pg-handle)
-                    pg-handle)))
-
-
 (define pg-open-accepted-keywords '(:user :port :dbname :host))
 
 
@@ -195,6 +187,14 @@
     ; (slot-set! handle 'types (pg-init-types-hash conn))
     (pg-init-types-hash conn)
     handle))
+
+
+;;; Generics
+;; should be generics & method.
+(define (pg-backend-pid1 pg-handle)
+  (pg-backend-pid (if (is-a? pg-handle <pg>)
+                      (pg-conn-of pg-handle)
+                    pg-handle)))
 
 ;;; Types
 (define (pg-find-type pg oid)
