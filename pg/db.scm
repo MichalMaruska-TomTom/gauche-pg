@@ -364,9 +364,9 @@
 ;; returns either <pg-database> or  <pg-conn> to a newly opened DB!
 ;; Called w/ *databases-mutex* locked!
 ;; todo: user?
-(define (keep-unique host port database)
+(define (find-or-connect host port database)
   ;; (if (and host port database)
-  (if debug-handles (logformat-color 'green "keep-unique: ~a ~a ~a\n"
+  (if debug-handles (logformat-color 'green "find-or-connect: ~a ~a ~a\n"
                       host port database))
   ;; connect
   (let* ((pg (apply pg-open
@@ -395,7 +395,7 @@
                     (string=? database (ref db 'name))))
                  *databases*)))
 
-    (if debug (logformat "keep-unique: ~a ~a ~a: ~a\n" hostname port database
+    (if debug (logformat "find-or-connect: ~a ~a ~a: ~a\n" hostname port database
                          (if found "FOUND" "NEW")))
     (if found
         (begin
@@ -416,7 +416,7 @@
          ;;
          (user (sys-getenv "PGUSER"))
          (port (sys-getenv "PGPORT")))
-      (let1 p (keep-unique host port database) ;fixme:  USER!
+      (let1 p (find-or-connect host port database) ;fixme:  USER!
         (cond
          ((is-a? p <pg-database>)
           p)
