@@ -13,11 +13,11 @@
 (define-module pg.sql
   (export
 
-   sql:where
+   sql:where   sql:alist->where ;; identical
    ;; Conditions:
    sql-and:
    sql-or:
-   sql:alist->where
+
    sql:between
    sql-condition:one-of
    sql-condition:char-in-string
@@ -150,13 +150,8 @@
     ;; fixme:
     (string-join (map sql:quote-name  info) ", "))))
 
-'(define (sql:where info)
-  (cond
-   ((string? info) info)
-   ))
 
 ;; fixme:   select relation what where !!! seems better!
-
 
 ;; todo:  version with keywords:
 ;; either
