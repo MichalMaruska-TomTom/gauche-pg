@@ -109,19 +109,19 @@
 
 ;; a semi-tuple as alist constants !!!
 (define (sql:get-tuples-alist relname tuple
-			      :key (what "*")
-			      where sort-by
-			      :rest args)
+                              :key (what "*")
+                              where sort-by
+                              :rest args)
   (let-optionals* args
       ((what-2 "*")
        (and-where-condition-2 #f)
        (sort-by-2 #f))
-    ;; fixme:  
+    ;; fixme:
     (s+ "SELECT " what " FROM " relname
-	" WHERE ( " (sql:alist->where tuple) " )"
-	(and-where and-where-condition)
-	(if sort-by (format #f " ORDER BY ~a" sort-by) "")
-	";")))
+        " WHERE ( " (sql:alist->where tuple) " )"
+        (and-where and-where-condition)
+        (if sort-by (format #f " ORDER BY ~a" sort-by) "")
+        ";")))
 
 
 
@@ -175,24 +175,24 @@
     (and-s+ " GROUP BY " group-by)
     (and-s+ " ORDER BY " order-by)
     (and-s+ " LIMIT " (and limit (not (undefined? limit))
-				     (number->string limit)))
+                                     (number->string limit)))
     (and-s+ " OFFSET " (and offset (not (undefined? offset)) (number->string offset))))
    ""))
 
 ;; I think the best API:
 (define (sql:select-u what
-		      ;; :optional relname
-		      ;; this is impossible.  :key value will be taken
-		      ;;  as :key the relname.
-		      :key from where group-by order-by limit offset
-		      :rest args)
+                      ;; :optional relname
+                      ;; this is impossible.  :key value will be taken
+                      ;;  as :key the relname.
+                      :key from where group-by order-by limit offset
+                      :rest args)
   ;; so args could be backup for keyword params. todo!
   ;; relname
   (DB "sql:select-u ~s ~s\n" what  from)
   ;(if (and from relname) (error ""))
   (sql:select-full what from ;(if (undefined? relname)
-			    ;from relname)
-		   where group-by order-by limit offset))
+                            ;from relname)
+                   where group-by order-by limit offset))
 
 ;; This is the same API, done more laboriously, but permits
 ;; having the optional from-o -- inteligent recovery of :keywords.
@@ -202,21 +202,21 @@
         (k-rest ()))
     ;; take the FROM part:
     (unless (or (null? rest)
-		(keyword? (car rest)))
+                (keyword? (car rest)))
       (set! from-o (car rest))
       (set! k-rest (cdr rest)))
     (DB "sql:select-k keywords ~s\n" rest)
     (let-keywords* k-rest
         ((from #f)
-	 (where #f)
+         (where #f)
          (group-by #f)
          (order-by #f)
          (limit #f)
          (offset #f))
       (if (and from-o from)
-	  (error "overspecification of :from\n" from-o from))
+          (error "overspecification of :from\n" from-o from))
       (sql:select-full what (or from-o from)
-		       where group-by order-by limit offset))))
+                       where group-by order-by limit offset))))
 
 ;; WHAT can be a list of symbols/strings.     links ?
 ;; FROM is a list of relnames: symbols   todo:  <pg-relation> ?
@@ -266,15 +266,15 @@
       condition-and "exists "
       (subquery
        (sql:select "1"
-		   :from (aliased relname "B")
-		   :where
-		   (s+
-		    condition-and
-		    (string-join
-			(map (lambda (attname)
-			       (format #f "( B.~a = ~a.~a ) " attname relname attname))
-			  attnames) " AND ")
-		    (format #f "AND B.oid> ~a.oid" relname))))))))
+                   :from (aliased relname "B")
+                   :where
+                   (s+
+                    condition-and
+                    (string-join
+                        (map (lambda (attname)
+                               (format #f "( B.~a = ~a.~a ) " attname relname attname))
+                          attnames) " AND ")
+                    (format #f "AND B.oid> ~a.oid" relname))))))))
 
 ;;; `Insert'
 (define (list->comma-string list)
@@ -285,16 +285,16 @@
 (define (sql:insert relname values . rest)
   (let-optionals* rest
       ((attnames #f))
-					;(logformat-color 'yellow "sql-insert: ~s\n" attnames)
+                                        ;(logformat-color 'yellow "sql-insert: ~s\n" attnames)
     (s+ "INSERT INTO " (pg:name-printer relname)
-	;;`pg:text-printer'
-	(if (not attnames) ""           ;null?
-	  (wrap-in-parens (list->comma-string
-			   (map pg:name-printer attnames))))
-	"\n VALUES (\n"
-	(string-join values
-	    ",\n")
-	"\n)")))
+        ;;`pg:text-printer'
+        (if (not attnames) ""           ;null?
+          (wrap-in-parens (list->comma-string
+                           (map pg:name-printer attnames))))
+        "\n VALUES (\n"
+        (string-join values
+            ",\n")
+        "\n)")))
 
 ;; I'd say
 (define sql:insert-values sql:insert)
@@ -335,7 +335,7 @@
   (DB "sql:alist->where ~s\n" alist )
   (string-join
       (map (^i (s+ "(" (car i) " = " (cdr i) ")"))
-	alist)
+        alist)
       " AND "))
 
 (define sql:where sql:alist->where)
@@ -371,12 +371,12 @@
   (let1 attname-quoted (pg:name-printer attname)
     (wrap-in-parens
      (string-join
-	 ;; todo: optimize as string tree + 1 composition!
-	 (map (lambda (possible)
-		;;(format #f "(~a = ~a)" attribute possible)
-		(wrap-in-parens
-		 (s+ attname-quoted " = " (pg:text-printer (x->string possible)))))
-	   possibilities) " OR "))))
+         ;; todo: optimize as string tree + 1 composition!
+         (map (lambda (possible)
+                ;;(format #f "(~a = ~a)" attribute possible)
+                (wrap-in-parens
+                 (s+ attname-quoted " = " (pg:text-printer (x->string possible)))))
+           possibilities) " OR "))))
 
 
 
@@ -420,9 +420,9 @@
       (s+
        "text_contains(\'"
        (pg:text-printer
-	(if (string? set)
-	    set
-	  (apply s+ set)))
+        (if (string? set)
+            set
+          (apply s+ set)))
        ", "
        attname-quoted ")")))))
 
