@@ -83,6 +83,7 @@
   (use srfi-1)
   (use mmc.log)                         ; DB
   (use adt.alist)                       ; ->>hash
+  (use adt.string)
   (use pg.types)
   (use pg.caching)
 
