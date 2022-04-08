@@ -3,7 +3,7 @@
 
 
 (define-module pg.keys
-  (export 
+  (export
    pg:pkey-of
 
    <db-f-key>
@@ -58,12 +58,12 @@
       (let1 result (pg-exec h
                      (sql:select-k
                       '(conname "a.relname as slave" "b.relname as master" conkey confkey)
-		      ;; :where
+                      ;; :where
                       :from (s+ "pg_constraint join pg_class A on (conrelid = A.oid) "
-				" join pg_class B on (confrelid = B.oid)")
-		      :where
+                                " join pg_class B on (confrelid = B.oid)")
+                      :where
                       (s+ "contype = 'f' AND connamespace = "
-			  (pg:number-printer (ref namespace 'oid)))))
+                          (pg:number-printer (ref namespace 'oid)))))
         ;; fold !
         (let1 f-keys '()
           (pg-foreach-result result #f
@@ -76,8 +76,8 @@
                        ;; fixme:  These should be converted from attnum to  <pg-attribute> !?
                        :m-fields ma-key
                        :s-fields sl-key))
-	      (DB "~a ~a\n" name sl-key)))
-	  ;; fixme: oh, so it's limited to 1 namespace! bug!
+              (DB "~a ~a\n" name sl-key)))
+          ;; fixme: oh, so it's limited to 1 namespace! bug!
           (slot-set! (ref namespace 'database) 'foreign-keys f-keys)
           f-keys)))))
 
@@ -92,7 +92,7 @@
   (let ((db (ref master 'database))
         ;(oid (ref master 'oid))
         ;(oid1 (ref slave 'oid))
-	)
+        )
 
     (assert (eq? (ref master 'namespace)
                  (ref slave 'namespace)))
@@ -111,19 +111,19 @@
         (car fkeys))
        (else
         (errorf
-	 "pg:fkey-between: more fkeys between relations ~a ~a, dunno which select"
-	 master slave))))))
+         "pg:fkey-between: more fkeys between relations ~a ~a, dunno which select"
+         master slave))))))
 
 
 (define (pg:fkey-under relation)
   (get-fkeys-which (ref relation 'namespace)
-		   (lambda (fkey)
-		     (and (eq? (ref fkey 'master) relation)))))
+                   (lambda (fkey)
+                     (and (eq? (ref fkey 'master) relation)))))
 
 
 (define (pg:fkey-above relation)
   (get-fkeys-which (ref relation 'namespace)
-		   (lambda (fkey)
-		     (and (eq? (ref fkey 'slave) relation)))))
+                   (lambda (fkey)
+                     (and (eq? (ref fkey 'slave) relation)))))
 
 (provide "pg/keys")
