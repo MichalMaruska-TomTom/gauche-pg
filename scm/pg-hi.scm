@@ -97,7 +97,6 @@
 ;; fixme: move in pg ?
 (define pg-default-separator "")
 
-
 ;;; connection / handle
 ;;; `<pg>' cclass ???
 (define-class <pg> ()
@@ -386,7 +385,7 @@
   ;; result ->  handle ->
   (pg-get-isnull (slot-ref result 'result) tuple index))
 
-
+;; is it a generic?
 (define-method pg-status ((pg <pg>))
   ;; result ->  handle ->
   (pg-status (pg-conn-of pg)))
@@ -405,6 +404,8 @@
       (all number)
     (string->number number)))
 
+;; scheme object -> string
+;; This integrates the type-info caching (oid -> type) and printer/parsers
 
 (define-method pg-get-value ((result <pgresult>) tuple index)
   ;; result ->  handle ->
