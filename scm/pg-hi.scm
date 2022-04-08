@@ -196,7 +196,6 @@
     (pg-init-types-hash conn)
     handle))
 
-;;; so,   pg keeps the hash.
 ;;; Types
 (define (pg-find-type pg oid)
   (pg-type-name (->db pg) oid))
