@@ -58,7 +58,7 @@ test : all
 	# debian can run all under pg_virtualenv
 	# pg_isready
 	# test/pg-hi.scm test/types.scm
-	for test in test/pg-low.scm; do \
+	for test in test/pg-low.scm test/pg-types.scm test/pg-hi.scm  test/caching.scm; do \
 	gosh -I scm/ -I .  -ftest $$test; \
 	done
 
