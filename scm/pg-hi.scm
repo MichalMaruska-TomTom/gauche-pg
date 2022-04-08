@@ -19,7 +19,7 @@
    pg-open
    ->db
    pg-conn-of
-   pg-find-type
+   pg-find-type ;; maybe better use pg-type-name?
    pg-backend-pid1
                                         ;; pg-set-notice-processor
    ;; macros:
@@ -295,22 +295,24 @@
 (define (pg-result-prepare! result)
   (let* ((presult (slot-ref result 'result))
          (fields (pg-nfields presult))
-         (types (make-vector fields #f))
-         (pg (slot-ref result 'handle)))
+         (pg (slot-ref result 'handle))
+         (pgconn (->db pg))
+         )
     (DB "pg-result-prepare! ... type information lookup ...\n")
 
-    (for-numbers<* i 0 fields
-      (let1 type (pg-find-type pg (pg-ftype presult i))
-        ;; (pg-type-name conn (pg-ftype presult i))
-        ;;fixme:  pg-ftype is a generic: it returns type-name!
-
-        (vector-set! types i type)
-        ;(vector-set! v i (pg-converter pg (pg-ftype presult i)))   ;pg-type-->parsers
-        ))
-    ;; names ??
-    ;; pg-result-prepare
-    ;(slot-set! result 'converters v)
-    (slot-set! result 'types types)))
+    (let1 types (make-vector fields #f)
+      (for-numbers<* i 0 fields
+        (let1 type (pg-type-name pgconn (pg-ftype presult i))
+          ;; (pg-find-type pg ...)
+          ;; fixme:  pg-ftype is a generic: it returns type-name!
+          (vector-set! types i type)
+          ;; todo: get the parser & printer?
+          ;;(vector-set! v i (pg-converter pg (pg-ftype presult i)))   ;pg-type-->parsers
+          ))
+      ;; names ??
+      ;; pg-result-prepare
+      ;; (slot-set! result 'converters v)
+      (slot-set! result 'types types))))
 
 (define-generic pg-foreach-result)
 ;; fixme: it should be inherited!
@@ -413,7 +415,8 @@
   (if (pg-get-isnull result tuple index)
       eof-object
     (let1 type (vector-ref (slot-ref result 'types) index)
-      ((slot-ref type 'parser)
+      ;; todo: optimization this vector could point directly at parser?
+      ((pg:parser-for type)
        (pg-get-value (slot-ref result 'result) tuple index)
        ;; (pg-ftype result index)
        ))))
