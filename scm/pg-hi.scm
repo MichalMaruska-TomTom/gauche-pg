@@ -140,7 +140,8 @@
 (define-method ->db ((pg <pg>))
   (slot-ref pg 'conn))
 
-(define pg-open-accepted-keywords '(:user :port :dbname :host))
+;;; So, more flexible way to provide connection parameters
+(define accepted-keywords '(:user :port :dbname :host))
 
 
 ;; filter known :keywords (+ value) from args.
@@ -155,7 +156,7 @@
 
      (else
       (let1 name (car rest)
-        (if (member name pg-open-accepted-keywords) ;(keyword? name)
+        (if (member name accepted-keywords) ;(keyword? name)
             (add-param
              (cons
               (format #f "~a=~a" (keyword->string name)
