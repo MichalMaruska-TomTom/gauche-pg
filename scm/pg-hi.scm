@@ -1,4 +1,6 @@
 
+;;; This is to handle Database global objects: types
+
 ;; how about naming  pgresult (w/o the dash) the low-level object,
 ;; and pg-result the hi-level?
 ;; for now:
@@ -12,6 +14,7 @@
           pg-low)
   (export
    <pgresult> result-of
+
    <pg>
    pg-open
    ->db
@@ -70,15 +73,15 @@
    ;;
    ;; emacs-mule->cyrillic
    pg-default-separator
-   ;; fixme:   if the result is null (e.g. if the handle is wrong !!),  pg-cmd-tuples  segfaults
+   ;; fixme: if the result is null (e.g. if the handle is wrong !!),
+   ;; pg-cmd-tuples  segfaults
 
    )
-
 
   (use gauche.uvector)                  ; ??
   (use mmc.simple)
   (use srfi-1)
-  (use mmc.log)
+  (use mmc.log)                         ; DB
   (use adt.alist)                       ; ->>hash
   (use pg.types)
   (use pg.caching)
@@ -87,7 +90,6 @@
   (use gauche.collection)
   )
 (select-module pg-hi)
-
 
 (define debug #f)
 
@@ -98,9 +100,10 @@
 ;;; connection / handle
 ;;; `<pg>' cclass ???
 (define-class <pg> ()
+  ;; Connection with some caching.
   (
    (types :initform #f)
-   (oid->type :initform '())            ;make-hash
+   (oid->type :initform '())            ; make-hash
 
    (host :initform #f)                  ;fixme:  via getter !!
    (user :initform #f)                  ;fixme: same
@@ -111,12 +114,13 @@
    (conn       :accessor pg-conn-of :initform #f)
 
    ;; see pg.database
+   ;; But I can have more of these!
    (database :initform #f)              ; pg.database depends on this module! we cannot!
 
    ;; (transaction  :initform #f)
    ;;  state:  as in  psql:  client encoding, ....
    )
-  ;;:metaclass <pg-meta>
+  ;; :metaclass <pg-meta>
   )
 
 (define-method write-object ((object <pg>) port)
