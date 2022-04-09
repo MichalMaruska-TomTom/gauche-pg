@@ -96,7 +96,7 @@
    (relation-mutex :init-form (make-mutex))
 
    (oid :init-keyword :oid)
-   ;; oid relhaspkey relhasoids relnatts relfilenode
+   ;; oid relhasoids relnatts relfilenode
 
    ;; relid ???
    ;; mmc: shouldn't I use name ??!!!
@@ -409,7 +409,7 @@
       ;;
       (let1 r (pg-exec h
                 (sql:select
-                 '(oid relname relhaspkey relhasoids relnatts relfilenode relnamespace)
+                 '(oid relname relhasoids relnatts relfilenode relnamespace)
                  ;;oid! ;reltuples relpages relhasindex
                  "pg_class"
                  (s+
@@ -432,7 +432,7 @@
                  h
                  namespace
                  (sql:select
-                  '(oid relname relkind relhaspkey relhasoids relnatts relfilenode relnamespace) ;oid! ;reltuples relpages relhasindex
+                  '(oid relname relkind relhasoids relnatts relfilenode relnamespace) ;oid! ;reltuples relpages relhasindex
                   "pg_class"
                   (s+
                    condition-for-relation-or-view
