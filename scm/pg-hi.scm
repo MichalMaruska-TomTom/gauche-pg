@@ -21,6 +21,8 @@
    pg-conn-of
    pg-find-type ;; maybe better use pg-type-name?
    pg-backend-pid1
+
+   pg-handle-description
                                         ;; pg-set-notice-processor
    ;; macros:
    with-pg-handle*
@@ -167,7 +169,7 @@
           (add-param param (cdr rest))))))))
 
 ;;; Connecting
-(define (handle->description handle)
+(define (pg-handle-description handle)
   (string-join			; non empty !!
       (remove not
               (list
