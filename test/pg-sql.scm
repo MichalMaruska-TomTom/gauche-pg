@@ -71,8 +71,15 @@ sql:select-function
 
 ;;;
 (test-section "INSERTs")
-sql:insert
-sql:insert-alist
+(test* "sql:insert"
+       "INSERT INTO person\n VALUES (\n1,\n2\n)"
+       (sql:insert "person" '("1" "2")))
+
+(test* "sql:insert-alist"
+       "INSERT INTO a.b(name)\n VALUES (\n1\n)"
+       (sql:insert-alist
+        "a.b" '(("name" . "1"))))
+
 
 
 (test-section "DELETE")

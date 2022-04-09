@@ -311,8 +311,9 @@
   (string-append "'" (date->string value) "'"))
 
 (define (pg:name-printer name)
-  (rxmatch-if (rxmatch #/^[a-zA-Z_][a-zA-Z_0-9]*$/ name)
-      (whole-match)
+  ;; namespace.table
+  (rxmatch-if (rxmatch #/^([a-zA-Z_][a-zA-Z_0-9]*\.)?([a-zA-Z_][a-zA-Z_0-9]*)$/ name)
+      (whole-match namespace relname)
     whole-match
     (string-append "\"" (pg-escape-string name) "\"")))
 
