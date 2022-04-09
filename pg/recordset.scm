@@ -250,7 +250,7 @@
 (define (rs-for-each rs function)
   ;; check that rs is <recordset>...
   (if #t
-      (for-each-with-index
+      (for-each ;; -with-index
           (lambda (index row)
             (function row index))
           rs)
