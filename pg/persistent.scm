@@ -37,7 +37,7 @@
 
 ;; This is necessary before defining classes!
 (when #f
-  (define mdb (pg:connect-to-database "linux6" "maruska"))
+  (define mdb (pg:connect-to-database :host "linux6" :dbname "maruska"))
   (define class-ticket (pg:find-relation mdb "tickets_new"))
   (pg:namespace-relations
    (pg:nspname->namespace pgd "public")))

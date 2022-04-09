@@ -15,8 +15,8 @@
 (define pg-database
   ;;(with-env* "PGDATABASE" "maruska"
   (pg:connect-to-database
-   (sys-getenv "PGHOST")
-   "maruska"))
+   :host (sys-getenv "PGHOST")
+   :dbname "maruska"))
 
 (test* "pg:load-foreign-keys"
        #t
