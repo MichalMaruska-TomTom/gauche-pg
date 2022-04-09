@@ -47,9 +47,9 @@
 
 (test* "simple SELECT"
        ;; create
-       PGRES_TUPLES_OK
+       "PGRES_TUPLES_OK"
        (let1 result (pg-exec pgcon "select 1;")
-         (pg-result-status result)))
+         (pg-status-status (pg-result-status result))))
 
 ;; todo:  async exec.
 
@@ -62,31 +62,31 @@
 ;; I need  sql-insert-values for that!
 ;; or write the SQL here.
 (test* "Command to drop whole schema"
-       PGRES_COMMAND_OK
+       "PGRES_TUPLES_OK"
        (let1 result
            (pg-exec pgcon
              "drop schema gauche_test CASCADE;")
-         (pg-result-status result)))
+         (pg-status-status (pg-result-status result))))
 
 (test* "query Command Create"
-       PGRES_COMMAND_OK
+       "PGRES_COMMAND_OK"
        (let1 result (pg-exec pgcon "CREATE SCHEMA gauche_test;")
-         (pg-result-status result)))
+         (pg-status-status (pg-result-status result))))
 
 (test* "query Create table"
        ;; create
-       PGRES_COMMAND_OK
+       "PGRES_COMMAND_OK"
        (let1 result
            (pg-exec pgcon
              "CREATE TABLE gauche_test.people (name text, surname varchar, age int);")
-         (pg-result-status result)))
+         (pg-status-status (pg-result-status result))))
 
 (test* "INSERT"
-       (list PGRES_COMMAND_OK "0")	;why 0?
+       (list "PGRES_COMMAND_OK" "0")	;why 0?
        ;; not PGRES_TUPLES_OK  why not?
        (let1 result (pg-exec pgcon
                       "INSERT INTO gauche_test.people VALUES ('Michal', 'Maruska');")
-         (list (pg-result-status result)
+         (list (pg-status-status (pg-result-status result))
                (pg-oid-status result))))
 
 (test-section "pg: access result -- low-level")
@@ -94,8 +94,8 @@
 (define result (pg-exec pgcon "SELECT name, surname, age FROM gauche_test.people;"))
 
 (test* "select"
-       PGRES_TUPLES_OK
-       (pg-result-status result))
+       "PGRES_TUPLES_OK"
+       (pg-status-status (pg-result-status result))
 
 ; select oid from pg_class where relname="people" and namespace = ;
 
