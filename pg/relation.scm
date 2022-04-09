@@ -419,11 +419,11 @@
         (let1 namespace (pg:oid->namespace db (pg-get-value-by-name r 0 "relnamespace"))
           ;; (let1 namespace (pg:nspname->namespace db "public")
           (with-locking-mutex* (ref namespace 'relation-mutex)
-            (or (catch 'found
+            (or (catch found
                   (hash-table-for-each (ref namespace 'relations)
                     (lambda (key value)
                       (if (= (ref value 'oid) oid)
-                          (throw 'found value))))
+                          (found value))))
                   #f)
                 ;; we have to load it!
                 ;; fixme: maybe I should load the entire namespace?
