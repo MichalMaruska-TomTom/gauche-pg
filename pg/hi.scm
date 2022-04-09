@@ -12,12 +12,19 @@
    pg:normalize-attribute
    pg:lookup-attribute
    )
-  (use pg-hi)
+
+  (use pg.sql)
   (use pg.types)
-  (use pg.database)
+
+  (use pg-hi)
+  (use pg.db)
+  ;;(use pg.database)
+  ;; or single:
+  (use pg.relation)
+  (use pg.attribute)
+
   (use macros.assert)
   (use adt.string)
-  (use pg.sql)
   (use mmc.check)
   (use mmc.log)
   )
@@ -53,7 +60,7 @@
                         (sql:alist->where
                          where-values))))
          (else
-          (error)
+          (error "pg:update-or-insert ?")
           ))))))
 
 
