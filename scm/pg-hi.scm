@@ -146,27 +146,32 @@
 (define accepted-keywords '(:user :port :dbname :host))
 
 
+;; todo: this should be an exported function of another low level modules!
+;; & tested.
 ;; filter known :keywords (+ value) from args.
 (define (pg-compose-conninfo args)
   (let add-param
       ;; return a list  ((keyword value) ...)
-      ((param '())
+      ((parameters '())
        (rest args))
     (cond
      ((null? rest)
-      param)
+      ;; we are done:
+      parameters)
 
      (else
       (let1 name (car rest)
         (if (member name accepted-keywords) ;(keyword? name)
-            (add-param
-             (cons
-              (format #f "~a=~a" (keyword->string name)
-                      (list-ref rest 1))
-              param)
-             (cddr rest))
-          ;; skip...  fixme:  only 1?
-          (add-param param (cdr rest))))))))
+            (let1 value (cadr rest)
+              ;; this can be #f -> ignore
+              (if value
+                  (add-param
+                   (cons
+                    (format #f "~a=~a" (keyword->string name) value)
+                    parameters)
+                   (cddr rest))
+                ;; skip...  fixme:  only 1?
+                (add-param parameters (cddr rest))))))))))
 
 ;;; Connecting
 (define (pg-handle-description handle)
