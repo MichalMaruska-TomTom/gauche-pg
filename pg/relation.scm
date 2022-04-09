@@ -254,8 +254,7 @@
               (sql:select
                ;; todo:
                ;;  fixme: pg:get-relation  already could get this data!
-               '(oid relhasindex relkind relnatts relchecks
-                     relhassubclass) ;; fixme: relhaspkey relhasoids
+               '(oid relhasindex relkind relnatts relchecks)
                "pg_class"
                (sql:alist->where
                 `(("relname" . ,(pg:text-printer relname))
@@ -373,7 +372,7 @@
              h
              namespace
              (sql:select
-              '(oid relname relkind relnatts relfilenode relnamespace) ;; fixme: relhaspkey relhasoids
+              '(oid relname relkind relnatts relfilenode relnamespace)
               ;; oid! ;reltuples relpages relhasindex
               "pg_class"
               (s+ condition-for-relation-or-view
@@ -409,7 +408,7 @@
       ;;
       (let1 r (pg-exec h
                 (sql:select
-                 '(oid relname relhasoids relnatts relfilenode relnamespace)
+                 '(oid relname relnatts relfilenode relnamespace)
                  ;;oid! ;reltuples relpages relhasindex
                  "pg_class"
                  (s+
@@ -432,7 +431,7 @@
                  h
                  namespace
                  (sql:select
-                  '(oid relname relkind relhasoids relnatts relfilenode relnamespace) ;oid! ;reltuples relpages relhasindex
+                  '(oid relname relkind relnatts relfilenode relnamespace) ;oid! ;reltuples relpages relhasindex
                   "pg_class"
                   (s+
                    condition-for-relation-or-view
