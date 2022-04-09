@@ -40,8 +40,8 @@
   )
 (select-module pg.db)
 
-(define debug-handles #t)
-(define debug #t)
+(define debug-handles #f)
+(define debug #f)
 
 ;;;  `database
 (define-class <pg-database> ()

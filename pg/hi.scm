@@ -30,7 +30,7 @@
   )
 (select-module pg.hi)
 
-(define debug #t)
+(define debug #f)
 ;; @values is alist ((attribute value) ...)
 ;; @where-values same
 ;; pg is ... <pg-database> ?
