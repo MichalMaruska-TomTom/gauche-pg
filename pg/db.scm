@@ -156,18 +156,12 @@
                 ;; The high level! `<pg>'
                 (let1 conn
                     (pg-open
-                     (append (apply
-                              append
-                              (cond-list
-                               ((ref database 'host)
-                                `(:host ,(ref database 'host)))
-                               (user
-                                ;;(ref database 'user)
-                                '(:user user))))
-                             (list
-                              ;; Fixme:  port
-                              :dbname (ref database 'name)
-                              )))
+                     :host (ref database 'host)
+                     :port (ref database 'port)
+                     ;; database
+                     :dbname (ref database 'name)
+                     :user user
+                     )
 
                   (if (or user debug)
                       (logformat "pg-open as ~a\n" user))
@@ -407,16 +401,24 @@
       pg)))
 
 
+(define (resolve-pg-coordinates args) ;; :keywords
+  (let-keywords args
+                ;; symbold default
+                ;; symbold :keyword default
+                ((host (sys-getenv "PGHOST"))
+                 (database :dbname (sys-getenv "PGDATABASE"))
+                 (user (sys-getenv "PGUSER"))
+                 (port (sys-getenv "PGPORT")))
+                ;; fixme: IS this default used by  libpq ???
+     (values host port database user)))
+
 ;; port?
+;; returns <pg-database> ?
 (define (pg:connect-to-database . rest)
   (with-locking-mutex* *databases-mutex*
-    (let-optionals* rest
-        ;; fixme: IS this default used by  libpq ???
-        ((host (sys-getenv "PGHOST"))
-         (database (sys-getenv "PGDATABASE"))
-         ;;
-         (user (sys-getenv "PGUSER"))
-         (port (sys-getenv "PGPORT")))
+    (receive (host port database user)
+        (resolve-pg-coordinates rest)
+
       (let1 p (find-or-connect host port database) ;fixme:  USER!
         (cond
          ((is-a? p <pg-database>)
