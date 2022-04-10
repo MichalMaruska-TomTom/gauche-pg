@@ -159,7 +159,9 @@
   ;; bug!  this should at least raise error if more than 1 found!
   (logformat "pg:find-relation-tuple still HACKISH to search by relname only (~a)\n"
     relname)
-  (let* ((db (db-of (ref (car tuple-set) 'relation)))
+  (let* ((db (ref
+              (ref (car tuple-set) 'relation)
+              'database))
          (relation (pg:find-relation db relname)))
 
     (find
