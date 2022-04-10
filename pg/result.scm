@@ -345,29 +345,31 @@
     ;; (logformat "tuple-add-index\n")
     (slot-push! tuple 'attribute-index-alist (cons index attnum)))
 
+
+  (define (report-found-attribute relation-oid table-col i relation-index)
+    (let1 relation (if (zero? relation-oid)
+                       "-UNKNOWN RELATION-"
+                     (pg:get-relation-by-oid database relation-oid))
+      (logformat-color 227
+          "column ~d is from (index ~d): ~a ~a\n" i relation-index relation
+          (if (is-a? relation <pg-relation>)
+              (pg:nth-attribute relation table-col)
+            "---"))))
+
+
   (let1 tuples '()
     ;; fold!!
-    (DB "extract (keyed) tuples: ~a\n" result)
+    (DB "Extract (keyed) tuples from ~a\n" result)
     (for-numbers<* i 0 (pg-nfields result)
-      ;; if pg-fsource not implemented?
-
-      (let1 class (pg-fsource result i)
+      ;; pg-fsource is method!
+      (let1 relation-index (pg-fsource result i)
 
         (when debug
-          (let1 relation (if (zero? (pg-ftable result i))
-                             "-UNKNOWN RELATION-"
-                           (pg:get-relation-by-oid
-                            database
-                            (pg-ftable result i)))
-            (logformat-color 227
-                "column ~d is source ~d: ~a ~a\n" i class
-                relation
-                (if (is-a? relation <pg-relation>)
-                    (pg:nth-attribute relation (pg-ftablecol result i))
-                  "---"))))
-
-        (when (> class 0)
-          (let1 tuple (aget tuples class) ; could be a vector?
+          (report-found-attribute (pg-ftable result i) (pg-ftablecol result i)
+                                  i relation-index))
+        (when (and (> relation-index -1) ;; fixme:
+                   (> (pg-ftable result i) 0))
+          (let1 tuple (aget tuples relation-index) ; could be a vector?
 
             ;; we have attributes!
             ;; Also, we want to know if some other (non-selected) attributes are Fixed,
@@ -389,12 +391,12 @@
                     (unless tuple
                       (let1 new-tuple (make <pg-tuple>
                                         :result result ; link back!  fixme: needed?
-                                        :index class   ;; pg-fsource number
+                                        :index relation-index   ;; pg-fsource number
                                         :relation relation
                                         ;; I'll add it below:
                                         :attribute-index-alist ())
-                        (DB "pushing new tuple! ~a ~a\n" class new-tuple)
-                        (push! tuples (cons class new-tuple))
+                        (DB "pushing new tuple! ~a ~a\n" relation-index new-tuple)
+                        (push! tuples (cons relation-index new-tuple))
                         (set! tuple new-tuple)))
 
                     ;; add the index to that tuple
