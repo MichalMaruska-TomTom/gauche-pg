@@ -410,11 +410,12 @@
                     ;; fixme:  So we provide *i* rather than ????
                     (tuple-add-index tuple i attribute))
 
-                  (DB "\t~a -> tuple ~d (reliod ~d): ~a\n"
-                      (pg-fname result i)
-                      (pg-fsource result i)
-                      (pg-ftable result i)
-                      tuple))))))))
+                  (when #f ;; too noise/verbose
+                    (DB "\t~a -> tuple ~d (reliod ~d): ~a\n"
+                        (pg-fname result i)
+                        (pg-fsource result i)
+                        (pg-ftable result i)
+                        tuple)))))))))
     tuples))
 
 ;; Find the relation & `pkey'-ness.
