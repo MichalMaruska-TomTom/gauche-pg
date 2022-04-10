@@ -7,7 +7,6 @@
 (test-start "pg.db API features")
 
 (use pg)
-(use mmc.env)
 
 (use pg.db)
 (use pg-hi)
@@ -16,9 +15,12 @@
 
 (test-section "Open connection")
 
+(define *database* "test")
 (define pg-database
-  (with-env* "PGDATABASE" "test"
-    (pg:connect-to-database)))
+  (pg:connect-to-database
+   :host (sys-getenv "PGHOST")
+   :dbname *database*))
+
 ;(format #t "Got ~s\n" pg-test)
 (test* "pg:connect-to-database"
        #t

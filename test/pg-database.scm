@@ -1,13 +1,7 @@
-
-;; API:
-;; (test* "name" expected-value   body....)
-
 (use gauche.test)
 
 (test-start "pg.database API features")
 
-;(use pg)
-(use mmc.env)
 (use pg.db)
 (use pg.database)
 
@@ -16,8 +10,9 @@
 (test-section "Open connection")
 
 (define pg-database
-  (with-env* "PGDATABASE" "maruska"
-    (pg:connect-to-database)))
+  (pg:connect-to-database
+   :host (sys-getenv "PGHOST")
+   :database "maruska"))
 
 (test* "pg:connect-to-database"
        #t
