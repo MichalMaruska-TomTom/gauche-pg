@@ -1,13 +1,13 @@
 
 ;;;  Analyzing the pgresult object
 
-;; columns can be determined to come from table rows:
+;; Columns can be determined to come from table rows:
 ;; so we have a list of `<pg-tuple>'s and the mapping
 ;; pg-tuple & index (attribute thereof) -> index in the result (columns).
 
 ;; This is the mapping the user is interested in.
 ;; `pg-tuple:->result-column' maps  (N, I) -> X, so that
-;;   pg-fcolumn(X) = I  AND pg_fsource(X) = N
+;;  pg-fcolumn(X) = I  AND pg_fsource(X) = N
 ;; to use, map over the list of <pg-tuples> !
 
 
@@ -20,6 +20,10 @@
 ;; What else about the pg-tuples's?
 ;; I can get: is-key-available? <pg-attribute>
 ;;
+
+
+;; |-----| tupleA        |--------| tupleB
+;; |-----------------------------------------------| result row
 
 ;;; old doc:
 ;;  look at the vector of columns.
@@ -74,27 +78,27 @@
 (define-class <pg-tuple> ()
   (;; Does this have the query (plan tree or plain sql)?
    (result :init-keyword :result)       ;back-link
-   (index :init-keyword :index)         ;pg-fsource
+   (index :init-keyword :index)         ; pg-fsource
 
-   ;; This tells us if it's a VIEW!
+   ;; This tells us if it's a VIEW! <pg-relation>
    (relation :init-keyword :relation
              :setter tuple-set-relation)
 
    ;; has-p-key? (boolean)  By default not present.
    (p-key :init-value #f)
 
+   ;; This cannot be got from the <pg-result>. But maybe from the Query.
    ;; WHERE gender='m'  -> gender is fixed!
    ;; alist   ((<pg-attribute> . value) ...)
    (fixed-attributes)
 
-
    ;; The core:
-   ;;((index .  <pg-attribute>) ...)  where INDEX indicates the `<pg-result>' columns.
+   ;; ((index .  <pg-attribute>) ...) where INDEX indicates the `<pg-result>' columns.
+   ;; <pg-attribute> is from the <pg-relation>
    ;; possibly ordered!
-   ;; fixme: Should not be accessible!
-   ;; should be named attribute-alist !?
+   ;; fixme: Should not be accessible! ...?
+   ;; Should be named attribute-alist !?
    (attribute-index-alist :init-keyword :attribute-index-alist)
-
 
    ;; note: EXPLANATION
    ;; the <pg-attribute>s present in the tuple can be ordered.
