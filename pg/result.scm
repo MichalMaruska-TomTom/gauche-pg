@@ -473,7 +473,7 @@
             tuples)
          (cdr i)
       ;; (aget tuples relname)
-      (error "rs-get-tuple cannot find tuple from this relation" relname))))
+      (error "pg-result:find-relation: cannot find tuple from this relation" relname))))
 
 
 
