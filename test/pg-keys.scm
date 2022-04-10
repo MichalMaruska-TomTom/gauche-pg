@@ -29,3 +29,6 @@ pg:fkey-between
 pg:fkey-under
 
 pg:fkey-above
+
+
+(test-end :exit-on-failure #t)

@@ -48,3 +48,4 @@
 
 
 ;;  pg-result:find-relation: cannot find tuple from this relation "person"
+(test-end :exit-on-failure #t)

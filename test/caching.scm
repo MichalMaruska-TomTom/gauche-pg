@@ -37,3 +37,5 @@
              (pg-type-name pgconn oid)
              )
       )))
+
+(test-end :exit-on-failure #t)

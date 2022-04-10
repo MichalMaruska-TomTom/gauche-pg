@@ -89,3 +89,6 @@ sql:delete
 sql:update
 
 sql:uniquefy-by-attnames-where
+
+
+(test-end :exit-on-failure #t)

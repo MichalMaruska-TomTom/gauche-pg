@@ -180,3 +180,5 @@
        PQTRANS_INTRANS
        (with-db-transaction* pgcon
          (pg-transaction-status pgcon)))
+
+(test-end :exit-on-failure #t)

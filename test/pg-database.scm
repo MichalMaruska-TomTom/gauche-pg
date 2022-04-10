@@ -26,3 +26,5 @@
         (pg:find-attribute pg-database
                            "public" "person" "cognome")
         <pg-attribute>))
+
+(test-end :exit-on-failure #t)

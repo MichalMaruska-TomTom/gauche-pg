@@ -55,3 +55,5 @@
 ;;; Configuration
 ;(sys-setenv "PG_MMC" "y")
 
+
+(test-end :exit-on-failure #t)

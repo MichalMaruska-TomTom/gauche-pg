@@ -41,3 +41,6 @@
                (row (rs-get-row recordset 0)))
            (rs-row-get row "via")))
         )
+
+
+(test-end :exit-on-failure #t)

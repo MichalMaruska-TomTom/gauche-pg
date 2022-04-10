@@ -93,4 +93,5 @@
         (pg:attname->attribute relation-person "via")
         'attname))
 
-(test-end)
+
+(test-end :exit-on-failure #t)
