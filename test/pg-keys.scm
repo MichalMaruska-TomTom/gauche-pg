@@ -1,6 +1,3 @@
-;; API:
-;; (test* "name" expected-value   body....)
-
 (use gauche.test)
 
 (test-start "pg.keys API features")
