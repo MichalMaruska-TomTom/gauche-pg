@@ -130,7 +130,7 @@
 (define (pg-tuple:->result-column tuple n)
   ;; fixme:
   (unless (slot-bound? tuple 'tuple->result-map)
-    (db "pg-tuple:->result-column: the tuple has no 'tuple->result-map\n")
+    (DB "pg-tuple:->result-column: the tuple has no 'tuple->result-map\n")
     (pg-result->tuple-order! (ref tuple 'result) tuple))
 
   (vector-ref (ref tuple 'tuple->result-map) n))
