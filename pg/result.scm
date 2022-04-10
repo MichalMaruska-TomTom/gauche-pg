@@ -451,7 +451,7 @@
     (DB "\n")
 
     ;; Find primary keys & ...
-    (for-each (lambda (pair)
+    (for-each (lambda (tuple)
                 (analyze-tuple! (cdr tuple)))
       tuples)
     ;; fixme:
