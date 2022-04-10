@@ -21,18 +21,32 @@
    :host (sys-getenv "PGHOST")
    :dbname *database*))
 
+(define pgconn (pg-conn-of (ref pg-database 'admin-handle)))
 ;(format #t "Got ~s\n" pg-test)
 (test* "pg:connect-to-database"
        #t
        (is-a? pg-database
               <pg-database>))
 
+(test-section "Connection pool")
 
-(test* "pg:connect-to-database 2"
-       #t
-       (is-a? (pg:connect-to-database "/var/run/postgresql" "test")
-              <pg-database>))
-;;
+(pg:with-private-handle* pg-database handle
+  (let1 pgconn1 (pg-conn-of handle)
+
+    (test* "same host"
+           #t
+           (and
+            (string=? (pg-host pgconn) (pg-host pgconn1))
+            ))
+
+    (test* "same DB"
+           #t
+           (and
+            (string=? (pg-db pgconn) (pg-db pgconn1))
+            (string=? *database* (pg-db pgconn1))
+    ))))
+
+
 pg:with-admin-handle
 pg:new-handle
 pg:dispose-handle
