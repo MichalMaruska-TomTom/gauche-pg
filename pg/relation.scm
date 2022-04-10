@@ -11,20 +11,23 @@
    ;; if we have all necessary data/slots!
    ;;  (i.e. user is not allowed to do:  (make <pg-relation>)
 
-   ;; User can associate data -- useful?
-   pg:relation-put!
-   pg:relation-get
-
-   pg:refresh-relation-info
+   ;; Get them all
    pg:namespace-relations                    ;Still not used!
    pg:database-relations
 
+   ;; Get particular one:
    ;; pg:get-relation-view
+   ;; mmc:
    pg:get-relation
    pg:find-relation ;; by-name  w/ namespace path?
    pg:get-relation-by-oid
 
 
+   ;; User can associate data -- useful?
+   pg:relation-put!
+   pg:relation-get
+
+   pg:refresh-relation-info
 
    ;; generic:
    pg:primary-key-of
@@ -116,7 +119,7 @@
    ;; normally 0, but could be -2 if -2 is the attnum of
    ;; `oid' and oid is the primary-key !
 
-   ;; This is a vector: i -> `<pg-attribute
+   ;; This is a vector: i -> `<pg-attribute>
    ;; a vector of cons (attribute-name attnum)>'
    (attributes)
 
@@ -132,7 +135,7 @@
           data)))
 
 (define (pg:relation-get rel tag . default)
-  (apply assoc-ref-car
+  (assoc-ref
    (slot-ref rel 'data)
    tag
    ;; fixme: !!!
@@ -141,13 +144,12 @@
    ))
 
 
-
 (define-method write-object ((o <pg-relation>) port)
   (format port
     "<~a ~a>"
     ;; "<"
     ;(string-drop-right (string-drop (class-name (class-of o)) 1) 1)
-    "db-relation"
+    "pg-relation"
     (ref o 'name)))
 
 ;;;
