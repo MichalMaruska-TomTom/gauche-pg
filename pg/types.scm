@@ -443,13 +443,18 @@
    ((string? value)
     (pg:text-printer value))
 
-   ((ref pg-type 'printer)
-    =>(lambda (p)
-        ;(logformat "using the type's printer\n")
-        (p value)))
+   ;; catch 'pg:type-not-found
    (else
+    ((pg:printer-for pg-type) value))
+    ;(ref pg-type 'printer)
+    ;=>(lambda (p)
+        ;(logformat "using the type's printer\n")
+                                        ;    (p value))
+   ;(else
     ;(logformat "fallback to x->string\n")
-    (x->string value))))
+   ; (x->string value))
+
+   ))
 
 ;;; top-level
 (provide "pg/types")
