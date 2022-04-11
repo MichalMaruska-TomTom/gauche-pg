@@ -242,7 +242,7 @@
 
                  (push! attnames (ref attribute 'attname))
                  (cons
-                  ((ref type 'printer)
+                  ((pg:printer-for type)
                    (slot-ref object slot))
                   value-list)))
              ()
@@ -374,7 +374,7 @@
                        (cons
                         (slot-ref (car attribute-value) 'attname)
 
-                        ((ref type 'printer)
+                        ((pg:printer-for type)
                          (cdr attribute-value)))))
                  data-alist))
 
