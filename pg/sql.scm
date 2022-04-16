@@ -151,13 +151,8 @@
     (string-join (map sql:quote-name  info) ", "))))
 
 
-;; fixme:   select relation what where !!! seems better!
+;; could have `select-from' relation _what_ where...
 
-;; todo:  version with keywords:
-;; either
-;; (sql:select-k WHAT)
-;; (sql:select-k WHAT FROM)
-;; (sql:select-k WHAT FROM :where WHERE ....)
 (define (sql:select-full what from where group-by order-by limit offset)
   (DB "sql:select-full:\n\twhat ~a\n\tfrom: ~a\n\tWHERE ~a\n" what from where)
   (string-join-non-f
@@ -175,20 +170,16 @@
     (and-s+ " OFFSET " (and offset (not (undefined? offset)) (number->string offset))))
    ""))
 
-;; I think the best API:
+;; I think the best API -- all parts by keyword:
 (define (sql:select-u what
-                      ;; :optional relname
-                      ;; this is impossible.  :key value will be taken
-                      ;;  as :key the relname.
-                      :key from where group-by order-by limit offset
-                      :rest args)
-  ;; so args could be backup for keyword params. todo!
-  ;; relname
-  (DB "sql:select-u ~s ~s\n" what  from)
-  ;(if (and from relname) (error ""))
-  (sql:select-full what from ;(if (undefined? relname)
-                            ;from relname)
+                      :key ((:from relname) #f) where group-by order-by limit offset)
+  (DB "sql:select-u ~s ~s\n" what relname)
+  (sql:select-full what relname
                    where group-by order-by limit offset))
+
+;; (sql:select-k WHAT)
+;; (sql:select-k WHAT FROM)
+;; (sql:select-k WHAT FROM :where WHERE ....)
 
 ;; This is the same API, done more laboriously, but permits
 ;; having the optional from-o -- inteligent recovery of :keywords.
