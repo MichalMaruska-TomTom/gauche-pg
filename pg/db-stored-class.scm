@@ -5,8 +5,11 @@
 
    db-delete
    )
-
+  (use adt.alist)
   )
+
+(select-module pg.db-stored-class)
+
 ;; todo: I would like to define it as a metaclass. But I'm not good at the OO system yet.
 
 ;;; metaclass  where attributes have a specification for the backing  DB attribute
@@ -30,7 +33,7 @@
 
 
 ;; what is mapping?  Alist?
-(define slots-of-mapping alist-keys)
+(define slots-of-mapping alist->keys)
 
 
 ;; `Unused!'
@@ -136,3 +139,5 @@
            slots)
          " AND ")
      ";")))
+
+(provide "pg/db-stored-class")
