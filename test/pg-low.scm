@@ -123,9 +123,10 @@
 
 ;; convert it into name!
 (test* "pg-ftable"
-       #f
-       (pg-ftable result 0)		;
-       )
+       ;"gauche_test.people"
+       #t
+       ;; fixme: oid of the relation!
+       (number? (pg-ftable result 0)))
 
 (test* "pg-map-result"
        '("Maruska")
