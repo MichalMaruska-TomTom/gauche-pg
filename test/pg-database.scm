@@ -12,7 +12,7 @@
 (define pg-database
   (pg:connect-to-database
    :host (sys-getenv "PGHOST")
-   :database "maruska"))
+   :dbname "maruska"))
 
 (test* "pg:connect-to-database"
        #t
