@@ -324,8 +324,6 @@
         :oid (pg-get-value-by-name result index "oid")))))
 
 
-
-
 ;; throw error if not unique?
 ;; todo: extract the namespace !     nspname.relname ?  or select * from relname where 1=0; ??
 ;; note: This might be done w/ defaults (of optional args) directly by data->view !
