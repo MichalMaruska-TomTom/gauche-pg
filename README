@@ -17,10 +17,40 @@ $ make
 ** other files:
 other files are for a MultiThreaded  application ... work-in-process
 pg/mt-copy.scm     the COPY TO/FROM protocol
-		   needs some of my other libs (found in the parent dir)
+                   needs some of my other libs (found in the parent dir)
 
 app/migrate.scm    migrate data betwen 2 DBs (w/ a GUI feedback).
-		   uses  gauche-gtk
+                   uses  gauche-gtk
 
 
+* connecting:
+pg-connect   -><pg-handle>     pg . env + conninfo
+pg-open   -><pg>               pg-hi ...  :user :port :dbname :host
+pg:connect-to-database   pg.db ...  :user :port :dbname :host
+  pg:new-handle uses pg-open!
 
+** handles:
+<pg-handle> .. stub
+<pg>  ... pg-hi    ^^  pg-conn-of ->db
+<pg-database>   pg:new-handle ^^
+
+
+** Artificial objects:
+<db>
+<namespace>
+<relation>
+
+* exec
+pg-exec Generics!  <pg-handle> -> <pg-result>
+                        <pg>   -> <pgresult>
+
+<db> needs to allocate:
+
+
+* result
+<pg-result> .. stub/C
+<pgresult>  .. pg-hi
+** Generics/method     pg-nfields
+
+<pg-tuple>
+     pg:query-extract-tuples
