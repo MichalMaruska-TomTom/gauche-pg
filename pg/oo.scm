@@ -17,7 +17,7 @@
 
    ;; fixme: generic !!
    ;; db-insert
-   db-insert-object
+   db-insert
    db-update
    db-where
    db-delete
@@ -53,6 +53,7 @@
 (define-generic db-delete)
 (define-generic db-update)
 (define-generic db-where)
+(define-generic db-insert)
 
 ;;;
 (define-class <db-stored-class-info> ()
@@ -100,29 +101,43 @@
 ;; given a gauche `object' (w/ slots),  store the values of `slots' in `relation'.
 ;; Mapping is ((slot . pg-attribute)...)
 ;; todo: SLOTS and MAPPING should be provided by the class?
-(define (db-insert-object object relation slots mapping) ;;db
-  (pg:with-handle-of* relation pg
-                                        ;(let1 pg (->db relation)
-    ;; I want:  convert the slot-values, and get the attnames:
-    (let* ((attnames ())
-           (value-list
-            ;; sequentially
-            (fold
-             (lambda (slot value-list)
-               ;; Of course car is <pg-attribute>
-               (let* ((attribute (aget mapping slot))
-                      (type (pg:attribute-type attribute)))
+(define-method db-insert ((object <db-stored-class-info>) data-object)
+  (let ((mapping (slot-ref object 'attribute-mapping))
+        (relation (ref object 'db-relation))
+        (identificating-slots (find-full-intentification object data-object))
+        )
+    (let1 bound-mapping (filter (lambda (pair)
+                                  (slot-bound? data-object (car pair)))
+                          mapping)
 
-                 (push! attnames (ref attribute 'attname))
-                 (cons
-                  ((pg:printer-for type)
-                   (slot-ref object slot))
-                  value-list)))
-             ()
-             slots))
-           )
-      (pg-exec
-          pg
+      (assert (not (null? identificating-slots)))
+
+      ;;db
+      ;; todo: check that at least identifying set is provided!
+
+      ;; I want:  convert the slot-values, and get the attnames:
+      (let* ((attnames ())
+             (value-list
+              ;; sequentially
+              (fold
+               (lambda (pair value-list)
+                 ;; Of course car is <pg-attribute>
+                 (let* ((attribute (cdr pair)) ; (aget mapping slot))
+                        (type (pg:attribute-type (cdr pair)))
+                        (slot (car pair))
+                        )
+
+                   ;; insert into xx (......this....) VALUES (..that...)
+                   (push! attnames (ref attribute 'attname))
+                   (cons ((pg:printer-for type)
+                          (slot-ref data-object slot))
+                         value-list)))
+               ()
+               bound-mapping
+               ))
+             )
+                                        ;(pg:with-handle-of* relation pg
+                                        ;(pg-exec pg
         (sql:insert
          (name-of relation)
 
