@@ -142,7 +142,7 @@
 ;; return <pg-attribute>s in the relation of the tuple:
 (define (pg:attributes-in-tuple tuple)
   ;; Fixme: and (fixed-attributes)?
-  (alist->list-values (ref tuple 'attribute-index-alist)))
+  (alist->values (ref tuple 'attribute-index-alist)))
 
 
 
