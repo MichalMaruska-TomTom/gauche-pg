@@ -6,6 +6,7 @@
 (use pg.hi)
 (use pg-hi)
 (use pg.types)
+(use mmc.exit)
                                         ; (use pg-hi)
 (use pg) ;; pg-exec
 
@@ -31,13 +32,12 @@
 (test-section "Create data")
 
 (test* "drop schema"
-       #t
-       (and
-        (member
-         ;; pg-status-status
-         (pg-result-status (pg-exec pgconn "DROP SCHEMA gauche_test CASCADE;"))
-         (list PGRES_COMMAND_OK  PGRES_NONFATAL_ERROR))
-        #t))
+       #f
+       (with-f-handler
+        (not (member
+              ;; pg-status-status
+              (pg-result-status (pg-exec pgconn "DROP SCHEMA gauche_test CASCADE;"))
+              (list PGRES_COMMAND_OK PGRES_NONFATAL_ERROR PGRES_FATAL_ERROR)))))
 
 (test* "create schema"
        PGRES_COMMAND_OK
