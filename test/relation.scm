@@ -47,7 +47,7 @@
         (pg:find-relation pg-database "person")
         <pg-relation>))
 
-(test* "pg:find-relation"
+(test* "pg:find-relation inside Namespace"
        #t
        (is-a?
         (pg:find-relation pg-database "person" namespace)
@@ -94,4 +94,29 @@
         'attname))
 
 
+(define relation-foto (pg:find-relation pg-database "foto_raw"))
+(test* "pg:primary-key-of"
+       (list "fid")
+       (pg:attribute-indexes->names relation-foto))
+
+;; Private Api:
+(select-module pg.relation)
+(use gauche.test)
+
+(define pg-database (global-variable-ref 'user 'pg-database))
+
+(define relation-person (pg:find-relation pg-database (global-variable-ref 'user 'relation-name)))
+(define relation-foto (global-variable-ref 'user 'relation-foto))
+
+
+(test* "unique projection"
+       '(("numero" "fcat" "findex")
+         ("fid"))
+
+       (map (lambda (projection-set)
+              (pg-attribute-names projection-set))
+         (pg:load-unique-indices
+          (pg:new-handle pg-database)
+          relation-foto
+          )))
 (test-end :exit-on-failure #t)
