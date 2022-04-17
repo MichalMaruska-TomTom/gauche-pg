@@ -31,6 +31,8 @@
 
    ;; generic:
    pg:primary-key-of
+   ;; unique
+   pg:load-unique-indices
 
    ;;; Depends on `pg.attributes'
    ;; type-of-attribute
@@ -197,45 +199,60 @@
 
 
 ;; populate the p-key related slots:
-(define (load-p-key pgh rel)
+;; alternatively (instead of <pg-relation>) provide
+;;    oid, attribute-min, attributes
+
+(define (convert-numbers-to-attributes! relation value)
+  ;; Bug:  This is a list of `attnum's !
+  ;; First check the minimum:
+  (let1 min-attribute (apply min value)
+    (when (< min-attribute (ref relation 'attribute-min))
+      ;; I have to reconstruct the attributes vector!
+      (enlarge-n-load-attributes! relation min-attribute))) ;; pgh
+
+  ;; todo: make an ADT vector-with-start
+  (let ((vector (slot-ref relation 'attributes))
+        (start (slot-ref relation 'attribute-min)))
+
+    ;; convert into names
+    (map (lambda (attnum)
+           ;; fixme: do we start w/ 0 ??
+           (vector-ref vector
+                       (- attnum start)))
+      value)))
+
+;; So I want the list of lists
+(define (pg:load-unique-indices handle relation)
+  (let1 result
+      (pg-exec handle (sql:unique-tuples (ref relation 'oid)))
+    (if (zero? (pg-ntuples result))
+        ;; return:
+        ()
+      (let1 unique-tuples ()
+        (for-numbers* row-number 0 (- (pg-ntuples result) 1)
+          (let ((name (pg-get-value result row-number 1))
+                (attributes (convert-numbers-to-attributes!
+                             relation
+                             (pg-get-value result row-number 0)))
+                )
+            (push! unique-tuples attributes)))
+        unique-tuples))))
+
+(define (load-p-key pgh relation)
   (receive (name p-key)			;name is `conname' ...constraint name ?
-      (let1 result (pg-exec pgh
-                     (sql:select-u
-                      '(conkey conname)
-                      :from "pg_constraint"
-                      :where
-                      (s+
-                       "conrelid = " (number->string (ref rel 'oid))
-                       ;;(relname->relid handle relname)) ;I don't like this!
-                       " AND "
-                       "contype = 'p' ")
-                      ;;" conname='" relname "_pkey'"
-                      ))
+      (let1 result
+          (pg-exec pgh (sql:pkey-of (ref relation 'oid)))
         (if (zero? (pg-ntuples result))
             (values #f #f)
 
-          ;; First check the minimum:
-          (values
-           (pg-get-value result 0 1)
-           (let1 value (pg-get-value result 0 0)
-
-             ;; Bug:  This is a list of `attnum's !
-             (let1 min-attribute (apply min value)
-               (when (< min-attribute (ref rel 'attribute-min))
-                 ;; I have to reconstruct the attributes vector!
-                 (enlarge-n-load-attributes! rel min-attribute pgh)))
-
-             (map (lambda (attnum)
-                    ;; fixme: do we start w/ 0 ??
-                    (vector-ref (slot-ref rel 'attributes)
-                                (-
-                                 attnum
-                                 (slot-ref rel 'attribute-min)))) ; huh?
-               value)))))
+          (let1 row-number 0 ;; fixme: we should collect all!
+            (values
+             (pg-get-value result row-number 1)
+             (convert-numbers-to-attributes! relation (pg-get-value result row-number 0))
+             ))))
     ;; fixme: the p-key should be sorted !
-    (slot-set! rel 'p-key p-key)
-    (slot-set! rel 'p-key-name name)
-    ;;(pg:attribute-indexes->names rel p-key)
+    (slot-set! relation 'p-key p-key)
+    (slot-set! relation 'p-key-name name)
     ))
 
 
