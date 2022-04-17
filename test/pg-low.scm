@@ -8,6 +8,7 @@
 (use pg-low)
 ;(load "pg-low")
 
+(use mmc.exit)
 (test-module 'pg-low)
 ;(select-module pg-low)
 
@@ -58,11 +59,15 @@
 ;; I need  sql-insert-values for that!
 ;; or write the SQL here.
 (test* "Command to drop whole schema"
-       "PGRES_TUPLES_OK"
-       (let1 result
-           (pg-exec pgcon
-             "drop schema gauche_test CASCADE;")
-         (pg-status-status (pg-result-status result))))
+       #f
+       (with-f-handler
+        (let1 result
+            (pg-exec pgcon
+              "drop schema gauche_test CASCADE;")
+          (not (eq? "PGRES_COMMAND_OK"
+                    ;; PGRES_FATAL_ERROR
+                    (pg-status-status (pg-result-status result)))
+               ))))
 
 (test* "query Command Create"
        "PGRES_COMMAND_OK"
