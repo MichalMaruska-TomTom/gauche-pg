@@ -64,9 +64,9 @@
         (let1 result
             (pg-exec pgcon
               "drop schema gauche_test CASCADE;")
-          (not (eq? "PGRES_COMMAND_OK"
+          (not (string=? "PGRES_COMMAND_OK"
                     ;; PGRES_FATAL_ERROR
-                    (pg-status-status (pg-result-status result)))
+                         (pg-status-status (pg-result-status result)))
                ))))
 
 (test* "query Command Create"
