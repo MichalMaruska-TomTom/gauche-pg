@@ -96,7 +96,7 @@
 
 (test* "select"
        "PGRES_TUPLES_OK"
-       (pg-status-status (pg-result-status result))
+       (pg-status-status (pg-result-status result)))
 
 ; select oid from pg_class where relname="people" and namespace = ;
 
