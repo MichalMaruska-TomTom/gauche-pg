@@ -114,7 +114,7 @@
 
          (p-key (slot-ref rel-info 'p-key)) ;not bound ->  error !
 
-         (slots (project p-key (ssm-inverse mapping))))
+         (slots (alist-project p-key (ssm-inverse mapping))))
     ;;  primary key known?
     ;; all
     (string-append
