@@ -16,7 +16,7 @@
    <db-stored-class-info>
 
    ;; fixme: generic !!
-   db-insert
+   ;; db-insert
    db-insert-object
    db-update-object
    db-where
@@ -92,11 +92,9 @@
       ;;        (map pg-attribute->symbol attributes)
       ;;        slots)
       ))
+
+  ;; primary/unique keys?
   object)
-
-
-;;;  SQL
-(define-generic db-insert)
 
 
 ;; given a gauche `object' (w/ slots),  store the values of `slots' in `relation'.
