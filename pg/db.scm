@@ -364,13 +364,10 @@
   (if debug-handles (logformat-color 'green "find-or-connect: ~a ~a ~a\n"
                       host port database))
   ;; connect
-  (let* ((pg (apply pg-open
-                    (apply
-                     append
-                     (cond-list
-                      (host `(:host ,host))
-                      (database `(:dbname ,database)) ;if not given?
-                      (port `(:port ,port))))))
+  (let* ((pg (pg-open
+              :host host
+              :port port
+              :dbname database))
          ;; <pg> keeps ... types?
          ;;
          (pgc (ref pg 'conn))
