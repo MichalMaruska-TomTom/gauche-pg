@@ -58,10 +58,11 @@ test : all
 	# debian can run all under pg_virtualenv
 	# pg_isready
 	# test/pg-hi.scm test/types.scm
+	set -e; \
 	for test in test/pg-low.scm test/pg-types.scm test/pg-hi.scm test/caching.scm \
 		test/pg-db.scm test/pg-database.scm test/pg-keys.scm test/pg-sql.scm \
 		test/hi.scm test/links.scm test/pg-recordset.scm ; do \
-	gosh -I scm/ -I .  -ftest $$test; \
+		GAUCHE_TEST_REPORT_ERROR=1 gosh -I scm/ -I .  -ftest $$test; \
 	done
 
 #	@rm -f test.log
