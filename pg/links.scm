@@ -80,6 +80,7 @@
 ;; -  <pg-attribute>  ..
 ;; - (relation/relname attname/attnum ....)
 (define (pg:convert-to-attributes db spec)
+  (DB "pg:convert-to-attributes")
   (append-map
    (lambda (dep)
      (if (is-a? dep <pg-attribute>)
@@ -129,7 +130,7 @@
         (pg-make-hypergraph-on-attributes)))
 
   (let1 directions (pg:convert-to-attributes db dependency)
-    (if debug (logformat "pg:record-link: ~a  ---- > ~a   (~a)\n" directions points info))
+    (DB "pg:record-link: ~a  ---- > ~a   (~a)\n" directions points info)
     (let1 rule (make <hypergraph-rule>
                  :set directions
                  :provided points
@@ -211,12 +212,13 @@
 ;; todo: This should accept the pg-links object !
 ;; useless for now?
 (define (pg:prepare-fk-links db)
-  (logformat "pg:prepare-fk-links: using only the PUBLIC namespace!\n")
+  (DB "pg:prepare-fk-links: using only the PUBLIC namespace!\n")
   ;; f-key:  slave -> foreign/master
   ;;         foreign/master -> recordset  names {relname}-of
   (for-each-reverse
       (pg:load-foreign-keys (pg:get-namespace db "public"))
     (lambda (fkey)
+      (DB "exploring the F-key ~a\n" fkey)
       ;; fixme: this should be a link
       ;; fixme!
       (let ((s-fields (ref fkey 's-fields))
