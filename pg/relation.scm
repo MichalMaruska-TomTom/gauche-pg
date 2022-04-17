@@ -444,18 +444,20 @@
 ;;;
 ;;;  __Attributes__
 ;;; Keeping the attributes list:
-(define (enlarge-n-load-attributes! relation min-attribute pg)
+(define (enlarge-n-load-attributes! relation min-attribute) ; pg-handle
   (let (;(new-attributes (shift-vector-by (slot-ref relation 'attributes) (- min-attribute)))
         (old-minimum (ref relation 'attribute-min)))
     (if debug
-        (logformat "I have to get more attributes for ~a, since attribute ~d is in p-key!\n" (ref relation 'name) min-attribute))
+        (logformat "I have to get more attributes for ~a, since attribute ~d is in p-key!\n"
+          (ref relation 'name) min-attribute))
     ;; fill-in the attribute info on new-minimum .... old-minimum!
     (slot-set! relation 'attributes
       (shift-vector-by  (slot-ref relation 'attributes) (- old-minimum min-attribute)))
     (slot-set! relation 'attribute-min min-attribute)
     ;; mmc: oh!
     (error "mess!")
-    (get-attributes-of! relation pg min-attribute (- old-minimum 1))))
+    ;;(get-attributes-of! relation pg-handle min-attribute (- old-minimum 1))
+    ))
 
 
 ;; internal function:
@@ -530,7 +532,7 @@
   (if (< n (ref relation 'attribute-min))
       ;; we have to load info on this one!
       ;; I should LOCK...
-      (enlarge-n-load-attributes! relation n (->db relation)))
+      (enlarge-n-load-attributes! relation n)) ; (->db relation)
   (vector-ref (ref relation 'attributes)
               (- n
                  (ref relation 'attribute-min))))
