@@ -42,9 +42,15 @@
    ;; hi-level:
    sql:get-tuples-alist
    sql:uniquefy-by-attnames-where
+
+   ;; specific
+   sql:pkey-of
+   sql:unique-tuples
    )
+
   (use adt.string)
   (use adt.list)
+
   (use pg)
   (use pg-hi)
   (use pg.types)
@@ -415,6 +421,39 @@
           (apply s+ set)))
        ", "
        attname-quoted ")")))))
+
+
+;;; Specific queries:
+(define (sql:pkey-of relation-oid)
+  (sql:select-u
+   '(conkey conname)
+   :from "pg_constraint"
+   :where
+   (s+
+    "conrelid = " ((pg:printer-for "oid") relation-oid) ;; fixme:
+    ;(pg:int-printer)
+    ;;(relname->relid handle relname)) ;I don't like this!
+    " AND "
+    ;;" conname='" relname "_pkey'"
+    "contype = 'p'")))
+
+(define (sql:unique-tuples relation-oid)
+  ;;
+  (sql:select-u
+   '(conkey conname)
+   :from "pg_constraint"
+   :where
+   (s+
+    "conrelid = " ((pg:printer-for "oid") relation-oid) ;; fixme:
+                                        ;(pg:int-printer)
+    ;;(relname->relid handle relname)) ;I don't like this!
+    " AND ("
+    ;;" conname='" relname "_pkey'"
+    "contype = 'p'"
+    " OR "
+    "contype = 'u'"
+    ")"
+    )))
 
 
 (provide "pg/sql")

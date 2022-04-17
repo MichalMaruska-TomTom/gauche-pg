@@ -91,4 +91,13 @@ sql:update
 sql:uniquefy-by-attnames-where
 
 
+(test-section "Postgresql specific queries")
+;; fixme: the test basically needs a PG connection!
+
+(let1 oid 546
+  (test* "sql:pkey-of"
+         (format #f "SELECT conkey, conname FROM pg_constraint WHERE conrelid = ~d AND contype = 'p'" oid)
+         (sql:pkey-of oid)))
+
+
 (test-end :exit-on-failure #t)
