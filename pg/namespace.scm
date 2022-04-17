@@ -7,7 +7,7 @@
    <pg-namespace>
 
    ;; name -> object -> oid
-   pg:nspname->namespace
+   pg:nspname->namespace                ;; deprecated!
    pg:get-namespace
 
    pg:namespace->oid
@@ -89,7 +89,7 @@
 (define pg:extract-namespace pg:find-namespace)
 
 ;; given NAME return `<pg-namespace>' object
-(define (pg:nspname->namespace db nspname)
+(define (pg:get-namespace db nspname)
   (with-locking-mutex* (ref db 'namespaces-mutex)
     (or
      (find (lambda (ns)
@@ -99,7 +99,8 @@
            (ref db 'namespaces))
      (errorf "cannot find namespace ~a for DB ~a" nspname db))))
 
-(define pg:get-namespace pg:nspname->namespace)
+;; deprecated:
+(define pg:nspname->namespace pg:get-namespace)
 
 
 ;; returns just the oid
