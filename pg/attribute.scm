@@ -11,6 +11,8 @@
    pg:attribute-type
    relation-of
 
+   pg-attribute-names
+
    pg-attribute<
    )
   )
@@ -52,5 +54,8 @@
     (or
      (ref (ref o 'relation) 'name)
      "??")))
+
+(define (pg-attribute-names attributes)
+  (map pg:attribute-name attributes))
 
 (provide "pg/attribute")
