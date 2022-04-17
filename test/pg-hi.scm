@@ -48,3 +48,5 @@
 
 
 (test-section "Other commands")
+
+(test-end :exit-on-failure #t)
