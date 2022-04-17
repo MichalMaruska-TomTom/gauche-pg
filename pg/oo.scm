@@ -1,7 +1,7 @@
 ;;; this needs redesign/review
 
 
-;;  tight  binding between  DB `tuples' (objects)  and gauche `objecs'
+;;  tight  binding between  DB `tuples' (objects)  and gauche `objects'
 
 
 ;; I have 2 ways:  either
@@ -22,6 +22,8 @@
    db-where
    db-delete
    db-lookup
+
+   find-full-intentification
    )
 
   (use pg-hi)                           ;exec
@@ -49,6 +51,7 @@
 (define debug #f)
 
 (define-generic db-delete)
+(define-generic db-update-object)
 
 ;;;
 (define-class <db-stored-class-info> ()
@@ -129,87 +132,119 @@
 
 ;; (sql:update relname values-alist where)
 ;; `slot-values' is   ((slot . new-value) ....)
-(define (db-update-object object relation slot-values mapping) ;;db
-  (if debug (logformat "db-update-object: ~s\n" slot-values))
+(define-method db-update-object ((object <db-stored-class-info>) data-object slot-values)
+  (DB "db-update-object: ~s\n" slot-values)
+  (let ((relation (slot-ref object 'db-relation))
+         (mapping (slot-ref object 'attribute-mapping))
+         (identificating-slots (find-full-intentification object data-object))
+         )
+  ;; fixme: maybe this should avoid using those which change? or not!
   ;(logformat "db-update-object: ~a\n" mapping)
-  ;(let1 pg (->db relation)
-  (pg:with-handle-of* relation pg
-    (pg-exec pg
-      (sql:update
-       (name-of relation)
+    (let1 query
+        (sql:update
+         (name-of relation)
+         ;; Alist   attname value
+         (map
+             (lambda (slot-value)
+               (let* ((attribute (aget mapping (car slot-value)))
+                      (type (pg:attribute-type attribute)))
+                 (logformat "should update slot: ")
+                 (cons
+                  (ref attribute 'attname)
+                  (scheme->pg type (cdr slot-value))))) ;(slot-ref object slot)
+           slot-values)
+         ;; where:
+         (db-where relation mapping data-object identificating-slots))
 
-       ;; Alist   attname value
-       (map
-           (lambda (slot-value)
-             (let* ((attribute (aget mapping (car slot-value)))
-                    (type (pg:attribute-type attribute)))
-               (logformat "should update slot: ")
-               (cons
-                (ref attribute 'attname)
-                (scheme->pg type (cdr slot-value))))) ;(slot-ref object slot)
-         slot-values)
-       (db-where relation mapping object))))
-  ;; now:
-  ;; update the object itself!
-  (for-each
-      (lambda (slot-value)
-        (logformat-color 49 "db-update-object: ~a ~a <- ~a\n" ;'orange
-          (car slot-value)
-          (cdr slot-value)
-          (slot-ref object (car slot-value)))
-        (slot-set! object (car slot-value) (cdr slot-value)))
-    slot-values))
-
-
-
+      (pg:with-handle-of* relation pg-handle
+        (pg-exec pg-handle query))
+      ;; now:
+      ;; update the object itself!
+      (for-each
+          (lambda (slot-value)
+            (DB "db-update-object: ~a ~a <- ~a\n"
+                (car slot-value)
+                (cdr slot-value)
+                (slot-ref object (car slot-value)))
+            ;; Overwrite:
+            (slot-set! object (car slot-value) (cdr slot-value)))
+        slot-values))))
 
 ;;  DESC is  db-stored-class-info:
 ;;  data gives the p-key data!
 ;;  and the connection!
-(define (db-where relation mapping object)
+(define (db-where relation mapping object :optional slot-subset)
   ;;(let ((mapping (slot-ref desc 'attribute-mapping)))
-  (if debug (logformat "db-where: ~a and complete: ~a\n" mapping (ssm-complete mapping)))
-  (let1 p-key (pg:primary-key-of relation)
-    (string-join
-        (map
-            ;; type !!!!
-            (lambda (attribute)
-              ;; Get the slot:
-              ;;(logformat "db-where: looking for ~s\n" attribute)
-              (let* ((slot (car (rassoc attribute mapping))) ; getting #f without problem is not good!
-                     (type (pg:attribute-type  attribute)))
-                ;;
-                (if (slot-bound? object slot)
-                    (string-append
-                     (pg:name-printer (ref attribute 'attname))
-                     " = "
-                     (scheme->pg type (slot-ref object slot)))
-                  (error "db-where: attribute from primary key is not bound:" slot))))
-          p-key)
-        " AND ")))
+  (DB "db-where: ~a and complete: ~a\n" mapping (ssm-complete mapping))
+  (if (undefined? slot-subset)
+      (set! slot-subset (pg:primary-key-of relation)))
 
+  (string-join
+      (map
+          ;; type !!!!
+          (lambda (attribute)
+            (DB "db-where: looking for ~s\n" attribute)
+            (let* ((slot (car (rassoc attribute mapping))) ; getting #f without problem is not good!
+                   (type (pg:attribute-type  attribute)))
+              ;;
+              (if (slot-bound? object slot)
+                  (string-append
+                   (pg:name-printer (ref attribute 'attname))
+                   " = "
+                   (scheme->pg type (slot-ref object slot)))
+                (error "db-where: attribute from primary key is not bound:" slot))))
+        slot-subset)
+      " AND "))
+
+;; returns: list of pg-attributes
+;; db-coordinates
+(define (find-full-intentification object data-object)
+  (assert (is-a? object <db-stored-class-info>))
+  ;; find the list of populated slots in `data-object' which can locate it in the PG relation.
+  ;; so data-object answers -- is the slot bound?
+
+  (let ((relation (slot-ref object 'db-relation))
+        ;;  (attribute . slot-name)
+        (mapping (slot-ref object 'attribute-mapping)))
+
+    (let1 available-mapping
+        (filter (lambda (pair)
+                  (slot-bound? data-object (car pair)))
+          mapping)
+
+      (DB "available-slots ~s\n" available-mapping)
+
+      (let1 unique-keys
+             ;; (pg:with-handle-of rel-info handle
+             ;; fixme: this should memoize!
+          (pg:load-unique-indices (slot-ref object 'handle)
+                                  relation)
+        ;; filter
+        (find
+         (lambda (tuple)
+           (DB "testing ~a\n" tuple)
+           ;; subset of available-slots
+           (DB "against ~a\n" (alist->values available-mapping))
+           (lset<= eq? tuple (alist->values available-mapping)))
+         unique-keys)))))
 
 ;; todo:    db-delete-and-backup
 ;;
 (define-method db-delete ((object <db-stored-class-info>) data-object)
-  (logformat "->db in db-delete\n")
-  (let* ((rel-info (slot-ref object 'db-relation))
+  (logformat "db-delete ~s\n" data-object)
+  (let* ((relation (slot-ref object 'db-relation))
          (mapping (slot-ref object 'attribute-mapping))
-         (attributes (ref rel-info 'types)) ;'attributes
-         (db (->db data-object))        ; get it !!
-
-         (p-key (pg:attribute-indexes->names
-                 rel-info
-                 (slot-ref rel-info 'p-key))) ;not bound ->  error !
-         (slots (project p-key (ssm-inverse mapping))))
-    ;;  primary key known?
-    ;; all
-    (string-append
-     "DELETE FROM " (name-of rel-info)
-     " WHERE "
-     (db-where object data-object)
-     ";")))
-
+         )
+    (let1 identificating-slots (find-full-intentification object data-object)
+      (string-append
+       "DELETE FROM " (name-of relation)
+       " WHERE "
+       ;; identificating-slots
+       ;; relation mapping object :optional slot-subset
+       (db-where relation mapping data-object identificating-slots)
+       ";")
+                                        ;(error "cannot delete")
+      )))
 
 
 ;; this is like   find, delete -> not remove (takes predicate)!
