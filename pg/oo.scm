@@ -52,6 +52,7 @@
 
 (define-generic db-delete)
 (define-generic db-update-object)
+(define-generic db-where)
 
 ;;;
 (define-class <db-stored-class-info> ()
@@ -154,7 +155,7 @@
                   (scheme->pg type (cdr slot-value))))) ;(slot-ref object slot)
            slot-values)
          ;; where:
-         (db-where relation mapping data-object identificating-slots))
+         (db-where-internal relation mapping data-object identificating-slots))
 
       (pg:with-handle-of* relation pg-handle
         (pg-exec pg-handle query))
@@ -173,9 +174,9 @@
 ;;  DESC is  db-stored-class-info:
 ;;  data gives the p-key data!
 ;;  and the connection!
-(define (db-where relation mapping object :optional slot-subset)
+(define (db-where-internal relation mapping object :optional slot-subset)
   ;;(let ((mapping (slot-ref desc 'attribute-mapping)))
-  (DB "db-where: ~a and complete: ~a\n" mapping (ssm-complete mapping))
+  (DB "db-where-internal: ~a and complete: ~a\n" mapping (ssm-complete mapping))
   (if (undefined? slot-subset)
       (set! slot-subset (pg:primary-key-of relation)))
 
@@ -183,7 +184,7 @@
       (map
           ;; type !!!!
           (lambda (attribute)
-            (DB "db-where: looking for ~s\n" attribute)
+            (DB "db-where-internal looking for ~s\n" attribute)
             (let* ((slot (car (rassoc attribute mapping))) ; getting #f without problem is not good!
                    (type (pg:attribute-type  attribute)))
               ;;
@@ -192,7 +193,7 @@
                    (pg:name-printer (ref attribute 'attname))
                    " = "
                    (scheme->pg type (slot-ref object slot)))
-                (error "db-where: attribute from primary key is not bound:" slot))))
+                (error "db-where-internal attribute from primary key is not bound:" slot))))
         slot-subset)
       " AND "))
 
@@ -228,6 +229,10 @@
            (lset<= eq? tuple (alist->values available-mapping)))
          unique-keys)))))
 
+(define-method db-where ((object <db-stored-class-info>) data-object)
+  (db-where-internal (slot-ref object 'db-relation)
+                     (slot-ref object 'attribute-mapping) data-object))
+
 ;; todo:    db-delete-and-backup
 ;;
 (define-method db-delete ((object <db-stored-class-info>) data-object)
@@ -241,7 +246,7 @@
        " WHERE "
        ;; identificating-slots
        ;; relation mapping object :optional slot-subset
-       (db-where relation mapping data-object identificating-slots)
+       (db-where-internal relation mapping data-object identificating-slots)
        ";")
                                         ;(error "cannot delete")
       )))
