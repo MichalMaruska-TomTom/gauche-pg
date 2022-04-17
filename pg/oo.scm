@@ -18,7 +18,7 @@
    ;; fixme: generic !!
    ;; db-insert
    db-insert-object
-   db-update-object
+   db-update
    db-where
    db-delete
    db-lookup
@@ -51,7 +51,7 @@
 (define debug #f)
 
 (define-generic db-delete)
-(define-generic db-update-object)
+(define-generic db-update)
 (define-generic db-where)
 
 ;;;
@@ -131,14 +131,14 @@
 
 ;; (sql:update relname values-alist where)
 ;; `slot-values' is   ((slot . new-value) ....)
-(define-method db-update-object ((object <db-stored-class-info>) data-object slot-values)
-  (DB "db-update-object: ~s\n" slot-values)
+(define-method db-update ((object <db-stored-class-info>) data-object slot-values)
+  (DB "db-update: ~s\n" slot-values)
   (let ((relation (slot-ref object 'db-relation))
          (mapping (slot-ref object 'attribute-mapping))
          (identificating-slots (find-full-intentification object data-object))
          )
   ;; fixme: maybe this should avoid using those which change? or not!
-  ;(logformat "db-update-object: ~a\n" mapping)
+  ;(logformat "db-update: ~a\n" mapping)
     (let1 query
         (sql:update
          (name-of relation)
@@ -161,7 +161,7 @@
       ;; update the object itself!
       (for-each
           (lambda (slot-value)
-            (DB "db-update-object: ~a ~a <- ~a\n"
+            (DB "db-update: ~a ~a <- ~a\n"
                 (car slot-value)
                 (cdr slot-value)
                 (slot-ref object (car slot-value)))
