@@ -42,6 +42,7 @@
   (use macros.aif)
   (use macros.assert)
 
+  (use alg.find)
   (use adt.alist)
   (use adt.ssm)
   )
