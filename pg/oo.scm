@@ -63,7 +63,7 @@
                 ;:allocation  :each-subclass
                 )
    ;; fixme: why is this here?
-   ;; (handle :init-keyword :handle)
+   (handle :init-keyword :handle)
    (object-class :init-keyword :object-class)
    ;;  ssm:
    ;; :allocation   :each-subclass
