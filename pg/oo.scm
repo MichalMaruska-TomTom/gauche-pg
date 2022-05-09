@@ -62,7 +62,8 @@
   ((db-relation :init-keyword :db-relation
                 ;:allocation  :each-subclass
                 )
-   (handle :init-keyword :handle)
+   ;; fixme: why is this here?
+   ;; (handle :init-keyword :handle)
    (object-class :init-keyword :object-class)
    ;;  ssm:
    ;; :allocation   :each-subclass
