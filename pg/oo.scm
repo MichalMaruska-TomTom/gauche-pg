@@ -166,7 +166,7 @@
              (lambda (slot-value)
                (let* ((attribute (aget mapping (car slot-value)))
                       (type (pg:attribute-type attribute)))
-                 (logformat "should update slot: ")
+                 (logformat "should update slot: ~a\n" (ref attribute 'attname))
                  (cons
                   (ref attribute 'attname)
                   (scheme->pg type (cdr slot-value))))) ;(slot-ref object slot)
