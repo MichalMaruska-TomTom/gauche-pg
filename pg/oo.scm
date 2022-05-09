@@ -147,9 +147,10 @@
          value-list
          attnames)))))
 
-;; (sql:update relname values-alist where)
 ;; `slot-values' is   ((slot . new-value) ....)
-(define-method db-update ((object <db-stored-class-info>) data-object slot-values)
+;; fixme: should accept a pg-handle
+;; @returns SQL or commits it?
+(define-method db-update ((object <db-stored-class-info>) data-object slot-values pg-handle)
   (DB "db-update: ~s\n" slot-values)
   (let ((relation (slot-ref object 'db-relation))
          (mapping (slot-ref object 'attribute-mapping))
@@ -173,8 +174,7 @@
          ;; where:
          (db-where-internal relation mapping data-object identificating-slots))
 
-      (pg:with-handle-of* relation pg-handle
-        (pg-exec pg-handle query))
+      (pg-exec pg-handle query)
       ;; now:
       ;; update the object itself!
       (for-each
