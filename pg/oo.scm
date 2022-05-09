@@ -40,6 +40,7 @@
   (use mmc.simple)
   (use mmc.log)
   (use macros.aif)
+  (use macros.assert)
 
   (use adt.alist)
   (use adt.ssm)
