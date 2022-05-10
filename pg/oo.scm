@@ -178,13 +178,16 @@
       ;; now:
       ;; update the object itself!
       (for-each
-          (lambda (slot-value)
+          (lambda (slot-value-pair)
             (DB "db-update: ~a ~a <- ~a\n"
-                (car slot-value)
-                (cdr slot-value)
-                (slot-ref object (car slot-value)))
+                (car slot-value-pair)
+                (cdr slot-value-pair)
+                ;; it does not have it!
+                (if (slot-bound? data-object (car slot-value-pair))
+                    (slot-ref data-object (car slot-value-pair))
+                  'undefined))
             ;; Overwrite:
-            (slot-set! object (car slot-value) (cdr slot-value)))
+            (slot-set! data-object (car slot-value-pair) (cdr slot-value-pair)))
         slot-values))))
 
 ;;  DESC is  db-stored-class-info:
