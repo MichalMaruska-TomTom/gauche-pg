@@ -316,7 +316,7 @@
 ;; see:
 ;; write-kahua-instance
 
-(define (pg:update-tuple object)
+(define (pg:update-tuple relation modified-slots object)
   (let1 where-alist
       (map
 	  ;; fixme: This must be present! If P-key is not known, we must not run the UPDATE!
@@ -376,7 +376,7 @@
               (map symbol->string modified-slots))
 
            ;; let's first construct this, as without it it's a no-go situation:
-	   (pg:update-tuple tuple))))
+	   (pg:update-tuple relation modified-slots object))))
      ;; todo: check that only 1 object is updated indeed?
 
      ;; Reset:
