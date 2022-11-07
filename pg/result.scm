@@ -352,15 +352,17 @@
     (slot-push! tuple 'attribute-index-alist (cons index attnum)))
 
 
-  (define (report-found-attribute relation-oid table-col i relation-index)
+  (define (report-found-attribute i column-name relation-oid table-col relation-index)
     (let1 relation (if (zero? relation-oid)
                        "-UNKNOWN RELATION-"
                      (pg:get-relation-by-oid database relation-oid))
       (logformat-color 227
-          "column ~d is from (index ~d): ~a ~a\n" i relation-index relation
-          (if (is-a? relation <pg-relation>)
-              (pg:nth-attribute relation table-col)
-            "---"))))
+          "column ~a (~d) is from tuple (index ~d): ~a ~a\n"
+        column-name i
+        relation-index relation
+        (if (is-a? relation <pg-relation>)
+            (pg:nth-attribute relation table-col)
+          "---"))))
 
 
   (let1 tuples '()
@@ -371,8 +373,12 @@
       (let1 relation-index (pg-fsource result i)
 
         (when debug
-          (report-found-attribute (pg-ftable result i) (pg-ftablecol result i)
-                                  i relation-index))
+          (report-found-attribute i
+                                  (pg-fname result i)
+                                  (pg-ftable result i)
+                                  ;; fixme:
+                                  (pg-ftablecol result i)
+                                  relation-index))
         (when (and (> relation-index -1) ;; fixme:
                    (> (pg-ftable result i) 0))
           (let1 tuple (aget tuples relation-index) ; could be a vector?
