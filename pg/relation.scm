@@ -475,6 +475,25 @@
     ))
 
 
+;;
+(define (store-attributes-into-vector-hash! handle result relation offset
+                                            vector attributes-hash)
+  ;; fixme: This should be a method!
+  (pg-foreach-result result
+      (list "attnum" "attname" "atttypid")
+    (lambda (num name type-oid)
+      (hash-table-put! attributes-hash
+                       name num)
+      (let* ((type (pg-find-type handle type-oid))
+             (attribute (make <pg-attribute>
+                          :relation relation
+                          :attnum num
+                          :attname name
+                          :atttyp type)))
+        ;; (DB "~d -> ~a\n" (+ offset num) name)
+        (vector-set! vector (+ offset num)
+                     attribute)))))
+
 ;; internal function:
 ;; returns 2 values:
 ;; @hash  (attname->index mapping)
@@ -506,30 +525,23 @@
                       (values
                        (slot-ref relation 'attributes)
                        (slot-ref relation 'attributes-hash))
-                    (values
-                     (make-vector (+ (max to (- from to))
-                                     ;; (pg-get-value result (- count 1) 0)
-                                     1)   #f) ; bug: count
-                     (make-hash-table 'string=?))))
-                 )
-      (DB "count is ~d\n" count)
+                    (let* ((size(+ (max to (- from to))
+                                   ;; (pg-get-value result (- count 1) 0)
+                                   1))
+                           (vector (make-vector size #f))
+                           (hash (make-hash-table 'string=?)))
 
-      ;; fixme: This should be a method!
-      (pg-foreach-result result
-          (list "attnum" "attname" "atttypid")
-        (lambda (num name type-oid)
-          (hash-table-put! attributes-hash
-                           name num)
-          (let* ((type (pg-find-type handle type-oid))
-                 (attribute (make <pg-attribute>
-                              :relation relation
-                              :attnum num
-                              :attname name
-                              :atttyp type)))
-            (vector-set! info-vector (+ offset num)
-                         attribute))))
+                      (DB "creating vector ~d to store attributes\n" size)
+                      (slot-set! relation 'attributes vector)
+                      (slot-set! relation 'attributes-hash hash)
+                                        ;vector
+                      (values vector hash) ; bug: count
+                      ))))
 
       (values attributes-hash info-vector))))
+      (store-attributes-into-vector-hash! handle result relation offset
+                                          info-vector attributes-hash)
+
 
 
 
