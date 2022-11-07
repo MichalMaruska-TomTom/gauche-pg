@@ -559,7 +559,9 @@
   (if (< n (ref relation 'attribute-min))
       ;; we have to load info on this one!
       ;; I should LOCK...
-      (enlarge-n-load-attributes! relation n)) ; (->db relation)
+      (error "enlarge-n-load-attributes! is bad")
+    ;(enlarge-n-load-attributes! relation n)
+    )
   (vector-ref (ref relation 'attributes)
               (- n
                  (ref relation 'attribute-min))))
