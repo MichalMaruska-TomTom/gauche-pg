@@ -303,7 +303,7 @@
 
             ;; `types
             (unless (slot-bound? rel 'attributes) ;(slot-ref rel 'types)  ;
-              (receive (hash vector)
+              (receive (vector hash)
                   (get-attributes-of! rel pgh 0 relnatts)
 
                 (slot-set! rel 'attributes-hash hash) ; fixme!
@@ -538,10 +538,10 @@
                       (values vector hash) ; bug: count
                       ))))
 
-      (values attributes-hash info-vector))))
       (store-attributes-into-vector-hash! handle result relation offset
                                           info-vector attributes-hash)
 
+      (values info-vector attributes-hash))))
 
 
 
