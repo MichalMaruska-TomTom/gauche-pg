@@ -1,3 +1,127 @@
+gauche-pg (4.0) unstable; urgency=medium
+
+  * fixme: relhaspkey relhasoids no more in pg_class
+  * fix: currval
+  * spaces
+  * spaces
+  * spaces
+  * add missing import
+  * spaces
+  * move necessary definition into pg-low
+  * pg-low: rename to pg-map-whole-table
+  * spaces -- lines
+  * test/pg-low.scm: test all api
+  * fix comment/description
+  * rename to currval
+  * spaces
+  * document pg.scm as the wrapper for C
+  * spaces
+  * pg.types: avoid dependence on all but libpq/C.
+  * pg/caching.scm: Don't connect during GET. Use ephemerons of hashes
+  * Add tests for: test/pg-types.scm test/pg-hi.scm  test/caching.scm
+  * pg-hi: reposition pg-deleted in source-file
+  * spaces
+  * pg-hi: move away  pg:load-alist pg:load-hash
+  * pg-hi: update/adpat the type related code
+  * spaces
+  * sq types
+  * pg-hi: move pg-backend-pid1
+  * pg-hi: comments
+  * pg-hi simplify naming of internal functions
+  * pg-hi missing import ??
+  * sq comments
+  * space
+  * pg-hi: pg-result-prepare! only retrieves the type _name_
+  * pg.db: tests and rename to find-or-connect
+  * db add missing dependency s+
+  * test/pg-db.scm: rename
+  * Add tests for: test/pg-db.scm test/pg-database.scm test/links.scm
+  * spaces
+  * spaces
+  * Add tests for pg.keys and pg.sql
+  * pg/keys.scm: fix dependency
+  * sql: fix what test revealed
+  * sql: cleanup
+  * fix keys test
+  * fix test/links
+  * pg.db pg:connect-to-database: handle keywords
+  * adapt
+  * pg-hi: export pg-handle-description
+  * pg-hi: fix pg-compose-conninfo
+  * update pg:name-printer to leave namespace.relname
+  * pg.hi fix imports ... expand pg.database
+  * recordset: drop non-existing for-each-with-index
+  * test pg.recordset
+  * pg.relation: stop querying for relhaspkey
+  * pg.relation: stop querying for relhassubclass
+  * Use correctly catch
+  * add test/pg-recordset.scm
+  * Turn off debug
+  * fix test pg.recordset
+  * test/pg-low: more symbolic comparison of the Status
+  * clarify error message (from code moved to different function)
+  * tests: stop using Env to tune pg:connect-to-database
+  * test pg-db: test pg:with-private-handle* connects to the SAME
+  * fix pg.relation -- association
+  * test for relation
+  * result: fix wrong var. naming
+  * split-result-into-tuples: rework (! pg-fsource seems broken!)
+  * don't use undefined db-of
+  * fix naming DB
+  * fix comments
+  * suppress too verbosity
+  * test pg.result
+  * Insist on all errors pass
+  * Drop old commens on how test work.
+  * scheme->pg: fix a bit
+  * oo: adapt to types (printer)
+  * Move <db-stored-class> from oo to db-stored-class
+  * simplify the selct-k/u variants
+  * adapt to alist rename of alist->keys alist->values
+  * pg/attribute: new pg-attribute-names
+  * Add a test pg.attribute
+  * pg.sql: Add specific queries for constraints -- pkey & unique
+  * fixme: enlarge-n-load-attributes! is broken
+  * space
+  * pg.relation: add pg:load-unique-indices, share with load-p-key
+  * adapt to alist-project
+  * pg.db adapt to pg-open
+  * Use DB
+  * namespace: pg:nspname->namespace is deprecated, use pg:get-namespace
+  * pg.oo: find-full-intentification, change db-update-object
+  * test pg/relation: pg:load-unique-indices, pg:load-unique-indices
+  * enforce tests
+  * test/low: ignore failure to drop SCHEMA
+  * test/low: fix typo
+  * test/low: test for oid, not relname
+  * test/database fix typo
+  * add test/hi
+  * pg-hi: error on test failure
+  * test/hi: careful with dropping the test schema
+  * test/pg-low: correct the comparison with string
+  * pg.oo: make db-where a method
+  * There is no db-insert
+  * oo: rename to db-update
+  * oo rework and rename db-insert
+  * test pg.oo
+  * docs: explain the layers of abstraction by .. connect/exec and result types
+  * sq db-stored-class.scm
+  * fix oo assert
+  * fix oo alg.find
+  * oo: handle is not part of the definition -- should be provided to methods explicitly
+  * db-update ... takes then handle as parameter
+  * restore :handle since to generate SQL I need to lookup indices
+  * oo: improve log
+  * oo: fix update of unassigned slot -- data-object
+  * fixup! "separate pg:update-tuple functionality"
+  * pg/relation: extract   store-attributes-into-vector-hash!
+  * result: extend report-found-attribute
+  * get-attributes-of now returns values in reverse order
+  * pg/relation: enlarge-n-load-attributes! is broken!
+  * test/result -- test the tuple splitting on non-trivial case
+
+ -- Michal Maruska <mmaruska@gmail.com>  Tue, 08 Nov 2022 18:40:07 +0100
+
 gauche-pg (3.1) unstable; urgency=medium
 
   * cleanup .. drop comments, spaces, empty lines
