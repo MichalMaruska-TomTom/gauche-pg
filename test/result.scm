@@ -34,11 +34,13 @@
     (pg-exec pgconn
       ;; 1,  fails!
       ;; "select 1, * from person A, person B WHERE A.numero = 1309 and B.numero = A.numero -1"
-      "select 1, * from person where numero = 1309"
+      ;; "select 1, * from person where numero = 1309"
+      ;;
+      "SELECT t.partner as numero, t.scelta,  h * 100/w as \"foto-ratio\", p.status, p.citta, p.nome, p.nazionalita, p.stato, p.eta, p.altezza, p.peso FROM pes_results t join person p on (t.partner= p.numero) left outer join foto_raw f on (t.partner=f.numero) WHERE fcat = '' and findex = 0 and (ticket = 47024) ORDER BY ultimo_contatto desc,numero desc LIMIT 201 OFFSET 0"
       )))
 
 (test* "split-result-into-tuples"
-       1
+       2
        (let1 tuples-alist
            (split-result-into-tuples pg-database result)
          ;;(caar tuples-alist)
